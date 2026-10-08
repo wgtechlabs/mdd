@@ -33,10 +33,10 @@ let initial = true;
 let errorCount = 0;
 let recovered = false;
 const messages = [];
-async function until(check) {
+async function until(check, stage) {
   const deadline = Date.now() + 4000;
   while (!(await check())) {
-    if (Date.now() > deadline) throw new Error("Preview missed an edit before watcher attachment.");
+    if (Date.now() > deadline) throw new Error(stage + ": " + JSON.stringify({ errorCount, messages }));
     await new Promise(resolve => setTimeout(resolve, 10));
   }
 }
@@ -63,22 +63,27 @@ try {
     error: error => { throw error; },
   });
   const origin = messages.find(message => message.startsWith("Preview on ")).match(/http:\\/\\/127\\.0\\.0\\.1:\\d+/)[0];
+  async function read(route) {
+    const response = await fetch(origin + route, { signal: AbortSignal.timeout(1000) });
+    const body = await response.text();
+    return { status: response.status, body };
+  }
   async function hasPage(route) {
-    try { return (await fetch(origin + route)).status === 200; }
+    try { return (await read(route)).status === 200; }
     catch { return false; }
   }
-  await until(() => hasPage("/early/"));
+  await until(() => hasPage("/early/"), "Initial edit was not served");
   await writeFile(join(content, "index.md"), "# Broken\\n\\n[Missing](missing.md)\\n");
   listeners.get(content)("change", "index.md");
-  await until(() => errorCount === 1);
+  await until(() => errorCount === 1, "Invalid content was not reported");
   await writeFile(join(root, "mdd/config.json"), JSON.stringify({ paths: { contents: "../replacement" } }));
   listeners.get(join(root, "mdd"))("change", "config.json");
-  await until(() => errorCount === 2);
-  assert.equal((await fetch(origin + "/healthz")).status, 200);
-  assert.ok((await (await fetch(origin + "/")).text()).includes("Replacement"));
+  await until(() => errorCount === 2, "Invalid catch-up was not reported");
+  assert.equal((await read("/healthz")).status, 200);
+  assert.ok((await read("/")).body.includes("Replacement"));
   await writeFile(join(replacement, "next.md"), "# New page\\n");
   listeners.get(replacement)("change", "next.md");
-  await until(() => hasPage("/next/"));
+  await until(() => hasPage("/next/"), "Repaired content was not served");
   assert.equal(recovered, true);
 } finally {
   if (preview) await preview.close();
