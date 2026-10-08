@@ -176,8 +176,15 @@ export async function dev(
   try {
     await watchInputs(initial.site);
     // Cover edits between the initial compile and watcher attachment as well.
-    schedule(0);
+    // Finish before announcing readiness so startup has no pending restart.
+    dirty = true;
+    pending = rebuild().finally(() => {
+      pending = undefined;
+    });
+    await pending;
   } catch (error) {
+    for (const watcher of watchers) watcher.close();
+    if (timer) clearTimeout(timer);
     await closeServer(server);
     throw error;
   }

@@ -72,7 +72,7 @@ try {
     try { return (await read(route)).status === 200; }
     catch { return false; }
   }
-  await until(() => hasPage("/early/"), "Initial edit was not served");
+  assert.equal((await read("/early/")).status, 200);
   await writeFile(join(content, "index.md"), "# Broken\\n\\n[Missing](missing.md)\\n");
   listeners.get(content)("change", "index.md");
   await until(() => errorCount === 1, "Invalid content was not reported");

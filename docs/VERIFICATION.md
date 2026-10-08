@@ -26,6 +26,8 @@ Final local validation after these fixes: `bun run check` passed lint, typecheck
 
 CI on commit `25e1917` passed tests, coverage, and package smoke in the Node 22 and 26 jobs, but the Node 24 job still intermittently timed out while polling a new preview route. Review found that the test helper left unsuccessful HTTP response bodies unread. After correcting that helper, the original CLI preview test passed in all three jobs on `a5c0e65`; the new watcher regression then hit the same polling issue. Both helpers now consume every response and include the current stage or child output when polling times out. This corrects test resource handling without changing success criteria or increasing timeouts; the next CI run must establish its outcome.
 
+On `7d5723e`, both watcher regressions passed, but an immediate preview request exposed a startup readiness race: the initial catch-up rebuild could restart the server after readiness was announced. An immediate request for an edit made during startup reproduced a 404 locally. Startup now waits for that tracked rebuild before announcing readiness, and the regression requires HTTP 200 immediately after `dev` returns.
+
 The same run's Gitleaks action could not start because `GITLEAKS_LICENSE` was absent. Its later generic failure message said secrets were detected, but the action log reported a missing organization license, not a completed scan. The secret must be made available to this repository and the scan rerun. The security gate remains enabled.
 
 ## Scope
