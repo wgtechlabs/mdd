@@ -2,22 +2,23 @@ import { expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 
 test("dev catches edits made before new input watchers attach", () => {
-  // Isolate the watcher mock from other tests. Files, builds, and HTTP serving
-  // remain real; manually delivered events avoid platform-specific duplicates.
+  // Run the compiled preview under Node, isolating the watcher replacement.
+  // Files, builds, and HTTP serving remain real; events are delivered manually.
   const result = spawnSync(
-    process.execPath,
+    "node",
     [
+      "--input-type=module",
       "--eval",
       `
-import { mock } from "bun:test";
-import * as fs from "node:fs";
+import fs from "node:fs";
+import { syncBuiltinESMExports } from "node:module";
 import { EventEmitter } from "node:events";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import assert from "node:assert/strict";
 const listeners = new Map();
-mock.module("node:fs", () => ({ ...fs, watch(directory, options, listener) {
+fs.watch = (directory, options, listener) => {
   if (typeof options === "function") listener = options;
   listeners.set(directory, listener);
   const watcher = new EventEmitter();
@@ -25,8 +26,9 @@ mock.module("node:fs", () => ({ ...fs, watch(directory, options, listener) {
     if (listeners.get(directory) === listener) listeners.delete(directory);
   };
   return watcher;
-}}));
-const { dev } = await import(${JSON.stringify(new URL("../src/dev.ts", import.meta.url).href)});
+};
+syncBuiltinESMExports();
+const { dev } = await import(${JSON.stringify(new URL("../dist/dev.js", import.meta.url).href)});
 const root = await mkdtemp(join(tmpdir(), "mdd-watch-transition-"));
 let preview;
 let initial = true;

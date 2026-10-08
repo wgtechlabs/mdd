@@ -12,7 +12,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const cli = fileURLToPath(new URL("../src/cli.ts", import.meta.url));
+// Package scripts build first; exercise the same Node entry point users run.
+const cli = fileURLToPath(new URL("../dist/cli.js", import.meta.url));
 const fixtures: string[] = [];
 const children: ChildProcess[] = [];
 
@@ -28,7 +29,7 @@ async function fixture(): Promise<string> {
 }
 
 function run(root: string, ...args: string[]) {
-  return spawnSync(process.execPath, [cli, ...args], {
+  return spawnSync("node", [cli, ...args], {
     cwd: root,
     encoding: "utf8",
     env: { ...process.env, PORT: "0" },
@@ -50,7 +51,7 @@ async function until(
 }
 
 function launch(root: string, ...args: string[]) {
-  const child = spawn(process.execPath, [cli, ...args], {
+  const child = spawn("node", [cli, ...args], {
     cwd: root,
     env: { ...process.env, PORT: "0" },
     stdio: ["ignore", "pipe", "pipe"],

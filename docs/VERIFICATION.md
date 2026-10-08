@@ -28,6 +28,8 @@ CI on commit `25e1917` passed tests, coverage, and package smoke in the Node 22 
 
 On `7d5723e`, both watcher regressions passed, but an immediate preview request exposed a startup readiness race: the initial catch-up rebuild could restart the server after readiness was announced. An immediate request for an edit made during startup reproduced a 404 locally. Startup now waits for that tracked rebuild before announcing readiness, and the regression requires HTTP 200 immediately after `dev` returns.
 
+The next CI run passed all normal tests but still intermittently failed preview polling during coverage, despite the child reporting a completed two-page rebuild. Those integration tests had launched Bun in every Node matrix job. They now launch the compiled CLI and preview under the matrix's Node runtime, matching the supported product contract. The test and coverage scripts build first; the controlled watcher remains isolated in a child process, with the same assertions and deadlines. This improves runtime coverage without claiming a diagnosis of Bun's Linux behavior or changing production connection handling. The updated check and coverage suites passed locally.
+
 The same run's Gitleaks action could not start because `GITLEAKS_LICENSE` was absent. Its later generic failure message said secrets were detected, but the action log reported a missing organization license, not a completed scan. The secret must be made available to this repository and the scan rerun. The security gate remains enabled.
 
 ## Scope
