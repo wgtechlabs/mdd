@@ -39,13 +39,14 @@ function run(root: string, ...args: string[]) {
 async function until(
   check: () => Promise<boolean>,
   message: string,
+  output?: () => string,
 ): Promise<void> {
   const deadline = Date.now() + 12_000;
   while (Date.now() < deadline) {
     if (await check()) return;
     await new Promise((done) => setTimeout(done, 50));
   }
-  throw new Error(message);
+  throw new Error(`${message}${output ? `\nCLI output:\n${output()}` : ""}`);
 }
 
 function launch(root: string, ...args: string[]) {
@@ -68,7 +69,8 @@ function launch(root: string, ...args: string[]) {
 async function serves(url: string, text: string): Promise<boolean> {
   try {
     const response = await fetch(url, { signal: AbortSignal.timeout(1000) });
-    return response.status === 200 && (await response.text()).includes(text);
+    const body = await response.text();
+    return response.status === 200 && body.includes(text);
   } catch {
     // A successful rebuild briefly closes and reopens the preview server.
     return false;
@@ -158,10 +160,14 @@ test("serve reads a built snapshot, uses PORT, and shuts down cleanly", async ()
   expect(run(root, "build").status).toBe(0);
   await rm(join(root, "mdd"), { recursive: true });
   const process = launch(root, "serve", "--host", "127.0.0.1");
-  await until(async () => {
-    if (process.child.exitCode !== null) throw new Error(process.output());
-    return /http:\/\/127\.0\.0\.1:\d+\//.test(process.output());
-  }, `Server did not start: ${process.output()}`);
+  await until(
+    async () => {
+      if (process.child.exitCode !== null) throw new Error(process.output());
+      return /http:\/\/127\.0\.0\.1:\d+\//.test(process.output());
+    },
+    "Server did not start.",
+    process.output,
+  );
   const url = process.output().match(/http:\/\/127\.0\.0\.1:\d+\//)?.[0];
   expect(url).toBeDefined();
   const home = await fetch(url ?? "");
@@ -191,10 +197,14 @@ test("dev watches configured content/theme roots and keeps the last build throug
   const configPath = join(root, "mdd", "config.json");
   await writeFile(configPath, JSON.stringify(config));
   const process = launch(root, "dev");
-  await until(async () => {
-    if (process.child.exitCode !== null) throw new Error(process.output());
-    return process.output().includes("Preview on");
-  }, `Preview did not start: ${process.output()}`);
+  await until(
+    async () => {
+      if (process.child.exitCode !== null) throw new Error(process.output());
+      return process.output().includes("Preview on");
+    },
+    "Preview did not start.",
+    process.output,
+  );
   const origin = process.output().match(/http:\/\/127\.0\.0\.1:\d+/)?.[0];
   expect(origin).toBeDefined();
   const page = join(root, "mdd-dist", "index.html");
@@ -202,6 +212,7 @@ test("dev watches configured content/theme roots and keeps the last build throug
   await until(
     () => serves(`${origin}/`, "Updated preview"),
     "Content change did not rebuild.",
+    process.output,
   );
   expect((await fetch(`${origin}/healthz`)).status).toBe(200);
   await writeFile(
@@ -211,6 +222,7 @@ test("dev watches configured content/theme roots and keeps the last build throug
   await until(
     () => serves(`${origin}/_mdd/theme/theme.css`, "green"),
     "Theme change did not rebuild.",
+    process.output,
   );
   await writeFile(
     join(root, "guide", "index.md"),
@@ -219,6 +231,7 @@ test("dev watches configured content/theme roots and keeps the last build throug
   await until(
     async () => process.output().includes("error"),
     "Invalid content was not reported.",
+    process.output,
   );
   expect(await readFile(page, "utf8")).toContain("Updated preview");
   expect(await serves(`${origin}/`, "Updated preview")).toBe(true);
@@ -239,11 +252,13 @@ test("dev watches configured content/theme roots and keeps the last build throug
   await until(
     () => serves(`${origin}/`, "Recovered preview"),
     "New configured content root did not recover.",
+    process.output,
   );
   await writeFile(join(root, "replacement", "next.md"), "# Next article\n");
   await until(
     () => serves(`${origin}/next/`, "Next article"),
     "New pages in the replacement content root were not served.",
+    process.output,
   );
   expect(await serves(`${origin}/`, "Recovered preview")).toBe(true);
   expect((await fetch(`${origin}/healthz`)).status).toBe(200);
@@ -256,10 +271,14 @@ test("dev rebuilds when a symlinked configuration target changes", async () => {
   await writeFile(target, JSON.stringify({ title: "Original site title" }));
   await symlink("../settings/config.json", join(root, "mdd", "config.json"));
   const process = launch(root, "dev");
-  await until(async () => {
-    if (process.child.exitCode !== null) throw new Error(process.output());
-    return process.output().includes("Preview on");
-  }, "Preview did not start for the symlinked configuration.");
+  await until(
+    async () => {
+      if (process.child.exitCode !== null) throw new Error(process.output());
+      return process.output().includes("Preview on");
+    },
+    "Preview did not start for the symlinked configuration.",
+    process.output,
+  );
   const origin = process.output().match(/http:\/\/127\.0\.0\.1:\d+/)?.[0];
   expect(origin).toBeDefined();
   expect(await serves(`${origin}/`, "Original site title")).toBe(true);
@@ -267,6 +286,7 @@ test("dev rebuilds when a symlinked configuration target changes", async () => {
   await until(
     () => serves(`${origin}/`, "Updated site title"),
     "Editing the configuration symlink target did not update the served site.",
+    process.output,
   );
   expect((await fetch(`${origin}/healthz`)).status).toBe(200);
 }, 15_000);

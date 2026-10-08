@@ -24,6 +24,10 @@ The first GitHub Actions run failed in the preview watcher test in its Node 22 j
 
 Final local validation after these fixes: `bun run check` passed lint, typecheck, all 34 tests / 395 assertions, and build using the normal suite timeout. The same 21-file package archive passed CLI/server smoke checks under Node 22.0.0, 22.16.0, 24.21.0, and 26.10.0. The dependency audit reported no known vulnerabilities. Independent final review found no remaining actionable issue in these fixes. Updated-head CI must still be verified on the PR; the browser verification gap below remains open.
 
+CI on commit `25e1917` passed tests, coverage, and package smoke in the Node 22 and 26 jobs, but the Node 24 job still intermittently timed out while polling a new preview route. Review found that the test helper left unsuccessful HTTP response bodies unread. It now consumes every response and includes the child process's output when polling times out. This corrects test resource handling without changing timeouts or weakening assertions; the next CI run must establish its outcome.
+
+The same run's Gitleaks action could not start because `GITLEAKS_LICENSE` was absent. Its later generic failure message said secrets were detected, but the action log reported a missing organization license, not a completed scan. The secret must be made available to this repository and the scan rerun. The security gate remains enabled.
+
 ## Scope
 
 Portable static exporter, default reader, selected theme assets, Markdown/index output, check/build/dev/serve CLI, and Node static server. The application consumes published mdd-engine 0.1.1; it does not duplicate Markdown compilation.
@@ -60,5 +64,6 @@ A fresh generic review agent used Impeccable's degraded finish-review contract b
 - Railway container/template packaging and a live deployment belong to the next phase.
 - Generic-host/browser deep-link rendering and configured static-host 404 behavior still need browser evidence; Node HTTP responses are tested separately.
 - Publishing is gated pending first-package setup and npm OIDC verification. GitHub-hosted CI has run; the updated-head outcome is tracked on PR #1. Private CodeQL remains disabled unless the repository enables its entitlement flag.
+- The Gitleaks secret scan is blocked until the organization license is available to this repository; the dependency audit is a separate check and does not replace it.
 - Output is staged and replaced with rollback on a handled rename failure. It is not a cross-platform atomic directory exchange; a killed build can leave its lock or staging directory. Do not modify content or output concurrently with builds.
 - The Node server treats a completed build as immutable; use a new server snapshot after a build. Local preview handles that transition.
