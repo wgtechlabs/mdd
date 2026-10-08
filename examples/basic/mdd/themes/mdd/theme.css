@@ -1,0 +1,40 @@
+/* MDD's own documentation uses its brand; other sites keep their site title. */
+.mdd-brand {
+  display: block;
+  width: 7.5rem;
+  height: 3.2rem;
+  flex-shrink: 0;
+  background: url("logo-blurple.svg") center / contain no-repeat;
+  /* Keep the actual link text available to assistive technology. */
+  text-indent: 100%;
+  text-overflow: clip;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .mdd-brand {
+    background-image: url("logo-white.svg");
+  }
+}
+
+:root[data-theme="dark"] .mdd-brand {
+  background-image: url("logo-white.svg");
+}
+
+@media (max-width: 375px) {
+  .mdd-brand {
+    width: 6rem;
+  }
+}
+
+/* System colors and printing must not depend on a background image. */
+@media (forced-colors: active), print {
+  .mdd-brand,
+  :root:not([data-theme="light"]) .mdd-brand,
+  :root[data-theme="dark"] .mdd-brand {
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+    background: none;
+    text-indent: 0;
+  }
+}

@@ -6,6 +6,16 @@ Initial MDD implementation, October 6, 2026. This record concerns local source a
 
 The same local check suite was rerun before preparing `feature/initial-mdd` for the user's branch review: 32 tests / 387 assertions, all four packaged Node runtimes, lint, typecheck, build, and the dependency audit passed. A separate delivery inspection found no apparent secrets or generated files among the 42 candidate source/configuration/documentation files. Visual verification remains pending as documented below. Remote CI, publishing, and deployment are not claimed by these local checks.
 
+## October 8 brand and theme update
+
+The approved Page space artwork is preserved in `brand/source/`; the primary colour is blurple `#5865F2`. SVG structure checks passed for all 13 SVG assets. PNG transparency and dimensions, ICO sizes, manifest references, and the master artwork's byte-for-byte match were verified. Logo proof sheets were rendered and inspected, including small compact marks and reversed variants. The HTML presentation received source review only; its mockups are illustrative.
+
+The default reader now uses blurple and neutral surfaces. MDD's example selects its own CSS theme to display the logo; other projects retain their site title. Actual example exports were checked at `/`, `/docs/`, `/repository/docs/`, and `/caf%C3%A9/`, including the not-found page and copied logo assets. Calculated text contrast is at least 5.5:1 on the defined reading surfaces. Independent review caught and resolved dark-mode specificity in the print/forced-colors fallback and the inherited text ellipsis in the logo link.
+
+Lint and typecheck passed. The first full test attempt was blocked from binding local test ports; an unrestricted run then encountered a CLI test's five-second timeout. `bun test --timeout 15000` passed all 32 tests / 387 assertions, followed by a successful build. No runtime logic, dependencies, or package metadata changed, so the previously verified Node compatibility matrix was not repeated for this CSS/assets update.
+
+Reader desktop/mobile appearance and interactions remain unverified because of the existing browser-policy block. Logo proof sheets do not close that gap.
+
 ## Scope
 
 Portable static exporter, default reader, selected theme assets, Markdown/index output, check/build/dev/serve CLI, and Node static server. The application consumes published mdd-engine 0.1.1; it does not duplicate Markdown compilation.

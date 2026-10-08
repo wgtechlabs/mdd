@@ -1,10 +1,17 @@
 # mdd
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="brand/logo/mdd-wordmark-white.svg">
+  <img src="brand/logo/mdd-wordmark-blurple.svg" alt="mdd" width="240" height="102">
+</picture>
+
 **Markdown in. Documentation out.**
 
 MDD turns a repository's Markdown into a documentation website you can host yourself. People get a readable site; agents get the same content as Markdown. Everything is configured through files.
 
 This repository provides the reader, CLI, static exporter, and Node server. The published [`@wgtechlabs/mdd-engine`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, and navigation.
+
+The Page space logo, blurple palette, icons, and usage guidance live in the [brand kit](brand/README.md).
 
 ## Try the local implementation
 

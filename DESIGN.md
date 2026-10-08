@@ -3,19 +3,21 @@ name: mdd
 description: A quiet documentation field guide with chapter and section context.
 colors:
   mdd-background: "#ffffff"
-  mdd-surface: "#f4f6f6"
-  mdd-text: "#202b2a"
-  mdd-muted: "#596664"
-  mdd-accent: "#17655d"
-  mdd-accent-soft: "#e3efec"
-  mdd-border: "#dce3e1"
-  mdd-background-dark: "#161d1c"
-  mdd-surface-dark: "#202927"
-  mdd-text-dark: "#e8eeec"
-  mdd-muted-dark: "#a8b7b2"
-  mdd-accent-dark: "#87cbbc"
-  mdd-accent-soft-dark: "#293e37"
-  mdd-border-dark: "#384540"
+  mdd-surface: "#f6f6f9"
+  mdd-text: "#242534"
+  mdd-muted: "#5c5e73"
+  mdd-accent: "#4752c4"
+  mdd-focus: "#5865f2"
+  mdd-accent-soft: "#eceefd"
+  mdd-border: "#dddde8"
+  mdd-background-dark: "#1b1c25"
+  mdd-surface-dark: "#262734"
+  mdd-text-dark: "#eeeff8"
+  mdd-muted-dark: "#b4b7cb"
+  mdd-accent-dark: "#adb5ff"
+  mdd-focus-dark: "#adb5ff"
+  mdd-accent-soft-dark: "#343854"
+  mdd-border-dark: "#3b3e52"
 typography:
   headline:
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
@@ -121,25 +123,28 @@ components:
 
 **Creative North Star: "Field Guide with Marginal Notes"**
 
-The reader gives prose a quiet paper ground, with chapters and local headings in its margins. Deep slate text, a restrained teal accent, and compact navigation support sustained reading. The visual density changes between the article and its supporting rails without introducing decorative imagery.
+The reader gives prose a quiet paper ground, with chapters and local headings in its margins. Deep slate text, a restrained blurple accent, and compact navigation support sustained reading. The visual density changes between the article and its supporting rails without introducing decorative imagery.
 
 This record describes the current default reader in `assets/reader.css`, its enhancements in `assets/reader.js`, and its semantic structure in `src/render.ts`. The selected direction is recorded in `.impeccable/surfaces/src-render-ts.md`. It is implementation-derived documentation, not visual approval: browser inspection was blocked by administrator policy and the finish review requires fresh captures. Responsive appearance, rendered contrast, clipping, and interaction presentation remain pending visual verification. Author-supplied themes may override this default system.
 
 **Key Characteristics:**
 - A measured article flanked by chapter navigation and a local outline.
-- Cool paper surfaces, slate text, and teal navigation states in two themes.
+- Neutral paper surfaces, slate text, and blurple navigation states in two themes.
 - Flat containers separated by fine rules and small corner radii.
 - Native links and disclosures, with optional theme, copy, and outline enhancements.
 
 ## Colors
 
-The palette uses one teal accent family and a cool neutral foundation. Frontmatter values are normative snapshots of the default stylesheet; they are not a second theme implementation.
+The palette uses the approved blurple brand family and a neutral foundation. Frontmatter values are normative snapshots of the default stylesheet; they are not a second theme implementation.
 
 ### Primary
 
-- **Forest teal** (`mdd-accent`) colors article links, the current chapter, the current desktop outline location, and keyboard focus.
-- **Pale teal wash** (`mdd-accent-soft`) marks current chapters, hovered controls, and text selection.
-- **Soft mint** (`mdd-accent-dark`) and **deep teal wash** (`mdd-accent-soft-dark`) take the same roles in dark mode.
+- **Blurple** (`#5865F2`) is the primary brand color and light-mode keyboard focus (`mdd-focus`).
+- **Deep blurple** (`mdd-accent`, `#4752C4`) colors article links, the current chapter, and the current desktop outline location. This darker shade keeps small text readable on both white and selected backgrounds.
+- **Pale blurple wash** (`mdd-accent-soft`) marks current chapters, hovered controls, and text selection.
+- **Soft periwinkle** (`mdd-accent-dark`, also `mdd-focus-dark`) and **deep blurple wash** (`mdd-accent-soft-dark`) take those roles in dark mode.
+
+Calculated text contrast for the primary, muted, and accent colors is at least 5.5:1 across the canvas, surface, and selection wash. Focus colors are at least 4.00:1 on those surfaces. These are token calculations, not a browser accessibility audit.
 
 ### Neutral
 
@@ -150,7 +155,7 @@ The palette uses one teal accent family and a cool neutral foundation. Frontmatt
 
 The operating-system preference selects dark mode unless the root explicitly requests light mode. The theme control sets `data-theme` and attempts to remember the choice locally; storage is optional. Selection and scrollbar colors also use this palette.
 
-**The Shared Accent Rule.** Use the existing accent and accent-soft variables for reading links, location, interaction feedback, and focus; keep these roles coherent across both themes.
+**The Shared Accent Rule.** Use the existing accent and accent-soft variables for reading links, location, and interaction feedback; use the focus variable for keyboard outlines. Keep these roles coherent across both themes.
 
 ## Typography
 
@@ -158,7 +163,7 @@ The operating-system preference selects dark mode unless the root explicitly req
 
 **Code font:** the native monospace stack in `typography.code`, from `--mdd-mono`.
 
-The current implementation uses one sans family for article text, headings, and navigation. It has no loaded display font, custom font asset, or separate decorative lettering. The recorded heading roles describe this reader only; a platform display voice is not established as a rule for future expressive surfaces.
+The current implementation uses one sans family for article text, headings, and navigation. It has no loaded display font or custom font asset; the product wordmark is a separate SVG asset. The recorded heading roles describe this reader only; a platform display voice is not established as a rule for future expressive surfaces.
 
 ### Hierarchy
 
@@ -196,6 +201,12 @@ The default reader has no shadows, gradients, backdrop blur, or floating-card tr
 Controls, chapter links, code blocks, article images, notes, quotations, and article disclosures use the shared `mdd-radius` corner token. Inline code uses its smaller radius; focused controls use the focus radius. Borders are one-pixel solid rules in the border color. There is no pill, badge, ornamental silhouette, or icon system in the default reader.
 
 ## Components
+
+### Product logo
+
+The approved “Page space” wordmark is recorded in `brand/README.md`. MDD’s own example documentation selects `theme: "mdd"`, whose CSS displays the blurple wordmark on light surfaces and the white wordmark on dark surfaces. The linked site title remains its accessible name; forced-colors mode and print restore the visible title. Logo URLs are relative to the selected theme stylesheet, so static exports work at every base path without browser JavaScript.
+
+The default renderer still displays each documentation owner’s configured title. The MDD logo is specific to this example theme; it is not imposed on other documentation sites.
 
 ### Buttons
 

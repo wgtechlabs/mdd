@@ -33,7 +33,7 @@ Authors edit Markdown, configuration, and selected theme files in Git. Static ou
 
 ## Brand Commitments
 
-The product is named mdd (Markdown Docs). Its voice is direct and useful. No logo or externally licensed brand assets have been supplied.
+The product is named mdd (Markdown Docs). Its voice is direct and useful. The approved “Page space” lowercase wordmark and blurple (`#5865F2`) identity are documented in `brand/README.md`. MDD’s own example uses this logo through its selected theme; documentation owners retain their configured site title and can supply their own theme.
 
 ## Evidence on Hand
 
