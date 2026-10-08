@@ -16,6 +16,14 @@ Lint and typecheck passed. The first full test attempt was blocked from binding 
 
 Reader desktop/mobile appearance and interactions remain unverified because of the existing browser-policy block. Logo proof sheets do not close that gap.
 
+## October 8 PR review fixes
+
+PR #1 review found a collision between the reader's main-container ID and the engine's ID for a heading named `Main`. The shell now uses a separate ID namespace; a regression compiles real Markdown and verifies unique IDs and the correct outline and skip links. Theme documentation now matches the shipped blurple palette.
+
+The first GitHub Actions run failed in the preview watcher test in its Node 22 job; the Node 24 and 26 jobs passed. These tests execute under Bun, so that result alone does not establish a Node 22 runtime incompatibility. Review identified a gap between building newly selected inputs and attaching their watchers. Preview now catches up after attaching changed watchers and retains existing watchers when the input directories are unchanged. A controlled-event regression failed before the fix and now covers edits during initial startup and a content-root change, preservation of the last valid site when the catch-up build fails, and subsequent recovery.
+
+Final local validation after these fixes: `bun run check` passed lint, typecheck, all 34 tests / 395 assertions, and build using the normal suite timeout. The same 21-file package archive passed CLI/server smoke checks under Node 22.0.0, 22.16.0, 24.21.0, and 26.10.0. The dependency audit reported no known vulnerabilities. Independent final review found no remaining actionable issue in these fixes. Updated-head CI must still be verified on the PR; the browser verification gap below remains open.
+
 ## Scope
 
 Portable static exporter, default reader, selected theme assets, Markdown/index output, check/build/dev/serve CLI, and Node static server. The application consumes published mdd-engine 0.1.1; it does not duplicate Markdown compilation.
@@ -29,11 +37,11 @@ Portable static exporter, default reader, selected theme assets, Markdown/index 
 - Reader metadata escaping, no-JavaScript navigation markup, fallback titles, theme URLs, and the not-found page have automated checks.
 - Impeccable's source detector reported no findings.
 
-Final local checks after the integration fixes:
+Latest local checks after the integration and PR review fixes:
 
 | Check | Result |
 | --- | --- |
-| `bun run check` | PASS: lint, typecheck, 32 tests / 387 assertions, compiled build |
+| `bun run check` | PASS: lint, typecheck, 34 tests / 395 assertions, compiled build |
 | `bun run smoke` with four Node binaries | PASS: one installed 21-file archive; Node 22.0.0, 22.16.0, 24.21.0, 26.10.0 |
 | Packaged runtime behavior | PASS: CLI, all three public prefixes, native Node preview rebuild/new route/health, source-free serving |
 | `bun audit` | PASS: no known vulnerabilities reported |
@@ -51,6 +59,6 @@ A fresh generic review agent used Impeccable's degraded finish-review contract b
 
 - Railway container/template packaging and a live deployment belong to the next phase.
 - Generic-host/browser deep-link rendering and configured static-host 404 behavior still need browser evidence; Node HTTP responses are tested separately.
-- Publishing is gated pending first-package setup and npm OIDC verification. GitHub-hosted CI and private CodeQL entitlement have not run for this repository.
+- Publishing is gated pending first-package setup and npm OIDC verification. GitHub-hosted CI has run; the updated-head outcome is tracked on PR #1. Private CodeQL remains disabled unless the repository enables its entitlement flag.
 - Output is staged and replaced with rollback on a handled rename failure. It is not a cross-platform atomic directory exchange; a killed build can leave its lock or staging directory. Do not modify content or output concurrently with builds.
 - The Node server treats a completed build as immutable; use a new server snapshot after a build. Local preview handles that transition.

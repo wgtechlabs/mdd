@@ -1,5 +1,8 @@
 import { expect, test } from "bun:test";
-import type { Page, Site } from "@wgtechlabs/mdd-engine";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { compileProject, type Page, type Site } from "@wgtechlabs/mdd-engine";
 import { renderNotFound, renderPage } from "../src/render.js";
 
 const page: Page = {
@@ -39,6 +42,35 @@ test("reader escapes metadata and supplies working navigation and outline withou
   expect(html).toContain('aria-current="page"');
   expect(html.match(/<h1[ >]/g)).toHaveLength(1);
   expect(html).toContain('<details class="mdd-mobile-navigation">');
+});
+
+test("shell anchors cannot collide with compiled Markdown headings", async () => {
+  const projectDir = await mkdtemp(path.join(tmpdir(), "mdd-render-test-"));
+  try {
+    const contents = path.join(projectDir, "mdd/contents");
+    await mkdir(contents, { recursive: true });
+    await writeFile(
+      path.join(contents, "index.md"),
+      "# Welcome\n\nIntro.\n\n## Main\n\nTarget content.\n",
+    );
+    const result = await compileProject({ projectDir, basePath: "/docs/" });
+    expect(result.diagnostics).toEqual([]);
+    const compiledPage = result.site?.pages[0];
+    if (!result.site || !compiledPage)
+      throw new Error("Expected compiled page");
+
+    const html = renderPage(result.site, compiledPage);
+    const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(html).toContain('<h2 id="mdd-main">Main</h2>');
+    expect(html).toContain('href="/docs/#mdd-main"');
+    const mainId = /<main id="([^"]+)"/.exec(html)?.[1];
+    expect(mainId).toBeDefined();
+    expect(mainId).not.toStartWith("mdd-");
+    expect(html).toContain(`href="#${mainId}">Skip to content`);
+  } finally {
+    await rm(projectDir, { recursive: true, force: true });
+  }
 });
 
 test("heading-free pages get a title and custom theme paths are encoded per segment", () => {

@@ -9,12 +9,13 @@ Create `mdd/themes/custom/theme.css` and set `"theme": "custom"` in `mdd/config.
 | CSS variable | Default light value | Purpose |
 | --- | --- | --- |
 | `--mdd-background` | `#ffffff` | Reading surface |
-| `--mdd-surface` | `#f4f6f6` | Sidebar and code surface |
-| `--mdd-text` | `#202b2a` | Body text |
-| `--mdd-muted` | `#596664` | Secondary text |
-| `--mdd-accent` | `#17655d` | Links and active navigation |
-| `--mdd-accent-soft` | `#e3efec` | Selected/hover backgrounds |
-| `--mdd-border` | `#dce3e1` | Dividers |
+| `--mdd-surface` | `#f6f6f9` | Sidebar and code surface |
+| `--mdd-text` | `#242534` | Body text |
+| `--mdd-muted` | `#5c5e73` | Secondary text |
+| `--mdd-accent` | `#4752c4` | Links and active navigation |
+| `--mdd-focus` | `#5865f2` | Keyboard focus outlines |
+| `--mdd-accent-soft` | `#eceefd` | Selected/hover backgrounds |
+| `--mdd-border` | `#dddde8` | Dividers |
 | `--mdd-font` | System sans stack | Reading and navigation |
 | `--mdd-mono` | System monospace stack | Source code |
 | `--mdd-measure` | `70ch` | Maximum article width |

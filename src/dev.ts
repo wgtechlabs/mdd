@@ -1,5 +1,5 @@
 import { type FSWatcher, watch } from "node:fs";
-import { realpath } from "node:fs/promises";
+import { realpath, stat } from "node:fs/promises";
 import type { Server } from "node:http";
 import { basename, dirname, resolve, sep } from "node:path";
 import type { Diagnostic, Site } from "@wgtechlabs/mdd-engine";
@@ -37,6 +37,7 @@ export async function dev(
   }
   const port = address.port;
   let watchers: FSWatcher[] = [];
+  let watchedInputs: string | undefined;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let pending: Promise<void> | undefined;
   let dirty = false;
@@ -57,7 +58,7 @@ export async function dev(
     }, delay);
   }
 
-  async function watchInputs(site: Site): Promise<void> {
+  async function watchInputs(site: Site): Promise<boolean> {
     const home = site.pages.find((page) => page.route === "/");
     if (!home) throw new Error("The engine did not provide a homepage.");
     const configRoot = resolve(options.projectDir, options.mddDir ?? "mdd");
@@ -74,6 +75,21 @@ export async function dev(
     const roots = new Set([dirname(resolve(options.projectDir, home.source))]);
     if ("directory" in site.theme)
       roots.add(resolve(options.projectDir, site.theme.directory));
+    // Directory identity also detects replacement at the same path: an old
+    // watcher may still refer to the removed directory's inode.
+    const identity = JSON.stringify([
+      [...roots].sort(),
+      [...configs].sort(),
+      await Promise.all(
+        [...new Set([...roots, ...[...configs].map(dirname)])]
+          .sort()
+          .map(async (directory) => {
+            const entry = await stat(directory);
+            return [directory, entry.dev, entry.ino];
+          }),
+      ),
+    ]);
+    if (identity === watchedInputs) return false;
     const next: FSWatcher[] = [];
     try {
       for (const root of roots) {
@@ -87,6 +103,7 @@ export async function dev(
           }
         });
         watcher.on("error", (error) => {
+          watchedInputs = undefined;
           report.error(error);
           schedule(1000);
         });
@@ -97,6 +114,7 @@ export async function dev(
           if (!filename || filename === basename(config)) schedule();
         });
         configWatcher.on("error", (error) => {
+          watchedInputs = undefined;
           report.error(error);
           schedule(1000);
         });
@@ -108,6 +126,8 @@ export async function dev(
     }
     for (const watcher of watchers) watcher.close();
     watchers = next;
+    watchedInputs = identity;
+    return true;
   }
 
   async function rebuild(): Promise<void> {
@@ -127,7 +147,12 @@ export async function dev(
           return;
         }
         if (closed) return;
-        await watchInputs(result.site);
+        if (await watchInputs(result.site)) {
+          // Edits to newly selected roots can precede watcher attachment.
+          // Catch up after activating this valid build, so an invalid edit
+          // still leaves the server bound to the last successful inventory.
+          dirty = true;
+        }
         // The server binds to an immutable output inventory. Reopen on the same
         // port after each completed build so new routes and hashes take effect.
         await closeServer(server);
@@ -150,6 +175,8 @@ export async function dev(
 
   try {
     await watchInputs(initial.site);
+    // Cover edits between the initial compile and watcher attachment as well.
+    schedule(0);
   } catch (error) {
     await closeServer(server);
     throw error;

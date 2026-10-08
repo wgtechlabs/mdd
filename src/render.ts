@@ -88,7 +88,7 @@ ${theme ? `<link rel="stylesheet" href="${escapeHtml(themeUrl(theme.css))}">` : 
 ${theme?.js ? `<script src="${escapeHtml(themeUrl(theme.js))}" defer></script>` : ""}
 </head>
 <body>
-<a class="mdd-skip" href="#mdd-main">Skip to content</a>
+<a class="mdd-skip" href="#_mdd-main">Skip to content</a>
 <header class="mdd-header">
 <a class="mdd-brand" href="${escapeHtml(base)}">${escapeHtml(site.title)}</a>
 <div class="mdd-tools"><a href="${escapeHtml(markdownUrl)}">${page ? "View Markdown" : "Markdown index"}</a><button class="mdd-theme-toggle" type="button" hidden>Switch theme</button></div>
@@ -98,7 +98,7 @@ ${theme?.js ? `<script src="${escapeHtml(themeUrl(theme.js))}" defer></script>` 
 <div class="mdd-reading">
 <details class="mdd-mobile-navigation"><summary>Browse documentation</summary><nav aria-label="Documentation">${nav}</nav></details>
 ${toc ? `<details class="mdd-mobile-outline"><summary>On this page</summary>${toc}</details>` : ""}
-<main id="mdd-main" tabindex="-1"><article class="mdd-article">${content}</article>${page ? pageLinks(site, page) : ""}</main>
+<main id="_mdd-main" tabindex="-1"><article class="mdd-article">${content}</article>${page ? pageLinks(site, page) : ""}</main>
 <footer class="mdd-footer"><a href="${escapeHtml(base)}llms.txt">Documentation index for agents</a><span>Markdown in. Documentation out.</span></footer>
 </div>
 <aside class="mdd-outline">${toc ? `<h2>On this page</h2>${toc}` : ""}</aside>
