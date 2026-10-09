@@ -9,7 +9,7 @@
 
 MDD turns a repository's Markdown into a documentation website you can host yourself. People get a readable site; agents get the same content as Markdown. Everything is configured through files.
 
-This repository provides the reader, CLI, static exporter, and Node server. The published [`@wgtechlabs/mdd-engine@1.0.1`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, navigation, shared footer metadata, and headless search.
+This repository provides the reader, CLI, static exporter, and Node server. The published [`@wgtechlabs/mdd-engine@1.1.0`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, navigation, shared footer metadata, and headless search.
 
 - **MDD Engine:** compile Markdown into validated site data and safe article HTML, including code blocks and alerts; create and query a portable search index.
 - **MDD:** compose the website, add shared reader controls such as code copying and search, and export or serve it.
@@ -85,7 +85,9 @@ Use one `socials` block containing a flat unordered list of plain-text labels an
 
 Choose **Search** in the header or press **Ctrl+K** (**⌘K** on macOS). A native dialog provides the search field, result links, and loading, empty, and retry states. Press Escape or use its close button to return to the page. Search requires browser JavaScript; ordinary reading and navigation remain available without it.
 
-Matching keywords are highlighted as you type in result titles, section labels, and excerpts, including partial words and case-insensitive matches. The engine selects excerpt text around a match, so words farther down a section remain visible in the preview. Excerpts are bounded and may not show every word of a multiword query. Highlights are limited to the result list; opening a result shows the original documentation page.
+Results show pages and individual headings with context breadcrumbs. A page can have several matching sections. Exact and partial matches rank ahead of bounded single-edit typo corrections. Use ↑/↓ to select a result while continuing to type, and Enter to open it. The first result is selected automatically; ordinary text-editing keys keep their native behavior.
+
+Matching text is highlighted using the engine's original-text ranges, including corrected spellings and Unicode text. Short excerpts appear when the match is in the body rather than the primary label. The engine selects excerpt text around a match, so words farther down a section remain visible in the preview. Excerpts are bounded and may not show every word of a multiword query. Highlights are limited to the result list; opening a result shows the original documentation page.
 
 The engine creates the index and ranks queries. MDD exports it as `_mdd/search-index.json`, loads it when search is opened, and renders result titles, sections, and excerpts as text. The engine's browser-safe query module is exported as `_mdd/search.js`; MDD's dialog behavior is `_mdd/search-ui.js`. Search works from the same static build under the site's configured prefix, with no external search service or server-side query endpoint.
 

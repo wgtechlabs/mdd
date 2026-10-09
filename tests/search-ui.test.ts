@@ -22,6 +22,9 @@ class TestDocument extends EventTarget {
   createElement(tag: string) {
     return new TestElement(this, tag);
   }
+  createElementNS(_namespace: string, tag: string) {
+    return this.createElement(tag);
+  }
   createTextNode(text: string) {
     const node = this.createElement("#text");
     node.textContent = text;
@@ -36,6 +39,8 @@ class TestElement extends EventTarget {
   hidden = false;
   isConnected = true;
   selected = false;
+  clicks = 0;
+  scrolls = 0;
   dataset: Record<string, string> = {};
   children: TestElement[] = [];
   attributes = new Map<string, string>();
@@ -78,6 +83,33 @@ class TestElement extends EventTarget {
   }
   setAttribute(name: string, value: string) {
     this.attributes.set(name, value);
+  }
+  getAttribute(name: string) {
+    return this.attributes.get(name) ?? null;
+  }
+  removeAttribute(name: string) {
+    this.attributes.delete(name);
+  }
+  get id() {
+    return this.getAttribute("id") ?? "";
+  }
+  set id(value: string) {
+    this.setAttribute("id", value);
+  }
+  click() {
+    this.clicks++;
+    this.dispatchEvent(
+      Object.assign(new Event("click", { cancelable: true }), {
+        button: 0,
+        altKey: false,
+        ctrlKey: false,
+        metaKey: false,
+        shiftKey: false,
+      }),
+    );
+  }
+  scrollIntoView() {
+    this.scrolls++;
   }
   focus() {
     this.document.activeElement = this;
@@ -128,6 +160,7 @@ function setup(basePath = "/docs/") {
     resolve(response: ResponseStub): void;
     reject(error: Error): void;
   }[] = [];
+  const searches: { query: string; options: unknown }[] = [];
   runInNewContext(script, {
     document,
     window: {
@@ -139,7 +172,10 @@ function setup(basePath = "/docs/") {
     URL,
     RangeError,
     TypeError,
-    search,
+    search: (...args: Parameters<typeof search>) => {
+      searches.push({ query: args[1], options: args[2] });
+      return search(...args);
+    },
     validateSearchIndex,
     fetch: (url: URL, options: Record<string, string>) =>
       new Promise<ResponseStub>((resolve, reject) => {
@@ -168,6 +204,7 @@ function setup(basePath = "/docs/") {
     results,
     retry,
     requests,
+    searches,
     click,
     query,
     reply,
@@ -237,30 +274,33 @@ test("loads lazily once, uses the latest query after close/reopen, and inserts o
   expect(ui.results.querySelectorAll("a")).toHaveLength(8);
 });
 
-test("highlights partial and multiword matches in every result field as the query changes", async () => {
+test("uses engine ranges for section labels and breadcrumbs, showing excerpts only for body matches", async () => {
   const ui = setup();
   const data = index();
   const page = data.pages[0];
   const section = page?.sections[0];
   if (!page || !section) throw new Error("Expected searchable page");
   page.title = "Documentation and THEMES";
+  page.breadcrumbs = ["Developer docs"];
   section.title = "Custom themes for your docs";
+  section.breadcrumbs = ["Theme settings"];
   section.text = "Style documentation with theme files. Docs stay portable.";
   ui.click(ui.toggle);
   ui.query("DOC theme portable");
   await ui.reply(data);
 
-  for (const [selector, original, marked] of [
-    ["strong", page.title, ["Doc", "THEME"]],
-    ["span", section.title, ["theme", "doc"]],
-    ["p", section.text, ["doc", "theme", "Doc", "portable"]],
-  ] as const) {
-    const field = ui.results.querySelector(selector);
-    expect(field?.textContent).toBe(original);
-    expect(
-      field?.querySelectorAll("mark").map((mark) => mark.textContent),
-    ).toEqual([...marked]);
-  }
+  const primary = ui.results.querySelector(".mdd-search-result-title");
+  expect(primary?.textContent).toBe(section.title);
+  expect(
+    primary?.querySelectorAll("mark").map((mark) => mark.textContent),
+  ).toEqual(["theme", "doc"]);
+  const breadcrumbs = ui.results.querySelector(".mdd-search-breadcrumbs");
+  for (const label of ["Developer docs", page.title, "Theme settings"])
+    expect(breadcrumbs?.textContent).toContain(label);
+  expect(
+    breadcrumbs?.querySelectorAll("mark").map((mark) => mark.textContent),
+  ).toEqual(["doc", "Doc", "THEME", "Theme"]);
+  expect(ui.results.querySelector(".mdd-search-result-excerpt")).toBeNull();
   expect(ui.results.querySelectorAll("a")[0]?.href).toBe(
     `https://docs.example.test${section.url}`,
   );
@@ -269,16 +309,99 @@ test("highlights partial and multiword matches in every result field as the quer
   expect(
     ui.results.querySelectorAll("mark").map((mark) => mark.textContent),
   ).toEqual(["portable"]);
-  expect(ui.results.querySelector("strong")?.textContent).toBe(page.title);
+  expect(ui.results.querySelector("strong")?.textContent).toBe(section.title);
   expect(ui.results.querySelector("strong")?.querySelectorAll("mark")).toEqual(
     [],
   );
+  expect(
+    ui.results.querySelector(".mdd-search-result-excerpt")?.textContent,
+  ).toBe(section.text);
   ui.query("unmatched");
   expect(ui.results.querySelectorAll("mark")).toEqual([]);
   expect(ui.status.textContent).toContain("No results");
   ui.query("");
   expect(ui.results.children).toHaveLength(0);
   expect(ui.requests).toHaveLength(1);
+});
+
+test("returns separate heading hits and highlights the indexed spelling for a typo", async () => {
+  const ui = setup();
+  const data: SearchIndex = {
+    version: 1,
+    pages: [
+      {
+        url: "/docs/install/",
+        title: "Installation",
+        description: "",
+        breadcrumbs: ["Developer guides"],
+        sections: [
+          {
+            title: "Local setup",
+            url: "/docs/install/#mdd-local-setup",
+            text: "Alpha workflow.",
+          },
+          {
+            title: "Remote setup",
+            url: "/docs/install/#mdd-remote-setup",
+            text: "Beta workflow.",
+          },
+        ],
+      },
+    ],
+  };
+  ui.click(ui.toggle);
+  ui.query("setpu");
+  await ui.reply(data);
+  expect(ui.searches.at(-1)).toEqual({
+    query: "setpu",
+    options: { limit: 8, mode: "sections", fuzzy: true },
+  });
+  const links = ui.results.querySelectorAll("a");
+  expect(links.map((link) => link.href)).toEqual([
+    "https://docs.example.test/docs/install/#mdd-local-setup",
+    "https://docs.example.test/docs/install/#mdd-remote-setup",
+  ]);
+  expect(
+    links.map((link) => link.querySelector("strong")?.textContent),
+  ).toEqual(["Local setup", "Remote setup"]);
+  expect(
+    ui.results.querySelectorAll("mark").map((mark) => mark.textContent),
+  ).toEqual(["setup", "setup"]);
+  expect(ui.results.querySelectorAll(".mdd-search-result-excerpt")).toEqual([]);
+  ui.query("alpha beta");
+  expect(ui.results.querySelectorAll("a")).toEqual([]);
+  ui.query("instalation");
+  expect(ui.results.querySelectorAll("a")).toHaveLength(1);
+  expect(ui.results.querySelector("strong")?.textContent).toBe("Installation");
+  expect(
+    ui.results.querySelectorAll("mark").map((mark) => mark.textContent),
+  ).toEqual(["Installation"]);
+});
+
+test("empty heading results fall back to the page title and retain their destination", async () => {
+  const ui = setup();
+  const data = index();
+  const page = data.pages[0];
+  if (!page) throw new Error("Expected searchable page");
+  page.title = "Guide";
+  page.sections = [
+    {
+      title: "",
+      url: "/docs/page-0/#mdd-",
+      text: "A searchneedle is described here.",
+    },
+  ];
+  ui.click(ui.toggle);
+  ui.query("searchneedle");
+  await ui.reply(data);
+  expect(ui.status.textContent).toBe("1 result.");
+  expect(ui.results.querySelector("strong")?.textContent).toBe("Guide");
+  expect(ui.results.querySelector("a")?.href).toBe(
+    "https://docs.example.test/docs/page-0/#mdd-",
+  );
+  expect(
+    ui.results.querySelectorAll("mark").map((mark) => mark.textContent),
+  ).toEqual(["searchneedle"]);
 });
 
 test("shows and highlights the engine's excerpt when the match is late in a section", async () => {
@@ -330,7 +453,7 @@ test.each([
     const section = page?.sections[0];
     if (!page || !section) throw new Error("Expected searchable page");
     page.title = text;
-    section.text = text;
+    page.sections = [];
     ui.click(ui.toggle);
     ui.query(query);
     await ui.reply(data);
@@ -450,29 +573,73 @@ test("empty, unmatched, and overlong queries recover without another request", a
   expect(ui.requests).toHaveLength(1);
 });
 
-test("keyboard navigation preserves native links and Escape closes even with a query", async () => {
+test("combobox selection wraps while focus and text-editing keys stay in the input", async () => {
   const ui = setup();
   const opener = ui.document.createElement("a");
   opener.focus();
   expect(key(ui.document, "k", { ctrlKey: true }).defaultPrevented).toBe(true);
   expect(ui.dialog.open).toBe(true);
   expect(ui.document.activeElement).toBe(ui.input);
+  expect(ui.input.getAttribute("aria-expanded")).toBe("true");
   expect(ui.input.selected).toBe(true);
   ui.query("shared");
   await ui.reply(index("/docs/", 2));
   const links = ui.results.querySelectorAll("a");
+  const selected = (position: number) => {
+    const active = links[position];
+    if (!active) throw new Error("Expected an active search result");
+    expect(ui.document.activeElement).toBe(ui.input);
+    expect(ui.input.getAttribute("aria-activedescendant")).toBe(active.id);
+    expect(links.map((link) => link.getAttribute("aria-selected"))).toEqual(
+      links.map((_link, n) => String(n === position)),
+    );
+  };
+  expect(links.map((link) => link.id)).toEqual([
+    "_mdd-search-result-0",
+    "_mdd-search-result-1",
+  ]);
+  expect(links.map((link) => link.getAttribute("role"))).toEqual([
+    "option",
+    "option",
+  ]);
+  expect(links.map((link) => link.getAttribute("tabindex"))).toEqual([
+    "-1",
+    "-1",
+  ]);
+  selected(0);
+  expect(key(ui.dialog, "ArrowDown").defaultPrevented).toBe(true);
+  selected(1);
   key(ui.dialog, "ArrowDown");
-  expect(ui.document.activeElement).toBe(links[0]);
-  key(ui.dialog, "ArrowDown");
-  expect(ui.document.activeElement).toBe(links[1]);
+  selected(0);
   key(ui.dialog, "ArrowUp");
+  selected(1);
   key(ui.dialog, "ArrowUp");
-  expect(ui.document.activeElement).toBe(ui.input);
-  for (const value of ["Tab", "Enter"])
+  selected(0);
+  for (const value of [
+    "Tab",
+    "ArrowLeft",
+    "ArrowRight",
+    "Home",
+    "End",
+    "Backspace",
+    "Delete",
+  ])
     expect(key(ui.dialog, value).defaultPrevented).toBe(false);
+  for (const modifiers of [
+    { ctrlKey: true },
+    { metaKey: true },
+    { altKey: true },
+    { shiftKey: true },
+    { isComposing: true },
+  ]) {
+    expect(key(ui.dialog, "ArrowDown", modifiers).defaultPrevented).toBe(false);
+    selected(0);
+  }
   expect(ui.input.value).toBe("shared");
   expect(key(ui.dialog, "Escape").defaultPrevented).toBe(true);
   expect(ui.dialog.open).toBe(false);
+  expect(ui.input.getAttribute("aria-expanded")).toBe("false");
+  expect(ui.input.getAttribute("aria-activedescendant")).toBeNull();
   expect(ui.document.activeElement).toBe(opener);
   key(ui.document, "K", { metaKey: true });
   ui.dialog.dispatchEvent(new Event("close"));
@@ -480,4 +647,58 @@ test("keyboard navigation preserves native links and Escape closes even with a q
   opener.isConnected = false;
   ui.dialog.close();
   expect(ui.document.activeElement).toBe(ui.toggle);
+});
+
+test("Enter activates the selected real link and leaves native click handling intact", async () => {
+  const ui = setup();
+  ui.click(ui.toggle);
+  ui.query("shared");
+  await ui.reply(index("/docs/", 2));
+  const links = ui.results.querySelectorAll("a");
+  key(ui.dialog, "ArrowDown");
+  const selected = links[1];
+  if (!selected) throw new Error("Expected a second search result");
+  let nativeClick: Event | undefined;
+  selected.addEventListener("click", (event) => {
+    nativeClick = event;
+  });
+  expect(key(ui.dialog, "Enter").defaultPrevented).toBe(true);
+  expect(selected.clicks).toBe(1);
+  expect(links[0]?.clicks).toBe(0);
+  expect(selected.href).toBe(
+    "https://docs.example.test/docs/page-1/#mdd-getting-started",
+  );
+  expect(nativeClick?.defaultPrevented).toBe(false);
+  expect(ui.dialog.open).toBe(false);
+});
+
+test("new queries, empty results, and search errors clear stale selection", async () => {
+  const ui = setup();
+  ui.click(ui.toggle);
+  ui.query("shared");
+  await ui.reply(index("/docs/", 2));
+  key(ui.dialog, "ArrowDown");
+  expect(ui.input.getAttribute("aria-activedescendant")).toBe(
+    "_mdd-search-result-1",
+  );
+  ui.query("beta");
+  expect(ui.results.querySelectorAll("a")).toHaveLength(1);
+  expect(ui.input.getAttribute("aria-activedescendant")).toBe(
+    "_mdd-search-result-0",
+  );
+  for (const query of ["absent", "", "a".repeat(513)]) {
+    ui.query(query);
+    expect(ui.results.children).toHaveLength(0);
+    expect(ui.input.getAttribute("aria-activedescendant")).toBeNull();
+    expect(key(ui.dialog, "ArrowDown").defaultPrevented).toBe(false);
+    expect(key(ui.dialog, "Enter").defaultPrevented).toBe(false);
+    expect(ui.document.activeElement).toBe(ui.input);
+  }
+  expect(ui.retry.hidden).toBe(false);
+  ui.query("shared");
+  expect(ui.retry.hidden).toBe(true);
+  expect(ui.input.getAttribute("aria-activedescendant")).toBe(
+    "_mdd-search-result-0",
+  );
+  expect(ui.requests).toHaveLength(1);
 });

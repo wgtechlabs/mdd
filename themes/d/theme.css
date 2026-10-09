@@ -199,31 +199,45 @@ summary {
   color: var(--mdd-muted);
 }
 .mdd-search-dialog {
-  width: min(38rem, calc(100% - 2rem));
+  width: min(40rem, calc(100% - 2rem));
   max-height: calc(100dvh - min(12dvh, 6rem) - 2rem);
   margin: min(12dvh, 6rem) auto 2rem;
-  padding: 1.25rem;
-  overflow: auto;
+  padding: 0;
+  overflow: hidden;
   overscroll-behavior: contain;
   color: var(--mdd-text);
   background: var(--mdd-background);
   border: 1px solid var(--mdd-border);
   border-radius: calc(var(--mdd-radius) * 2);
 }
+.mdd-search-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
 .mdd-search-dialog::backdrop {
   background: rgb(0 0 0 / 45%);
+}
+.mdd-search-dialog .mdd-search-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .mdd-search-heading {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  flex-shrink: 0;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--mdd-border);
+  color: var(--mdd-muted);
 }
-.mdd-search-heading h2 {
-  margin: 0;
-  font-size: 1.125rem;
-  line-height: 1.4;
+.mdd-search-heading > svg {
+  flex-shrink: 0;
+  margin-inline-start: 0.5rem;
 }
 .mdd-search-close {
   display: inline-flex;
@@ -238,11 +252,13 @@ summary {
 }
 .mdd-search-input {
   display: block;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   min-height: 2.75rem;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid var(--mdd-muted);
+  padding: 0.5rem;
+  border: 0;
   border-radius: var(--mdd-radius);
+  outline-offset: -2px;
   color: var(--mdd-text);
   background: var(--mdd-background);
   caret-color: var(--mdd-accent);
@@ -253,44 +269,68 @@ summary {
   opacity: 1;
 }
 .mdd-search-status {
-  margin: 0.75rem 0;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0.75rem 1.25rem 0.25rem;
   color: var(--mdd-muted);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
 }
 .mdd-search-results {
-  max-height: 45dvh;
+  min-height: 0;
+  max-height: 50dvh;
   overflow: auto;
   overscroll-behavior: contain;
   list-style: none;
-  margin: 0 -0.5rem;
+  margin: 0;
   padding: 0.5rem;
 }
 .mdd-search-results a {
-  display: block;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
   min-height: 2.75rem;
-  padding: 0.75rem;
+  padding: 0.625rem 0.75rem;
   border-radius: var(--mdd-radius);
   color: var(--mdd-text);
   text-decoration: none;
 }
 .mdd-search-results a:hover,
-.mdd-search-results a:focus-visible {
+.mdd-search-results a:focus-visible,
+.mdd-search-results a[aria-selected="true"] {
   background: var(--mdd-accent-soft);
+}
+.mdd-search-results a[aria-selected="true"] {
+  outline: 1px solid var(--mdd-focus);
+  outline-offset: -1px;
+}
+.mdd-search-result-icon {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--mdd-muted);
+}
+.mdd-search-result-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .mdd-search-results strong {
   display: block;
-  color: var(--mdd-accent);
+  font-size: 0.9375rem;
+  line-height: 1.5;
   font-weight: 600;
 }
-.mdd-search-section,
-.mdd-search-results p {
-  font-size: 0.875rem;
-  line-height: 1.6;
+.mdd-search-breadcrumbs {
+  display: block;
+  margin-top: 0.125rem;
+  color: var(--mdd-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
 }
 .mdd-search-results p {
   margin: 0.25rem 0 0;
   color: var(--mdd-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
 }
 .mdd-search-results mark {
   color: var(--mdd-background);
@@ -298,7 +338,24 @@ summary {
   border-radius: 2px;
 }
 .mdd-search-retry {
+  align-self: flex-start;
+  flex-shrink: 0;
   min-height: 2.75rem;
+  margin: 0.25rem 1.25rem 0.75rem;
+}
+.mdd-search-help {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.625rem 1.25rem;
+  border-top: 1px solid var(--mdd-border);
+  color: var(--mdd-muted);
+  font-size: 0.75rem;
+}
+.mdd-search-help kbd {
+  font: inherit;
+  color: var(--mdd-text);
 }
 .mdd-layout {
   --mdd-sidebar-width: 15.5rem;
@@ -872,8 +929,10 @@ main:focus {
   }
   .mdd-search-dialog {
     margin: 1rem auto;
-    padding: 1rem;
     max-height: calc(100dvh - 2rem);
+  }
+  .mdd-search-help {
+    display: none;
   }
   .mdd-layout {
     display: block;
@@ -962,7 +1021,9 @@ main:focus {
   .mdd-search-dialog {
     border-color: CanvasText;
   }
-  .mdd-search-results a:focus-visible {
-    outline-color: Highlight;
+  .mdd-search-results a:focus-visible,
+  .mdd-search-results a[aria-selected="true"] {
+    outline: 1px solid Highlight;
+    outline-offset: -1px;
   }
 }

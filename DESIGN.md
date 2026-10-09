@@ -63,6 +63,11 @@ typography:
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
     fontSize: "0.8rem"
     lineHeight: 1.75
+  search-result:
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    fontSize: "0.9375rem"
+    fontWeight: 600
+    lineHeight: 1.5
   code:
     fontFamily: 'ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace'
     fontSize: "0.84rem"
@@ -129,13 +134,13 @@ components:
     backgroundColor: "{colors.mdd-background}"
     textColor: "{colors.mdd-text}"
     rounded: "{rounded.search-dialog}"
-    padding: "1.25rem"
-    width: "min(38rem, calc(100% - 2rem))"
+    padding: "0"
+    width: "min(40rem, calc(100% - 2rem))"
   search-input:
     backgroundColor: "{colors.mdd-background}"
     textColor: "{colors.mdd-text}"
     rounded: "{rounded.mdd-radius}"
-    padding: "0.65rem 0.75rem"
+    padding: "0.5rem"
 ---
 
 # Design System: mdd
@@ -261,11 +266,11 @@ GitHub Note, Tip, Important, Warning, and Caution alerts retain this note surfac
 
 ### Search dialog
 
-Search is an optional enhancement: its trigger stays hidden until the native dialog and script initialize. The trigger and close control have a `44px` minimum target. The dialog is limited to the available viewport, with a separately scrollable result list; phone padding narrows to `1rem`. Search input and results reuse the canvas, muted text, accent, and focus tokens. Result hover and focus use the accent wash.
+Search is an optional enhancement: its trigger stays hidden until the native dialog and script initialize. The trigger and close control have a `44px` minimum target. The dialog is limited to the available viewport, with a separately scrollable result list. The compact input header stays visible above results; keyboard hints stay below them on larger screens. Search input and results reuse the canvas, muted text, accent, and focus tokens. Result hover and selection use the accent wash; selected rows also have an inset focus-colored outline so selection remains distinct while the input retains focus. Each row has an 18px decorative page/heading icon, a 15px primary label, and optional 12px breadcrumbs. Body-only matches add a short 13px excerpt; label matches avoid redundant preview text.
 
 Matching text in result titles, section labels, and excerpts uses semantic `mark` elements with an accent background and canvas-colored text. Highlights use a small `2px` corner radius. Highlighting adds no padding or weight, so text does not shift as queries change. It preserves the original characters and stays within search results.
 
-Meta/Control+K opens search and focuses the input. Escape closes it even with a nonempty query and restores the opener’s focus. Arrow keys move between the input and ordinary result links; Enter follows the focused link. Normal result activation closes the dialog before native navigation, including a heading on the current page. Empty query, loading, results, no results, load failure, and query errors have distinct status text; failure exposes a retry control. No custom combobox or selection state replaces native links.
+Meta/Control+K opens search and focuses the input. Escape closes it even with a nonempty query and restores the opener’s focus. Arrow keys wrap the selected result while DOM focus remains in the input; Enter follows its real anchor. A combobox and listbox expose selection through `aria-activedescendant` and `aria-selected`. Normal result activation closes the dialog before native navigation, including a heading on the current page. Empty query, loading, results, no results, load failure, and query errors have distinct status text; failure exposes a retry control. Modified clicks retain native link behavior. Engine-provided ranges also highlight corrected typo spellings without reimplementing matching in the reader.
 
 ### Shared footer
 

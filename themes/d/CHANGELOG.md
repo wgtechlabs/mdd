@@ -4,7 +4,8 @@
 
 Add distinct, labeled treatments for GitHub-style Note, Tip, Important, Warning,
 and Caution alerts with decorative vector icons and light/dark color tokens.
-Add the shared reader's search control, focused search dialog, and result list.
+Add the shared reader's search control and compact search dialog with page/heading
+icons, context breadcrumbs, selected rows, and keyboard hints.
 Highlight matching keywords with the existing accent and canvas colors in both
 light and dark search results.
 Group social links and MDD credit in the footer. Preserve native keyboard focus,

@@ -18,4 +18,4 @@ These are activation gates, not channel overrides. Once publication is enabled, 
 5. Set `MDD_PUBLISHING_ENABLED=true` once the maintainer authorizes automated publication. Verify a development package in both registries before a stable release.
 6. Use feature/fix → dev squash PRs and dev → main regular merge PRs through Clean Workflow. Confirm actual registry versions and the completed GitHub Release after promotion.
 
-Repository secrets and variables are not created by this local setup. No remote CI, package publication, or deployment has yet been verified for MDD. See the separate engine repository for the already completed engine release.
+Repository secrets and variables are not created by this local setup. Remote CI has run for PR #1; the earlier run failed its Gitleaks license gate. Current-head checks must be verified before merging. Package publication and deployment remain inactive. See the separate engine repository for the already completed engine release.

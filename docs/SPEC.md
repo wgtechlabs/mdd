@@ -1,6 +1,6 @@
 # mdd specification
 
-Status: local reader/exporter/CLI/server implementation with published `@wgtechlabs/mdd-engine@1.0.1` adoption on October 9, 2026. The separate `wgtechlabs/mdd` repository exists. The user delegated frontend choices: static HTML/CSS, a clean editorial reader, and direct implementation. See VERIFICATION.md for current evidence and remaining visual/hosting gates. This document specifies intended behavior; it does not establish MDD publication or a working Railway deployment.
+Status: local reader/exporter/CLI/server implementation with published `@wgtechlabs/mdd-engine@1.1.0` adoption on October 9, 2026. The separate `wgtechlabs/mdd` repository exists. The user delegated frontend choices: static HTML/CSS, a clean editorial reader, and direct implementation. See VERIFICATION.md for current evidence and remaining visual/hosting gates. This document specifies intended behavior; it does not establish MDD publication or a working Railway deployment.
 
 ## Purpose and boundary
 
@@ -18,7 +18,7 @@ Use `.node-version` and `.nvmrc` for the LTS default, package engines for the su
 
 mdd-engine is a normal package dependency, not a Git submodule, sibling filesystem import, or copied parser. Pin a tested engine version for each released mdd build. Use Clean Workflow and Build Flow with package/release flows enabled when publishing is activated; publish the mdd package to npm and GitHub Packages, then complete its GitHub Release. Local package metadata proposes `@wgtechlabs/mdd` and MIT, matching the engine. Verify these and registry prerequisites before publication. Initial implementation does not authorize publishing or changing repository visibility.
 
-## Proposed command interface
+## Command interface
 
 | Command | Behavior |
 |---|---|
@@ -27,7 +27,7 @@ mdd-engine is a normal package dependency, not a Git submodule, sibling filesyst
 | `mdd dev` | Local preview of the same renderer; a simple rebuild loop is sufficient initially |
 | `mdd serve` | Serve already-built files using Node; no Git fetch or Markdown compilation on startup |
 
-Support explicit docs directory, output directory, and effective base path. CLI syntax is proposed, not an existing interface. Do not clear arbitrary directories supplied as output; use a dedicated staging directory and refuse unsafe/overlapping destinations.
+Support explicit docs directory, output directory, and effective base path. These CLI commands are implemented. Do not clear arbitrary directories supplied as output; use a dedicated staging directory and refuse unsafe/overlapping destinations.
 
 ## Frontend and theme contract
 
@@ -41,7 +41,7 @@ Start with static HTML templates, CSS, and small browser scripts unless implemen
 
 Consume engine 1.0.0's semantic HTML for root-level GitHub-style `NOTE`, `TIP`, `IMPORTANT`, `WARNING`, and `CAUTION` alerts. The engine validates syntax, supplies the static visible labels and `.mdd-alert`/type hooks, and preserves the `> [!TYPE]` marker in exported Markdown. MDD does not reparse author source or inject live regions. D Theme styles the existing labels with decorative icons and colors. Removed `:::note`, `:::tip`, and `:::warning` blocks fail with the engine's actionable `REMOVED_COMPONENT` diagnostic; preserve the prior output and direct authors to migrate the complete body and optional custom title. `:::details` is unchanged.
 
-Use the engine's index builder after successful compilation and its browser-safe query API at runtime. MDD owns the header search control, Ctrl/Cmd+K shortcut, native dialog, input and result DOM, Escape/close behavior, and loading, empty, failure, and retry states. Load the static index when search is opened; do not require a remote service, a query endpoint, or a second search algorithm. Present result titles, section labels, and excerpts as text; use the engine's validated page/heading URLs under the configured base path. Search requires JavaScript but must not gate ordinary reading or navigation. Themes control appearance without changing index/query semantics.
+Use the engine's index builder after successful compilation and its browser-safe query API at runtime. MDD owns the header search control, Ctrl/Cmd+K shortcut, native dialog, input and result DOM, Escape/close behavior, and loading, empty, failure, and retry states. Load the static index when search is opened; do not require a remote service, a query endpoint, or a second search algorithm. Request section mode with bounded typo fallback. Present independent page/heading labels, breadcrumbs, and optional body-match excerpts as text, using engine-provided match ranges for highlights. Keep input focus during arrow-key selection, use Enter for the selected link, and preserve native editing keys; use the engine's validated page/heading URLs under the configured base path. Search requires JavaScript but must not gate ordinary reading or navigation. Themes control appearance without changing index/query semantics.
 
 The optional shared `mdd/footer.md` is engine-owned authoring input beside `config.json`, including when the documentation directory is customized. It contains one `:::socials` container with a flat unordered list of plain-text labeled HTTPS links. Preserve engine validation of content, URLs, and paths. Missing or empty files produce no social links. MDD renders `site.footer.socials` in `.mdd-socials` and groups it with `.mdd-credit` in `.mdd-footer-bottom`, below the agent resource links. Known social icons are decorative and links retain accessible labels; unfamiliar destinations retain readable text. Do not add footer content to routes, navigation, Markdown article exports, or search results.
 

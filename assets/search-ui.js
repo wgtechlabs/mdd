@@ -1,54 +1,9 @@
 import { search, validateSearchIndex } from "./search.js";
 
-const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" });
-
-/** Presentation only: preserve original text while marking engine-style terms. */
-function highlight(element, text, terms) {
-  const groups = [];
-  for (const { segment, index } of graphemes.segment(text)) {
-    let group = {
-      text: segment.normalize("NFKC"),
-      start: index,
-      end: index + segment.length,
-    };
-    // Compatibility normalization can join adjacent graphemes (e.g. ㄱㅏ → 가).
-    while (groups.length) {
-      const previous = groups.at(-1);
-      const joined = previous.text + group.text;
-      const combined = joined.normalize("NFKC");
-      if (combined === joined) break;
-      groups.pop();
-      group = { text: combined, start: previous.start, end: group.end };
-    }
-    groups.push(group);
-  }
-  const offsets = [];
-  let normalized = "";
-  for (const group of groups) {
-    normalized += group.text;
-    for (let unit = 0; unit < group.text.toLowerCase().length; unit++)
-      offsets.push([group.start, group.end]);
-  }
-  // Lowercase together so contextual letters, such as final sigma, match the
-  // engine. Offsets map compatibility expansions back to intact graphemes.
-  normalized = normalized.toLowerCase();
-  const ranges = [];
-  for (const term of terms) {
-    let found = normalized.indexOf(term);
-    while (found !== -1) {
-      ranges.push([offsets[found][0], offsets[found + term.length - 1][1]]);
-      found = normalized.indexOf(term, found + 1);
-    }
-  }
-  ranges.sort((a, b) => a[0] - b[0]);
-  const merged = [];
-  for (const range of ranges) {
-    const last = merged.at(-1);
-    if (last && range[0] <= last[1]) last[1] = Math.max(last[1], range[1]);
-    else merged.push(range);
-  }
+/** Render only engine-provided original-text ranges; never interpret HTML. */
+function highlight(element, text, ranges) {
   let cursor = 0;
-  for (const [start, end] of merged) {
+  for (const [start, end] of ranges) {
     element.append(document.createTextNode(text.slice(cursor, start)));
     const mark = document.createElement("mark");
     mark.textContent = text.slice(start, end);
@@ -56,6 +11,33 @@ function highlight(element, text, terms) {
     cursor = end;
   }
   element.append(document.createTextNode(text.slice(cursor)));
+}
+
+function resultIcon(kind) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  for (const [name, value] of Object.entries({
+    viewBox: "0 0 24 24",
+    width: "18",
+    height: "18",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": "1.5",
+    "stroke-linecap": "round",
+    "stroke-linejoin": "round",
+    "aria-hidden": "true",
+    focusable: "false",
+    class: "mdd-search-result-icon",
+  }))
+    svg.setAttribute(name, value);
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute(
+    "d",
+    kind === "section"
+      ? "M10 3 8 21M16 3l-2 18M4 9h17M3 15h17"
+      : "M14 3H5v18h14V8Zm0 0v5h5M8 12h8M8 16h8",
+  );
+  svg.append(path);
+  return svg;
 }
 
 (() => {
@@ -97,9 +79,25 @@ function highlight(element, text, terms) {
   let loading = false;
   let loadFailed = false;
   let returnFocus;
+  let selected = -1;
+  let links = [];
+
+  const select = (position, scroll = false) => {
+    selected = position;
+    links.forEach((link, n) => {
+      link.setAttribute("aria-selected", String(n === position));
+    });
+    if (position < 0) input.removeAttribute("aria-activedescendant");
+    else {
+      input.setAttribute("aria-activedescendant", links[position].id);
+      if (scroll) links[position].scrollIntoView({ block: "nearest" });
+    }
+  };
 
   const update = () => {
     if (!dialog.open) return;
+    select(-1);
+    links = [];
     results.replaceChildren();
     results.setAttribute("aria-busy", String(loading));
     retry.hidden = true;
@@ -118,20 +116,23 @@ function highlight(element, text, terms) {
       return;
     }
     try {
-      const hits = search(index, query, { limit: 8 });
-      const terms = [
-        ...new Set(
-          query
-            .normalize("NFKC")
-            .toLowerCase()
-            .match(/[\p{L}\p{N}\p{M}_]+/gu) ?? [],
-        ),
-      ];
+      const hits = search(index, query, {
+        limit: 8,
+        mode: "sections",
+        fuzzy: true,
+      });
       for (const hit of hits) {
         const item = document.createElement("li");
         const link = document.createElement("a");
         link.className = "mdd-search-result";
         link.href = destination(hit.url);
+        item.setAttribute("role", "presentation");
+        link.setAttribute("role", "option");
+        link.setAttribute("tabindex", "-1");
+        link.id = `_mdd-search-result-${links.length}`;
+        const position = links.length;
+        links.push(link);
+        link.addEventListener("pointermove", () => select(position));
         link.addEventListener("click", (event) => {
           // Same-page heading links do not reload the document. Dismiss the
           // modal before native navigation so the destination is visible.
@@ -149,27 +150,49 @@ function highlight(element, text, terms) {
             dialog.close();
           }
         });
+        link.append(resultIcon(hit.kind));
+        const content = document.createElement("span");
+        content.className = "mdd-search-result-content";
         const title = document.createElement("strong");
         title.className = "mdd-search-result-title";
-        highlight(title, hit.title, terms);
-        link.append(title);
-        if (hit.section) {
-          const section = document.createElement("span");
-          section.className = "mdd-search-section";
-          highlight(section, hit.section, terms);
-          link.append(section);
+        const hasHeading = hit.kind === "section" && hit.section;
+        const primary = hasHeading ? hit.section : hit.title;
+        const matches = hasHeading ? hit.matches.section : hit.matches.title;
+        highlight(title, primary, matches);
+        content.append(title);
+        if (hit.breadcrumbs.length) {
+          const breadcrumbs = document.createElement("span");
+          breadcrumbs.className = "mdd-search-breadcrumbs";
+          hit.breadcrumbs.forEach((label, n) => {
+            if (n) {
+              const separator = document.createElement("span");
+              separator.textContent = " / ";
+              breadcrumbs.append(separator);
+            }
+            const ancestor = document.createElement("span");
+            highlight(ancestor, label, hit.matches.breadcrumbs[n]);
+            breadcrumbs.append(ancestor);
+          });
+          content.append(document.createTextNode(" "), breadcrumbs);
         }
-        const excerpt = document.createElement("p");
-        excerpt.className = "mdd-search-result-excerpt";
-        highlight(excerpt, hit.excerpt, terms);
-        link.append(excerpt);
+        // Body-only matches need an excerpt to explain why the row appeared.
+        if (!matches.length && hit.excerpt) {
+          const excerpt = document.createElement("p");
+          excerpt.className = "mdd-search-result-excerpt";
+          highlight(excerpt, hit.excerpt, hit.matches.excerpt);
+          content.append(document.createTextNode(" "), excerpt);
+        }
+        link.append(content);
         item.append(link);
         results.append(item);
       }
+      if (links.length) select(0);
       status.textContent = hits.length
         ? `${hits.length} ${hits.length === 1 ? "result" : "results"}.`
         : "No results. Try another search.";
     } catch (error) {
+      select(-1);
+      links = [];
       results.replaceChildren();
       status.textContent =
         error instanceof RangeError
@@ -210,6 +233,7 @@ function highlight(element, text, terms) {
     if (!dialog.open) {
       returnFocus = document.activeElement;
       dialog.showModal();
+      input.setAttribute("aria-expanded", "true");
     }
     input.focus();
     input.select();
@@ -220,7 +244,10 @@ function highlight(element, text, terms) {
   close.addEventListener("click", () => dialog.close());
   dialog.addEventListener("close", () => {
     // A queued close event must not steal focus from a reopened dialog.
-    if (dialog.open || !returnFocus) return;
+    if (dialog.open) return;
+    input.setAttribute("aria-expanded", "false");
+    select(-1);
+    if (!returnFocus) return;
     if (returnFocus?.isConnected && typeof returnFocus.focus === "function")
       returnFocus.focus();
     else toggle.focus();
@@ -232,7 +259,13 @@ function highlight(element, text, terms) {
   });
   input.addEventListener("input", update);
   dialog.addEventListener("keydown", (event) => {
-    if (event.altKey || event.ctrlKey || event.metaKey || event.isComposing)
+    if (
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      event.isComposing
+    )
       return;
     if (event.key === "Escape") {
       // Search inputs otherwise consume Escape to clear their value first.
@@ -240,21 +273,14 @@ function highlight(element, text, terms) {
       dialog.close();
       return;
     }
-    const links = [...results.querySelectorAll("a")];
-    const active = document.activeElement;
-    if (active === input && event.key === "ArrowDown" && links.length) {
+    if (document.activeElement !== input || !links.length) return;
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
-      links[0].focus();
-      return;
-    }
-    const position = links.indexOf(active);
-    if (position < 0) return;
-    if (event.key === "ArrowUp") {
+      const step = event.key === "ArrowDown" ? 1 : -1;
+      select((selected + step + links.length) % links.length, true);
+    } else if (event.key === "Enter" && selected >= 0) {
       event.preventDefault();
-      (links[position - 1] ?? input).focus();
-    } else if (event.key === "ArrowDown") {
-      event.preventDefault();
-      (links[position + 1] ?? links[position]).focus();
+      links[selected].click();
     }
   });
   document.addEventListener("keydown", (event) => {

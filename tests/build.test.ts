@@ -94,7 +94,7 @@ describe("static export", () => {
       );
       expect(manifest).toMatchObject({
         schemaVersion: 1,
-        engineVersion: "1.0.1",
+        engineVersion: "1.1.0",
         basePath,
         source: { commit: null, dirty: null },
       });

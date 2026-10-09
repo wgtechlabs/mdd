@@ -152,7 +152,7 @@ try {
     );
     assert.equal(manifest.basePath, prefix);
     assert.equal(manifest.mddVersion, metadata.version);
-    assert.equal(manifest.engineVersion, "1.0.1");
+    assert.equal(manifest.engineVersion, "1.1.0");
     const searchIndex = JSON.parse(
       await readFile(join(project, out, "_mdd", "search-index.json"), "utf8"),
     );
@@ -169,6 +169,16 @@ try {
       search(searchIndex, "Start here")[0]?.url,
       `${prefix}installation/#mdd-start-here`,
     );
+    const typo = search(searchIndex, "instalation", {
+      mode: "sections",
+      fuzzy: true,
+    });
+    assert.equal(typo[0]?.kind, "page");
+    assert.equal(typo[0]?.url, `${prefix}installation/`);
+    assert.deepEqual(typo[0]?.matches.title, [[0, 12]]);
+    const section = search(searchIndex, "Start here", { mode: "sections" })[0];
+    assert.equal(section?.kind, "section");
+    assert.deepEqual(section?.breadcrumbs, ["Installation"]);
     assert.equal(search(searchIndex, "GitHub").length, 0);
     const html = await readFile(
       join(project, out, "installation", "index.html"),

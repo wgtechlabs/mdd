@@ -63,6 +63,18 @@ test("search is progressively enhanced and shared footer labels are escaped", ()
     '<dialog class="mdd-search-dialog" aria-labelledby="_mdd-search-title" data-index-url="/docs/_mdd/search-index.json">',
   );
   expect(html).toContain('type="module" src="/docs/_mdd/search-ui.js"');
+  const searchInput = /<input[^>]*class="mdd-search-input"[^>]*>/.exec(
+    html,
+  )?.[0];
+  expect(searchInput).toContain('role="combobox"');
+  expect(searchInput).toContain('aria-controls="_mdd-search-results"');
+  expect(searchInput).toContain('aria-expanded="false"');
+  expect(searchInput).toContain('aria-autocomplete="list"');
+  const searchResults = /<ul[^>]*class="mdd-search-results"[^>]*>/.exec(
+    html,
+  )?.[0];
+  expect(searchResults).toContain('id="_mdd-search-results"');
+  expect(searchResults).toContain('role="listbox"');
   expect(html).toContain(
     'aria-label="&lt;script&gt;bad()&lt;/script&gt; &amp; &quot;GitHub&quot;"',
   );

@@ -71,9 +71,10 @@ function footerSocials(site: Site): string {
 
 function searchDialog(base: string): string {
   return `<dialog class="mdd-search-dialog" aria-labelledby="_mdd-search-title" data-index-url="${escapeHtml(base)}_mdd/search-index.json">
-<div class="mdd-search-heading"><h2 id="_mdd-search-title">Search documentation</h2><button class="mdd-search-close" type="button" aria-label="Close search"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
-<input class="mdd-search-input" id="_mdd-search-input" type="search" aria-label="Search documentation" aria-describedby="_mdd-search-status" placeholder="Search pages and headings…" maxlength="512" autocomplete="off" spellcheck="false">
-<p class="mdd-search-status" id="_mdd-search-status" role="status"></p><ul class="mdd-search-results" aria-label="Search results"></ul><button class="mdd-search-retry" type="button" hidden>Try again</button>
+<h2 class="mdd-search-label" id="_mdd-search-title">Search documentation</h2>
+<div class="mdd-search-heading"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input class="mdd-search-input" id="_mdd-search-input" type="search" role="combobox" aria-controls="_mdd-search-results" aria-expanded="false" aria-autocomplete="list" aria-label="Search documentation" aria-describedby="_mdd-search-status" placeholder="Search pages and headings…" maxlength="512" autocomplete="off" spellcheck="false"><button class="mdd-search-close" type="button" aria-label="Close search"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
+<p class="mdd-search-status" id="_mdd-search-status" role="status"></p><ul class="mdd-search-results" id="_mdd-search-results" role="listbox" aria-label="Search results"></ul><button class="mdd-search-retry" type="button" hidden>Try again</button>
+<div class="mdd-search-help" aria-hidden="true"><span><kbd>↑</kbd> <kbd>↓</kbd> Navigate</span><span><kbd>↵</kbd> Open</span><span><kbd>Esc</kbd> Close</span></div>
 </dialog>`;
 }
 
