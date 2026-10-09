@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.mdd-output/
+coverage/
+.agents/apex/
+.impeccable/review/
+.impeccable/mocks/
+.DS_Store
+.env
+.env.*
+!.env.example
+
+mdd-dist/
+.impeccable/briefs/

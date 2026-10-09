@@ -1,0 +1,53 @@
+{
+  "brand": "mdd",
+  "tagline": "Markdown in. Documentation out.",
+  "brief": "A modern, friendly identity for documentation authored as Markdown. The approved Page space lettering stays intact; blurple becomes the primary colour.",
+  "adjectives": [
+    "modern",
+    "friendly",
+    "clear"
+  ],
+  "criteria": "Full wordmark from 96 px; compact m at 16 px. Original vector lettering, black/white variants, portable assets.",
+  "industry": "software",
+  "mockups": [
+    "readme",
+    "app-icon",
+    "website",
+    "terminal",
+    "sticker",
+    "social"
+  ],
+  "nav": [
+    "Get started",
+    "Writing",
+    "Themes"
+  ],
+  "brand_color": "#5865F2",
+  "greyscale": false,
+  "final": true,
+  "date": "2026-10-08",
+  "deck_title": "Page space brand kit",
+  "concepts": [
+    {
+      "name": "Page space",
+      "symbol": "../logo/mdd-symbol-blurple.svg",
+      "lockup": "../logo/mdd-wordmark-blurple.svg",
+      "stacked": "../logo/mdd-stacked-blurple.svg",
+      "symbol_on_tile": "../logo/mdd-symbol-white.svg",
+      "symbol_on_dark": "../logo/mdd-symbol-white.svg",
+      "lockup_on_dark": "../logo/mdd-wordmark-white.svg",
+      "stacked_on_tile": "../logo/mdd-stacked-white.svg",
+      "idea": "Rounded document windows inside a friendly, lowercase mdd.",
+      "rationale": [
+        "Original approved letters without gesture additions.",
+        "Blurple #5865F2 is the user-selected primary colour.",
+        "The first letter supplies a compact m for tabs and icons."
+      ]
+    }
+  ],
+  "recommendation": "Use the complete wordmark for introductions. Context mockups are illustrative, not screenshots of implemented features or live deployments.",
+  "next_steps": [
+    "Use the supplied artwork and usage guide.",
+    "Proof physical reproductions with your printer."
+  ]
+}
