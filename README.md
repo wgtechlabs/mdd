@@ -9,7 +9,7 @@
 
 MDD turns a repository's Markdown into a documentation website you can host yourself. People get a readable site; agents get the same content as Markdown. Everything is configured through files.
 
-This repository provides the reader, CLI, static exporter, and Node server. The published [`@wgtechlabs/mdd-engine@1.1.0`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, navigation, shared footer metadata, and headless search.
+This repository provides the reader frontend and Node server intended for deployment through a Railway template, plus the local CLI and static exporter. The published [`@wgtechlabs/mdd-engine@1.1.0`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, navigation, shared footer metadata, and headless search.
 
 - **MDD Engine:** compile Markdown into validated site data and safe article HTML, including code blocks and alerts; create and query a portable search index.
 - **MDD:** compose the website, add shared reader controls such as code copying and search, and export or serve it.
@@ -30,7 +30,7 @@ bun run demo
 
 Open `http://127.0.0.1:4173/docs/`. The example includes pages, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation.
 
-MDD is a deployable application, not an npm or GitHub Packages package. Run it from a checkout or use its generated static output. No Railway deployment or template has been activated. See [verification](docs/VERIFICATION.md) for current evidence and remaining checks.
+MDD is intended to be delivered as a Railway template, with one content repository per deployment. The template is not implemented yet; the reader, local CLI, static exporter, and server are available from this checkout. Only `mdd-engine` is distributed through npm and GitHub Packages. See [verification](docs/VERIFICATION.md) for current evidence and remaining checks.
 
 ## Write documentation
 

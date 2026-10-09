@@ -2,7 +2,7 @@
 
 ## Product boundary
 
-This is `wgtechlabs/mdd`: the documentation reader, CLI, static exporter, and Node server. Consume the published `@wgtechlabs/mdd-engine` package for content/configuration validation, Markdown, routes, navigation, and diagnostics. Never duplicate the compiler or import a sibling checkout. See `docs/SPEC.md` for the product contract.
+This is `wgtechlabs/mdd`: the documentation reader, CLI, static exporter, and Node server. Its hosted delivery target is a Railway template, with one public content repository per deployment. Consume the published `@wgtechlabs/mdd-engine` package for content/configuration validation, Markdown, routes, navigation, and diagnostics. Never duplicate the compiler or import a sibling checkout. See `docs/SPEC.md` for the product contract.
 
 Follow [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for layer ownership. The engine owns semantic article HTML and authoring syntax; MDD owns the page shell, accessible shared controls, and presentation enhancements; themes own visual styling. Code-copy behavior belongs to MDD. Syntax highlighting is not implemented; future tokenization belongs to MDD and token colors to themes. Any new authoring metadata still needs an engine contract first. Theme changes must preserve content meaning and compiled navigation.
 
