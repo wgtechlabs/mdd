@@ -1,6 +1,7 @@
 {
   "name": "@wgtechlabs/mdd",
   "version": "0.1.0",
+  "private": true,
   "description": "Build and host documentation from Markdown with mdd-engine",
   "type": "module",
   "license": "MIT",
@@ -25,9 +26,6 @@
     "README.md",
     "LICENSE"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "lint": "biome check src tests assets themes scripts package.json tsconfig.json tsconfig.build.json biome.json",
     "format": "biome check --write src tests assets themes scripts package.json tsconfig.json tsconfig.build.json biome.json",

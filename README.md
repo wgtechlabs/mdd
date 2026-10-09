@@ -30,7 +30,7 @@ bun run demo
 
 Open `http://127.0.0.1:4173/docs/`. The example includes pages, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation.
 
-This is the initial local implementation. The MDD package is not published, and no Railway deployment or template has been activated. See [verification](docs/VERIFICATION.md) for current evidence and remaining checks.
+MDD is a deployable application, not an npm or GitHub Packages package. Run it from a checkout or use its generated static output. No Railway deployment or template has been activated. See [verification](docs/VERIFICATION.md) for current evidence and remaining checks.
 
 ## Write documentation
 
@@ -167,10 +167,10 @@ MDD encodes each source filename segment and validates the prefix during checkin
 and building; invalid values preserve previous output. Do not put this reader
 option into the engine's `mdd/config.json`.
 
-## Use as a library
+## Use the build API from a checkout
 
 ```js
-import { build, serve } from '@wgtechlabs/mdd';
+import { build, serve } from './dist/index.js';
 
 const result = await build({ projectDir: '/path/to/project', basePath: '/docs/' });
 if (!result.site) {
@@ -181,7 +181,7 @@ if (!result.site) {
 }
 ```
 
-This API is available from a locally packed installation until the first package publication. Authoring errors return diagnostics without replacing the old output. Operational failures reject with an error.
+Build the checkout with `bun run build` before importing its local API. MDD does not require registry publication. Authoring errors return diagnostics without replacing the old output. Operational failures reject with an error.
 
 ## Develop and release
 
@@ -191,8 +191,8 @@ bun run smoke
 bun audit
 ```
 
-The smoke check packs the real package, installs it in an isolated consumer, and runs the CLI/server with Node. `MDD_TEST_NODE_BINARIES` accepts platform-delimited Node binary paths to exercise one archive across runtimes.
+The smoke check creates a local application archive, installs it in an isolated consumer, and runs the CLI/server with Node. This test does not publish anything. `MDD_TEST_NODE_BINARIES` accepts platform-delimited Node binary paths to exercise one archive across runtimes.
 
-[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Package and GitHub Release flows have a temporary bootstrap gate until the first npm package and Trusted Publisher are configured; CodeQL is enabled automatically for this public repository. Private copies need verified code-scanning access. The exact reasons and activation steps are in [releasing](docs/RELEASING.md). Development, PR, manual, and stable channel settings are inherited when publishing is enabled.
+[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Registry package publishing is disabled for MDD; only `mdd-engine` publishes to npm and GitHub Packages. MDD has no npm bootstrap or Trusted Publishing requirement. GitHub Releases and future container delivery are separate application delivery steps, currently inactive. CodeQL is enabled automatically for this public repository; private copies need verified code-scanning access. See [releasing](docs/RELEASING.md).
 
 Follow [AGENTS.md](AGENTS.md), [the product contract](docs/SPEC.md), and [MIT licensing](LICENSE).
