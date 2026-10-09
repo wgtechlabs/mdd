@@ -9,13 +9,24 @@
 
 MDD turns a repository's Markdown into a documentation website you can host yourself. People get a readable site; agents get the same content as Markdown. Everything is configured through files.
 
-This repository provides the reader, CLI, static exporter, and Node server. The published [`@wgtechlabs/mdd-engine@1.1.0`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, navigation, shared footer metadata, and headless search.
+This repository provides the reader frontend and Node server intended for deployment through a Railway template, plus the local CLI and static exporter. The published [`@wgtechlabs/mdd-engine@1.1.0`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, navigation, shared footer metadata, and headless search.
+
+| Project | Responsibility | Delivery |
+| --- | --- | --- |
+| **MDD Engine** (`wgtechlabs/mdd-engine`) | Headless Markdown processing, validation, navigation, and search | Published dependency: `@wgtechlabs/mdd-engine` on npm and GitHub Packages |
+| **MDD** (`wgtechlabs/mdd`, this repository) | Documentation frontend and Node server using MDD Engine | Railway template application; no MDD npm or GitHub Packages publication |
+
+The Railway template will deploy **this application** and accept a separate public
+**content repository URL**. Each deployment will build and serve that repository's
+`mdd/` folder as one documentation site. The local reader, CLI, static export, and
+server work today; the Railway template and content-fetch integration are still to
+be implemented. Static output can also be hosted on GitHub Pages.
 
 - **MDD Engine:** compile Markdown into validated site data and safe article HTML, including code blocks and alerts; create and query a portable search index.
 - **MDD:** compose the website, add shared reader controls such as code copying and search, and export or serve it.
 - **Themes:** customize colors, typography, spacing, and assets through the shared reader's styling hooks. The bundled **D Theme** is developed in this repository and has its own version and release name: **D26, version 0.2.0**. Custom themes can overlay it with their own versions. See the [version policy](docs/THEMES.md#version-policy).
 
-See [responsibilities](docs/ARCHITECTURE.md) for the complete boundary, including code-block rendering, future syntax highlighting, and API documentation.
+See [delivery boundaries](docs/ARCHITECTURE.md#delivery-contract) and [responsibilities](docs/ARCHITECTURE.md#ownership) for where each feature belongs.
 
 The Page space logo, blurple palette, icons, and usage guidance live in the [brand kit](brand/README.md).
 
@@ -30,7 +41,7 @@ bun run demo
 
 Open `http://127.0.0.1:4173/docs/`. The example includes pages, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation.
 
-This is the initial local implementation. The MDD package is not published, and no Railway deployment or template has been activated. See [verification](docs/VERIFICATION.md) for current evidence and remaining checks.
+See [verification](docs/VERIFICATION.md) for current evidence and remaining hosting work.
 
 ## Write documentation
 
@@ -167,10 +178,10 @@ MDD encodes each source filename segment and validates the prefix during checkin
 and building; invalid values preserve previous output. Do not put this reader
 option into the engine's `mdd/config.json`.
 
-## Use as a library
+## Use the build API from a checkout
 
 ```js
-import { build, serve } from '@wgtechlabs/mdd';
+import { build, serve } from './dist/index.js';
 
 const result = await build({ projectDir: '/path/to/project', basePath: '/docs/' });
 if (!result.site) {
@@ -181,7 +192,7 @@ if (!result.site) {
 }
 ```
 
-This API is available from a locally packed installation until the first package publication. Authoring errors return diagnostics without replacing the old output. Operational failures reject with an error.
+Build the checkout with `bun run build` before importing its local API. MDD does not require registry publication. Authoring errors return diagnostics without replacing the old output. Operational failures reject with an error.
 
 ## Develop and release
 
@@ -191,8 +202,8 @@ bun run smoke
 bun audit
 ```
 
-The smoke check packs the real package, installs it in an isolated consumer, and runs the CLI/server with Node. `MDD_TEST_NODE_BINARIES` accepts platform-delimited Node binary paths to exercise one archive across runtimes.
+The smoke check creates a local application archive, installs it in an isolated consumer, and runs the CLI/server with Node. This test does not publish anything. `MDD_TEST_NODE_BINARIES` accepts platform-delimited Node binary paths to exercise one archive across runtimes.
 
-[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Package and GitHub Release flows have a temporary bootstrap gate until the first npm package and Trusted Publisher are configured; CodeQL is enabled automatically for this public repository. Private copies need verified code-scanning access. The exact reasons and activation steps are in [releasing](docs/RELEASING.md). Development, PR, manual, and stable channel settings are inherited when publishing is enabled.
+[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Registry package publishing is disabled for MDD; only `mdd-engine` publishes to npm and GitHub Packages. MDD has no npm bootstrap or Trusted Publishing requirement. GitHub Releases and future container delivery are separate application delivery steps, currently inactive. CodeQL is enabled automatically for this public repository; private copies need verified code-scanning access. See [releasing](docs/RELEASING.md).
 
 Follow [AGENTS.md](AGENTS.md), [the product contract](docs/SPEC.md), and [MIT licensing](LICENSE).

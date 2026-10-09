@@ -4,7 +4,7 @@ Status: local reader/exporter/CLI/server implementation with published `@wgtechl
 
 ## Purpose and boundary
 
-mdd is the documentation website product: reader frontend, CLI, static exporter, server, and Railway template. It consumes the independently versioned mdd-engine package. It is also the single build entry point for the deployment action.
+mdd is the documentation website product: reader frontend, CLI, static exporter, server, and planned Railway template. It consumes the independently versioned mdd-engine package. It is also the single build entry point for the deployment action. The [delivery contract](ARCHITECTURE.md#delivery-contract) separates the published engine package, MDD's Railway application, and the user's content repository. The engine is installed as a dependency; MDD is deployed as an application, with no MDD npm publication step.
 
 All authoring/configuration is file-based. No admin dashboard, accounts, database, plugin runtime, or multi-site host is required.
 
@@ -16,7 +16,7 @@ Use TypeScript and Bun for dependencies/scripts/tests/builds. The shipped CLI an
 
 Use `.node-version` and `.nvmrc` for the LTS default, package engines for the supported range, and Build Flow `ci-matrix-versions: '["22","24","26"]'` for compatibility. Follow the same minimum-version verification and Bun lockfile policy as mdd-engine. Pin resolved versions for reproducibility and update the default deliberately when the latest LTS changes. Build browser assets for browsers and server code for Node. The default production image uses Node LTS and must not need Bun at runtime.
 
-mdd-engine is a normal package dependency, not a Git submodule, sibling filesystem import, or copied parser. Pin a tested engine version for each released mdd build. Use Clean Workflow and Build Flow with package/release flows enabled when publishing is activated; publish the mdd package to npm and GitHub Packages, then complete its GitHub Release. Local package metadata proposes `@wgtechlabs/mdd` and MIT, matching the engine. Verify these and registry prerequisites before publication. Initial implementation does not authorize publishing or changing repository visibility.
+mdd-engine is a normal package dependency, not a Git submodule, sibling filesystem import, or copied parser. Pin a tested engine version for each released mdd build. Use Clean Workflow and Build Flow for the MDD application. Only mdd-engine is published to npm and GitHub Packages. Keep MDD registry publication disabled and `package.json` private; its local `@wgtechlabs/mdd` identifier does not imply registry distribution. MDD is MIT licensed; its server and frontend are intended for a Railway template with one public content repository per deployment. Local checkout builds provide the CLI and static export during development. GitHub Releases and future container delivery are independent of npm; no MDD token, Trusted Publisher, or first-package bootstrap is needed. Initial implementation does not authorize deployment or changing repository visibility.
 
 ## Command interface
 

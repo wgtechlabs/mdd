@@ -8,10 +8,11 @@ on:
   workflow_dispatch:
 
 # Reusable workflows cannot increase the caller's permissions.
+# The pinned orchestrator declares package permissions for its container workflow
+# even while that flow is disabled. MDD does not need an OIDC token permission.
 permissions:
   contents: write
   packages: write
-  id-token: write
   pull-requests: write
   security-events: write
   actions: read
@@ -33,9 +34,10 @@ jobs:
       ci-test-command: bun run test
       ci-coverage-command: bun run coverage
       ci-build-command: bun run build && bun run smoke && bun audit
-      # Bootstrap gate: enable only after the first npm publish and OIDC setup.
-      # Once enabled, inherit all dev/PR/manual channels and both registries.
-      enable-package: ${{ vars.MDD_PUBLISHING_ENABLED == 'true' }}
-      enable-release: ${{ vars.MDD_PUBLISHING_ENABLED == 'true' }}
+      # MDD is an application; only mdd-engine publishes to package registries.
+      enable-package: false
+      # GitHub Releases remain inactive until application delivery is configured.
+      # They do not require an MDD npm package or Trusted Publisher.
+      enable-release: false
       # Public repositories enable CodeQL; private copies need verified access.
       enable-codeql: ${{ github.event.repository.private == false || vars.MDD_PRIVATE_CODEQL_ENABLED == 'true' }}
