@@ -5,7 +5,7 @@ The caller is `.github/workflows/build-flow.yml`, pinned to the same verified Bu
 ## Temporary bootstrap gates
 
 - `MDD_PUBLISHING_ENABLED` is a repository variable, unset by default. Until it equals `true`, both package and GitHub Release flows are disabled. This is deliberate: the MDD package has not been bootstrapped, npm Trusted Publishing has not been configured for it, and initial local implementation does not authorize publication.
-- The repository is currently private. CodeQL is enabled automatically if it becomes public, or when `MDD_PRIVATE_CODEQL_ENABLED=true` after verifying that GitHub code scanning is available for the private repository. This gate does not change repository visibility or grant scanning access.
+- The repository is public as of October 10, 2026. CodeQL is enabled automatically for public-repository events. Private copies can set `MDD_PRIVATE_CODEQL_ENABLED=true` after verifying that GitHub code scanning is available. This condition does not change repository visibility or grant scanning access.
 
 These are activation gates, not channel overrides. Once publication is enabled, the orchestrator inherits development, PR, manual, stable, npm OIDC, and both-registry behavior. Package publication must succeed before the GitHub Release. Container publishing stays disabled: there is no container in this phase.
 
@@ -18,4 +18,4 @@ These are activation gates, not channel overrides. Once publication is enabled, 
 5. Set `MDD_PUBLISHING_ENABLED=true` once the maintainer authorizes automated publication. Verify a development package in both registries before a stable release.
 6. Use feature/fix → dev squash PRs and dev → main regular merge PRs through Clean Workflow. Confirm actual registry versions and the completed GitHub Release after promotion.
 
-Repository secrets and variables are not created by this local setup. Remote CI has run for PR #1; the earlier run failed its Gitleaks license gate. Current-head checks must be verified before merging. Package publication and deployment remain inactive. See the separate engine repository for the already completed engine release.
+Repository secrets and variables are not created by this local setup. Remote CI has run for PR #1. Earlier private-repository runs received no Gitleaks license because GitHub Free does not provide organization-level secrets to private repositories. The maintainer made this repository public; fresh current-head checks must confirm secret scanning and CodeQL before merging. Package publication and deployment remain inactive. See the separate engine repository for the already completed engine release.

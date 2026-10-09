@@ -193,6 +193,6 @@ bun audit
 
 The smoke check packs the real package, installs it in an isolated consumer, and runs the CLI/server with Node. `MDD_TEST_NODE_BINARIES` accepts platform-delimited Node binary paths to exercise one archive across runtimes.
 
-[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Package and GitHub Release flows have a temporary bootstrap gate until the first npm package and Trusted Publisher are configured; private-repository CodeQL also needs verified access. The exact reasons and activation steps are in [releasing](docs/RELEASING.md). Development, PR, manual, and stable channel settings are inherited when publishing is enabled.
+[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Package and GitHub Release flows have a temporary bootstrap gate until the first npm package and Trusted Publisher are configured; CodeQL is enabled automatically for this public repository. Private copies need verified code-scanning access. The exact reasons and activation steps are in [releasing](docs/RELEASING.md). Development, PR, manual, and stable channel settings are inherited when publishing is enabled.
 
 Follow [AGENTS.md](AGENTS.md), [the product contract](docs/SPEC.md), and [MIT licensing](LICENSE).

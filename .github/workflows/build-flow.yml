@@ -37,5 +37,5 @@ jobs:
       # Once enabled, inherit all dev/PR/manual channels and both registries.
       enable-package: ${{ vars.MDD_PUBLISHING_ENABLED == 'true' }}
       enable-release: ${{ vars.MDD_PUBLISHING_ENABLED == 'true' }}
-      # This repository is private; enable after verifying code-scanning access.
+      # Public repositories enable CodeQL; private copies need verified access.
       enable-codeql: ${{ github.event.repository.private == false || vars.MDD_PRIVATE_CODEQL_ENABLED == 'true' }}

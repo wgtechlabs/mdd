@@ -1,6 +1,6 @@
 # mdd specification
 
-Status: local reader/exporter/CLI/server implementation with published `@wgtechlabs/mdd-engine@1.1.0` adoption on October 9, 2026. The separate `wgtechlabs/mdd` repository exists. The user delegated frontend choices: static HTML/CSS, a clean editorial reader, and direct implementation. See VERIFICATION.md for current evidence and remaining visual/hosting gates. This document specifies intended behavior; it does not establish MDD publication or a working Railway deployment.
+Status: local reader/exporter/CLI/server implementation with published `@wgtechlabs/mdd-engine@1.1.0` adoption on October 10, 2026. The separate `wgtechlabs/mdd` repository exists. The user delegated frontend choices: static HTML/CSS, a clean editorial reader, and direct implementation. See VERIFICATION.md for current evidence and remaining visual/hosting gates. This document specifies intended behavior; it does not establish MDD publication or a working Railway deployment.
 
 ## Purpose and boundary
 

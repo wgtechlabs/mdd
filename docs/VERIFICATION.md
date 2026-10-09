@@ -35,8 +35,10 @@ a second normalization/highlighting algorithm. D Theme remains 0.2.0 / D26.
   result-label size is documented; existing unrelated scale notes remain unchanged.
 
 Current-head CI and delivery are verified on MDD PR #1 and its dev-to-main promotion.
-MDD package/release activation, private CodeQL entitlement, and live Railway hosting
-remain separate gates; this change does not activate them or change visibility.
+The maintainer made MDD public on October 10, 2026. A fresh PR event enables
+CodeQL and must verify Gitleaks with the existing organization secret. Earlier
+private-repository runs could not receive that secret on GitHub Free. MDD
+package/release activation and live Railway hosting remain separate gates.
 
 ## October 9 engine 1.0.1 search excerpt integration
 
@@ -183,7 +185,7 @@ A fresh generic review agent used Impeccable's degraded finish-review contract b
 
 - Railway container/template packaging and a live deployment belong to the next phase.
 - Generic-host/browser deep-link rendering and configured static-host 404 behavior still need browser evidence; Node HTTP responses are tested separately.
-- Publishing is gated pending first-package setup and npm OIDC verification. GitHub-hosted CI has run; the updated-head outcome is tracked on PR #1. Private CodeQL remains disabled unless the repository enables its entitlement flag.
+- Publishing is gated pending first-package setup and npm OIDC verification. GitHub-hosted CI has run; the updated-head outcome is tracked on PR #1. CodeQL is enabled for fresh public-repository events; private copies need verified entitlement.
 - Earlier remote CI was blocked by the missing organization Gitleaks license. The latest PR run must establish successful scanning; dependency audit does not replace the secret scan.
 - Output is staged and replaced with rollback on a handled rename failure. It is not a cross-platform atomic directory exchange; a killed build can leave its lock or staging directory. Do not modify content or output concurrently with builds.
 - The Node server treats a completed build as immutable; use a new server snapshot after a build. Local preview handles that transition.
