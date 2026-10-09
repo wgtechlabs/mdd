@@ -18,9 +18,14 @@ Repository owners and AI agents author documentation through files. Readers need
 
 MDD turns a repository's `mdd/` folder into documentation that its owner can host. The separate published mdd-engine package owns compilation; this application owns the reader, CLI, static output, and server.
 
+MDD's hosted delivery target is a Railway template. Only MDD Engine is a registry
+package; MDD consumes it as a dependency and does not need npm publication or
+Trusted Publishing. The template deploys the MDD application and accepts a separate
+content repository URL. See the [delivery contract](docs/ARCHITECTURE.md#delivery-contract).
+
 ## Operating Context
 
-Authors edit Markdown, configuration, and selected theme files in Git. Static output can be served from GitHub Pages under a chosen prefix. Railway support is planned as one public content repository per deployment. There is no dashboard or database.
+Authors edit Markdown, configuration, and selected theme files in Git. Static output can be served from GitHub Pages under a chosen prefix. The local reader, CLI, exporter, and Node server are implemented. The Railway template and external content-fetch integration remain planned, with one public content repository per deployment. There is no dashboard or database.
 
 ## Capabilities and Constraints
 

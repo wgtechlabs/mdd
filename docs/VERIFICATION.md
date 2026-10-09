@@ -35,10 +35,11 @@ a second normalization/highlighting algorithm. D Theme remains 0.2.0 / D26.
   result-label size is documented; existing unrelated scale notes remain unchanged.
 
 Current-head CI and delivery are verified on MDD PR #1 and its dev-to-main promotion.
-The maintainer made MDD public on October 10, 2026. A fresh PR event enables
-CodeQL and must verify Gitleaks with the existing organization secret. Earlier
+The maintainer made MDD public on October 10, 2026. Fresh PR and main builds passed
+CodeQL and Gitleaks using the existing organization secret. Earlier
 private-repository runs could not receive that secret on GitHub Free. MDD
-package/release activation and live Railway hosting remain separate gates.
+application release delivery and live Railway hosting remain separate steps; npm
+publication applies only to the engine.
 
 ## October 9 engine 1.0.1 search excerpt integration
 
@@ -185,7 +186,7 @@ A fresh generic review agent used Impeccable's degraded finish-review contract b
 
 - Railway container/template packaging and a live deployment belong to the next phase.
 - Generic-host/browser deep-link rendering and configured static-host 404 behavior still need browser evidence; Node HTTP responses are tested separately.
-- Publishing is gated pending first-package setup and npm OIDC verification. GitHub-hosted CI has run; the updated-head outcome is tracked on PR #1. CodeQL is enabled for fresh public-repository events; private copies need verified entitlement.
-- Earlier remote CI was blocked by the missing organization Gitleaks license. The latest PR run must establish successful scanning; dependency audit does not replace the secret scan.
+- MDD registry publication is intentionally disabled. Application release delivery and Railway hosting remain separate work; no MDD npm or OIDC setup is required. GitHub-hosted CI and CodeQL passed on PRs #1 and #3 and the main merge.
+- Earlier private-repository CI could not access the organization Gitleaks license. After the repository became public, Gitleaks and CodeQL passed in the main build [37967930053](https://github.com/wgtechlabs/mdd/actions/runs/37967930053).
 - Output is staged and replaced with rollback on a handled rename failure. It is not a cross-platform atomic directory exchange; a killed build can leave its lock or staging directory. Do not modify content or output concurrently with builds.
 - The Node server treats a completed build as immutable; use a new server snapshot after a build. Local preview handles that transition.
