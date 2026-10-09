@@ -4,6 +4,33 @@ MDD Engine compiles documentation content. MDD turns that compiled content into 
 
 Here, **article rendering** means converting Markdown into semantic HTML; **reader rendering** means composing that article into a complete page. The engine owns the first and MDD owns the second. A headless engine can produce HTML without owning a website, browser, or server.
 
+## Delivery contract
+
+**MDD Engine is the registry package. MDD is the Railway template application.**
+
+| Component | Delivery and ownership |
+| --- | --- |
+| `wgtechlabs/mdd-engine` | Publishes `@wgtechlabs/mdd-engine` to npm and GitHub Packages. Owns the headless compiler and search APIs. |
+| `wgtechlabs/mdd` | Contains the reader frontend, Node server, CLI, static exporter, and bundled D Theme. Owns the Railway template and its application build/start configuration. Does not publish an MDD npm or GitHub Packages package. |
+| User's content repository | Supplies Markdown, configuration, and optional theme assets under `mdd/`. It is an input to the application, not the Railway service's application source. |
+| Planned `mdd-build-flow-action` | Invokes MDD for GitHub Pages builds or coordinates Railway content updates. It owns deployment triggers and provider credentials; it does not replace the engine or server. |
+
+The Railway template will use `wgtechlabs/mdd` as the application source and accept
+`MDD_REPO_URL` for a separate public content repository. One deployment serves one
+documentation site. Its build consumes the published engine dependency and the
+selected content snapshot; the Node runtime serves the resulting site.
+
+MDD's `package.json` provides dependency, script, runtime, and application-version
+metadata. Its local name and archive smoke tests do not make registry publication
+part of delivery. Keep `private: true` and `enable-package: false`; MDD needs no npm
+token, Trusted Publisher, or initial npm publication. A future container image is
+an application deployment artifact, separate from the engine's npm package.
+
+**Available now:** the engine package, reader, local CLI, static export, and Node
+server. **Still planned:** the Railway template, external content-fetch build, and
+deployment action. Static output also supports GitHub Pages. A passing local build
+does not establish a working Railway template or deployment.
+
 ## Ownership
 
 | Concern | MDD Engine | MDD | Themes |

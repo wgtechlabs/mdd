@@ -4,7 +4,7 @@ Status: local reader/exporter/CLI/server implementation with published `@wgtechl
 
 ## Purpose and boundary
 
-mdd is the documentation website product: reader frontend, CLI, static exporter, server, and Railway template. It consumes the independently versioned mdd-engine package. It is also the single build entry point for the deployment action.
+mdd is the documentation website product: reader frontend, CLI, static exporter, server, and planned Railway template. It consumes the independently versioned mdd-engine package. It is also the single build entry point for the deployment action. The [delivery contract](ARCHITECTURE.md#delivery-contract) separates the published engine package, MDD's Railway application, and the user's content repository. The engine is installed as a dependency; MDD is deployed as an application, with no MDD npm publication step.
 
 All authoring/configuration is file-based. No admin dashboard, accounts, database, plugin runtime, or multi-site host is required.
 

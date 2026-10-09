@@ -11,11 +11,22 @@ MDD turns a repository's Markdown into a documentation website you can host your
 
 This repository provides the reader frontend and Node server intended for deployment through a Railway template, plus the local CLI and static exporter. The published [`@wgtechlabs/mdd-engine@1.1.0`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, navigation, shared footer metadata, and headless search.
 
+| Project | Responsibility | Delivery |
+| --- | --- | --- |
+| **MDD Engine** (`wgtechlabs/mdd-engine`) | Headless Markdown processing, validation, navigation, and search | Published dependency: `@wgtechlabs/mdd-engine` on npm and GitHub Packages |
+| **MDD** (`wgtechlabs/mdd`, this repository) | Documentation frontend and Node server using MDD Engine | Railway template application; no MDD npm or GitHub Packages publication |
+
+The Railway template will deploy **this application** and accept a separate public
+**content repository URL**. Each deployment will build and serve that repository's
+`mdd/` folder as one documentation site. The local reader, CLI, static export, and
+server work today; the Railway template and content-fetch integration are still to
+be implemented. Static output can also be hosted on GitHub Pages.
+
 - **MDD Engine:** compile Markdown into validated site data and safe article HTML, including code blocks and alerts; create and query a portable search index.
 - **MDD:** compose the website, add shared reader controls such as code copying and search, and export or serve it.
 - **Themes:** customize colors, typography, spacing, and assets through the shared reader's styling hooks. The bundled **D Theme** is developed in this repository and has its own version and release name: **D26, version 0.2.0**. Custom themes can overlay it with their own versions. See the [version policy](docs/THEMES.md#version-policy).
 
-See [responsibilities](docs/ARCHITECTURE.md) for the complete boundary, including code-block rendering, future syntax highlighting, and API documentation.
+See [delivery boundaries](docs/ARCHITECTURE.md#delivery-contract) and [responsibilities](docs/ARCHITECTURE.md#ownership) for where each feature belongs.
 
 The Page space logo, blurple palette, icons, and usage guidance live in the [brand kit](brand/README.md).
 
@@ -30,7 +41,7 @@ bun run demo
 
 Open `http://127.0.0.1:4173/docs/`. The example includes pages, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation.
 
-MDD is intended to be delivered as a Railway template, with one content repository per deployment. The template is not implemented yet; the reader, local CLI, static exporter, and server are available from this checkout. Only `mdd-engine` is distributed through npm and GitHub Packages. See [verification](docs/VERIFICATION.md) for current evidence and remaining checks.
+See [verification](docs/VERIFICATION.md) for current evidence and remaining hosting work.
 
 ## Write documentation
 
