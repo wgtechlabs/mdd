@@ -12,10 +12,15 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
+import { search, validateSearchIndex } from "@wgtechlabs/mdd-engine/search";
 import { build } from "../src/build.js";
 
 const roots: string[] = [];
 const run = promisify(execFile);
+const dTheme = JSON.parse(
+  await readFile(new URL("../themes/d/theme.json", import.meta.url), "utf8"),
+);
+const dThemeLabel = `D Theme — ${dTheme.release} · v${dTheme.version}`;
 
 afterEach(async () => {
   await Promise.all(
@@ -89,10 +94,35 @@ describe("static export", () => {
       );
       expect(manifest).toMatchObject({
         schemaVersion: 1,
-        engineVersion: "0.1.1",
+        engineVersion: "1.0.1",
         basePath,
         source: { commit: null, dirty: null },
       });
+      expect(html).toContain(`MDD v${manifest.mddVersion}`);
+      const index = JSON.parse(
+        await readFile(path.join(out, "_mdd/search-index.json"), "utf8"),
+      );
+      validateSearchIndex(index);
+      expect(search(index, "Set up")[0]?.url).toBe(
+        `${basePath}get-started/installation/#mdd-set-up`,
+      );
+      expect(html).toContain(
+        `data-index-url="${basePath}_mdd/search-index.json"`,
+      );
+      const browserSearch = await import(
+        new URL(`file://${out}/_mdd/search.js`).href
+      );
+      expect(browserSearch.search(index, "Set up")).toEqual(
+        search(index, "Set up"),
+      );
+      expect(
+        await readFile(path.join(out, "_mdd/search-ui.js"), "utf8"),
+      ).toContain('from "./search.js"');
+      expect(html).toContain(dThemeLabel);
+      expect(html).not.toContain("Edit this markdown");
+      expect(await readFile(path.join(out, "404.html"), "utf8")).toContain(
+        dThemeLabel,
+      );
       expect(JSON.stringify(manifest)).not.toContain(root);
       if (basePath !== "/")
         expect(
@@ -100,6 +130,74 @@ describe("static export", () => {
         ).toBeNull();
     });
   }
+
+  test("edit links retain actual custom source paths independently of public routes", async () => {
+    const root = await fixture();
+    await mkdir(path.join(root, "documentation"));
+    await mkdir(path.join(root, "articles/01-guide"), { recursive: true });
+    await writeFile(
+      path.join(root, "documentation/config.json"),
+      JSON.stringify({ paths: { contents: "../articles" } }),
+    );
+    const pages = [
+      ["index.md", "index.html", "articles/index.md"],
+      [
+        "01-guide/index.md",
+        "01-guide/index.html",
+        "articles/01-guide/index.md",
+      ],
+      [
+        "01-guide/02-café ?#%25.md",
+        "01-guide/02-café ?#%25/index.html",
+        "articles/01-guide/02-caf%C3%A9%20%3F%23%2525.md",
+      ],
+    ] as const;
+    for (const [source] of pages) {
+      await writeFile(
+        path.join(root, "articles", source),
+        "# Source article\n",
+      );
+    }
+    const editBaseUrl = "https://github.com/example/docs/edit/feature%2Fdocs/";
+    const result = await build({
+      projectDir: root,
+      mddDir: "documentation",
+      basePath: "/repository/docs/",
+      editBaseUrl,
+    });
+    expect(result.diagnostics).toEqual([]);
+    expect(result.site).toBeDefined();
+    const out = result.directory as string;
+    for (const [, output, sourceUrl] of pages) {
+      const html = await readFile(path.join(out, output), "utf8");
+      expect(html).toContain(`href="${editBaseUrl}${sourceUrl}"`);
+      expect(html.match(/Edit this markdown<\/a>/g)).toHaveLength(1);
+      expect(html).not.toContain(`${editBaseUrl}repository/docs/`);
+    }
+    expect(await readFile(path.join(out, "404.html"), "utf8")).not.toContain(
+      "Edit this markdown",
+    );
+  });
+
+  test("invalid edit destinations cannot replace previously exported pages", async () => {
+    const root = await fixture();
+    const first = await build({ projectDir: root });
+    const home = path.join(first.directory as string, "index.html");
+    const original = await readFile(home, "utf8");
+    await writeFile(
+      path.join(root, "mdd/contents/index.md"),
+      "# Changed source\n",
+    );
+    for (const editBaseUrl of [
+      "javascript:alert(1)",
+      "https://user:password@github.com/example/docs/edit/main/",
+      "https://github.com/example/docs/edit/main/?access_token=secret",
+      "",
+    ]) {
+      await expect(build({ projectDir: root, editBaseUrl })).rejects.toThrow();
+      expect(await readFile(home, "utf8")).toBe(original);
+    }
+  });
 
   test("copies only selected theme assets without executing scripts", async () => {
     const root = await fixture({ theme: "custom" });
@@ -129,6 +227,9 @@ describe("static export", () => {
     const result = await build({ projectDir: root, basePath: "/docs/" });
     expect(result.site).toBeDefined();
     const out = result.directory as string;
+    expect(await readFile(path.join(out, "index.html"), "utf8")).toContain(
+      "Custom styling: custom (version not declared)",
+    );
     expect(
       await readFile(path.join(out, "_mdd/theme/fonts/body.woff2"), "utf8"),
     ).toBe("font-data");
@@ -141,6 +242,96 @@ describe("static export", () => {
     expect(
       await readFile(path.join(out, "package.json")).catch(() => null),
     ).toBeNull();
+  });
+
+  test("custom theme identity is independent and invalid metadata preserves the last output", async () => {
+    const root = await fixture({
+      paths: { themes: "../styles" },
+      theme: "custom",
+    });
+    const themeRoot = path.join(root, "styles/custom");
+    const metadataFile = path.join(themeRoot, "theme.json");
+    await mkdir(themeRoot, { recursive: true });
+    await writeFile(path.join(themeRoot, "theme.css"), "body { color: red; }");
+    await writeFile(
+      metadataFile,
+      JSON.stringify({
+        name: 'Field <Guide> & "Notes"',
+        version: "2.3.1-rc.7+demo",
+        release: "Spring <2026>",
+      }),
+    );
+    const result = await build({ projectDir: root, basePath: "/docs/" });
+    const out = result.directory as string;
+    const original = await readFile(path.join(out, "index.html"), "utf8");
+    const label =
+      "Custom styling: Field &lt;Guide&gt; &amp; &quot;Notes&quot; — Spring &lt;2026&gt; · v2.3.1-rc.7+demo";
+    for (const page of [
+      "index.html",
+      "get-started/installation/index.html",
+      "404.html",
+    ]) {
+      expect(await readFile(path.join(out, page), "utf8")).toContain(label);
+      expect(await readFile(path.join(out, page), "utf8")).toContain(
+        dThemeLabel,
+      );
+    }
+    for (const invalid of [
+      "{",
+      "null",
+      "[]",
+      "{}",
+      '{"name":"Field","version":1}',
+      '{"name":"Field","version":""}',
+      '{"name":"Field","version":" 1.0.0"}',
+      '{"name":"Field","version":"1.0.0","extra":true}',
+      '{"name":"Field","version":"1.0.0","release":null}',
+      '{"name":"Field","version":"1.0.0","release":1}',
+      '{"name":"Field","version":"1.0.0","release":""}',
+      '{"name":"Field","version":"1.0.0","release":" D27"}',
+      JSON.stringify({ name: "Field", version: "1.0.0", release: "D\n27" }),
+      JSON.stringify({ name: "Field", version: "1.0.0", release: "D27\u202e" }),
+      JSON.stringify({
+        name: "Field",
+        version: "1.0.0",
+        release: "d".repeat(129),
+      }),
+      JSON.stringify({ name: "Field\nGuide", version: "1.0.0" }),
+      JSON.stringify({ name: "Field", version: "1.0.0\u202e" }),
+      JSON.stringify({ name: "Field", version: "v".repeat(129) }),
+    ]) {
+      await writeFile(metadataFile, invalid);
+      await expect(build({ projectDir: root })).rejects.toThrow(
+        "Invalid theme metadata in styles/custom/theme.json",
+      );
+      expect(await readFile(path.join(out, "index.html"), "utf8")).toBe(
+        original,
+      );
+    }
+    await rm(metadataFile);
+    const outside = path.join(root, "outside.json");
+    await writeFile(outside, '{"name":"Outside","version":"9.0.0"}');
+    await symlink(outside, metadataFile);
+    await expect(build({ projectDir: root })).rejects.toThrow("symlink");
+    expect(await readFile(path.join(out, "index.html"), "utf8")).toBe(original);
+  });
+
+  test("selects D by its stable name and refuses unknown themes without replacing output", async () => {
+    const root = await fixture({ theme: "custom" });
+    const custom = path.join(root, "mdd/themes/custom");
+    await mkdir(custom, { recursive: true });
+    await writeFile(path.join(custom, "theme.css"), "body { color: red; }");
+    const result = await build({ projectDir: root, theme: "d" });
+    const home = path.join(result.directory as string, "index.html");
+    const original = await readFile(home, "utf8");
+    expect(original).toContain(dThemeLabel);
+    expect(original).toContain("Custom styling: custom (version not declared)");
+    expect(original).toContain('href="/_mdd/reader.css"');
+    expect(original).toContain('href="/_mdd/theme/theme.css"');
+    for (const theme of ["d26", "unknown", "../d", ""]) {
+      await expect(build({ projectDir: root, theme })).rejects.toThrow();
+      expect(await readFile(home, "utf8")).toBe(original);
+    }
   });
 
   test("preserves last output on author errors and removes stale files on successful rebuild", async () => {
@@ -348,4 +539,48 @@ describe("static export", () => {
       await readFile(path.join(root, "filter-executed")).catch(() => null),
     ).toBeNull();
   });
+});
+
+test("shared footer and all alerts render while search stays limited to article content", async () => {
+  const root = await fixture();
+  const kinds = ["NOTE", "TIP", "IMPORTANT", "WARNING", "CAUTION"];
+  await writeFile(
+    path.join(root, "mdd/contents/index.md"),
+    `# Alerts\n\n${kinds.map((kind) => `> [!${kind}]\n> ${kind.toLowerCase()} guidance`).join("\n\n")}\n`,
+  );
+  await writeFile(
+    path.join(root, "mdd/footer.md"),
+    ":::socials\n- [Community & friends](https://example.com/community?a=1&b=2)\n:::\n",
+  );
+  const result = await build({ projectDir: root });
+  expect(result.diagnostics).toEqual([]);
+  const out = result.directory as string;
+  const html = await readFile(path.join(out, "index.html"), "utf8");
+  const markdown = await readFile(path.join(out, "markdown/index.md"), "utf8");
+  for (const kind of kinds) {
+    expect(html).toContain(`class="mdd-alert mdd-${kind.toLowerCase()}"`);
+    expect(markdown).toContain(`[!${kind}]`);
+  }
+  expect(html).not.toContain('role="alert"');
+  for (const file of [
+    "index.html",
+    "get-started/installation/index.html",
+    "404.html",
+  ]) {
+    expect(await readFile(path.join(out, file), "utf8")).toContain(
+      'href="https://example.com/community?a=1&amp;b=2">Community &amp; friends</a>',
+    );
+  }
+  const index = JSON.parse(
+    await readFile(path.join(out, "_mdd/search-index.json"), "utf8"),
+  );
+  expect(search(index, "caution guidance")).toHaveLength(1);
+  expect(search(index, "Community")).toHaveLength(0);
+  const before = await readFile(path.join(out, ".mdd-output.json"));
+  await writeFile(
+    path.join(root, "mdd/footer.md"),
+    ":::socials\n- [Bad](javascript:alert)\n:::\n",
+  );
+  expect((await build({ projectDir: root })).site).toBeUndefined();
+  expect(await readFile(path.join(out, ".mdd-output.json"))).toEqual(before);
 });

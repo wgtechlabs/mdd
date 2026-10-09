@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-06T14:28:44.310Z",
+  "generatedAt": "2026-10-09T13:30:13.952Z",
   "title": "Design System: mdd",
   "extensions": {
     "colorMeta": {
@@ -59,6 +59,51 @@
       "mdd-border-dark": {
         "role": "neutral",
         "displayName": "Dark gray rule"
+      },
+      "mdd-tip": {
+        "role": "semantic",
+        "displayName": "Tip green (light)",
+        "purpose": "Alert label, icon, and leading border; accompanied by a visible type label."
+      },
+      "mdd-tip-dark": {
+        "role": "semantic",
+        "displayName": "Tip green (dark)",
+        "purpose": "Alert label, icon, and leading border; accompanied by a visible type label."
+      },
+      "mdd-important": {
+        "role": "semantic",
+        "displayName": "Important purple (light)",
+        "purpose": "Alert label, icon, and leading border; accompanied by a visible type label."
+      },
+      "mdd-important-dark": {
+        "role": "semantic",
+        "displayName": "Important purple (dark)",
+        "purpose": "Alert label, icon, and leading border; accompanied by a visible type label."
+      },
+      "mdd-warning": {
+        "role": "semantic",
+        "displayName": "Warning amber (light)",
+        "purpose": "Alert label, icon, and leading border; accompanied by a visible type label."
+      },
+      "mdd-warning-dark": {
+        "role": "semantic",
+        "displayName": "Warning amber (dark)",
+        "purpose": "Alert label, icon, and leading border; accompanied by a visible type label."
+      },
+      "mdd-caution": {
+        "role": "semantic",
+        "displayName": "Caution red (light)",
+        "purpose": "Alert label, icon, and leading border; accompanied by a visible type label."
+      },
+      "mdd-caution-dark": {
+        "role": "semantic",
+        "displayName": "Caution red (dark)",
+        "purpose": "Alert label, icon, and leading border; accompanied by a visible type label."
+      },
+      "search-backdrop": {
+        "role": "neutral",
+        "displayName": "Modal scrim",
+        "purpose": "Native search dialog backdrop; no blur or shadow."
       }
     },
     "typographyMeta": {
@@ -174,11 +219,27 @@
       "description": "Two-column sequential navigation using a fine top rule and text links rather than elevated containers.",
       "html": "<nav class=\"ds-page-links\" aria-label=\"Page navigation\"><a href=\"#introduction\"><span>Previous</span><strong>Introduction</strong></a><a class=\"ds-next\" href=\"#configuration\"><span>Next</span><strong>Configuration</strong></a></nav>",
       "css": ".ds-page-links { font: 1rem / 1.75 var(--mdd-font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif); display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 3.5rem; padding-top: 1.5rem; border-top: 1px solid var(--mdd-border, #dce3e1); } .ds-page-links a { display: flex; flex-direction: column; text-decoration: none; line-height: 1.6; color: var(--mdd-accent, #17655d); } .ds-page-links a:hover strong { text-decoration: underline; text-underline-offset: 0.25em; } .ds-page-links span { color: var(--mdd-muted, #596664); font-size: 0.75rem; } .ds-page-links strong { font-size: 0.9rem; font-weight: 600; } .ds-next { grid-column: 2; text-align: right; } .ds-page-links a:focus-visible { outline: 2px solid var(--mdd-accent, #17655d); outline-offset: 4px; border-radius: 2px; }"
+    },
+    {
+      "name": "Search dialog",
+      "kind": "custom",
+      "refersTo": "search-dialog",
+      "description": "Static open-dialog preview. Production assets/search-ui.js provides modal focus, shortcut, Escape, native result navigation, loading, empty, result, and retry states; the preview does not execute these behaviors.",
+      "html": "<dialog class=\"ds-search-dialog\" open aria-labelledby=\"ds-search-title\"><h2 id=\"ds-search-title\">Search documentation</h2><input class=\"ds-search-input\" type=\"search\" aria-label=\"Search documentation\" placeholder=\"Search pages and headings\u2026\"><p class=\"ds-search-status\" role=\"status\">Search the documentation.</p><ul class=\"ds-search-results\"><li><a href=\"#installation\"><strong>Installation</strong><p>Install and run the documentation reader.</p></a></li></ul></dialog>",
+      "css": ".ds-search-dialog { position: relative; font: 1rem / 1.75 var(--mdd-font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif); width: min(38rem, calc(100% - 2rem)); max-height: calc(100dvh - min(12dvh, 6rem) - 2rem); margin: min(12dvh, 6rem) auto 2rem; padding: 1.25rem; overflow: auto; overscroll-behavior: contain; color: var(--mdd-text, #242534); background: var(--mdd-background, #ffffff); border: 1px solid var(--mdd-border, #dddde8); border-radius: calc(var(--mdd-radius, 6px) * 2); } .ds-search-dialog::backdrop { background: rgb(0 0 0 / 45%); } .ds-search-dialog h2 { margin: 0 0 1rem; font-size: 1.125rem; line-height: 1.4; } .ds-search-input { display: block; width: 100%; min-height: 2.75rem; padding: 0.65rem 0.75rem; border: 1px solid var(--mdd-muted, #5c5e73); border-radius: var(--mdd-radius, 6px); color: var(--mdd-text, #242534); background: var(--mdd-background, #ffffff); caret-color: var(--mdd-accent, #4752c4); font: 1rem / 1.5 var(--mdd-font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif); } .ds-search-input::placeholder { color: var(--mdd-muted, #5c5e73); opacity: 1; } .ds-search-status { color: var(--mdd-muted, #5c5e73); margin: 0.75rem 0; font-size: 0.875rem; font-variant-numeric: tabular-nums; } .ds-search-results { max-height: 45dvh; overflow: auto; overscroll-behavior: contain; list-style: none; margin: 0 -0.5rem; padding: 0.5rem; } .ds-search-results a { display: block; min-height: 2.75rem; padding: 0.75rem; border-radius: var(--mdd-radius, 6px); color: var(--mdd-text, #242534); text-decoration: none; } .ds-search-results a:hover, .ds-search-results a:focus-visible { background: var(--mdd-accent-soft, #eceefd); } .ds-search-results strong { display: block; color: var(--mdd-accent, #4752c4); font-weight: 600; } .ds-search-results p { margin: 0.25rem 0 0; color: var(--mdd-muted, #5c5e73); font-size: 0.875rem; line-height: 1.6; } .ds-search-input:focus-visible, .ds-search-results a:focus-visible { outline: 2px solid var(--mdd-focus, #5865f2); outline-offset: 4px; border-radius: 2px; } @media (max-width: 767px) { .ds-search-dialog { margin: 1rem auto; padding: 1rem; max-height: calc(100dvh - 2rem); } } @media (forced-colors: active) { .ds-search-input, .ds-search-dialog { border-color: CanvasText; } .ds-search-results a:focus-visible { outline-color: Highlight; } }"
+    },
+    {
+      "name": "GitHub alerts",
+      "kind": "custom",
+      "refersTo": "article-note",
+      "description": "All five alert variants share the note surface. Labels, distinct icons, and leading borders preserve meaning beyond color; dark themes inherit the matching semantic custom properties.",
+      "html": "<aside class=\"ds-alert ds-note\"><p class=\"ds-alert-label\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v6m0-10v.01\"/></svg>Note</p><p>Supporting documentation content.</p></aside><aside class=\"ds-alert ds-tip\"><p class=\"ds-alert-label\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M9 18h6m-5 3h4M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 2H9s0-1-1-2Z\"/></svg>Tip</p><p>Supporting documentation content.</p></aside><aside class=\"ds-alert ds-important\"><p class=\"ds-alert-label\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12 3 9 9-9 9-9-9 9-9Zm0 5v5m0 3v.01\"/></svg>Important</p><p>Supporting documentation content.</p></aside><aside class=\"ds-alert ds-warning\"><p class=\"ds-alert-label\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3 2 21h20L12 3Zm0 6v5m0 3v.01\"/></svg>Warning</p><p>Supporting documentation content.</p></aside><aside class=\"ds-alert ds-caution\"><p class=\"ds-alert-label\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 3h8l5 5v8l-5 5H8l-5-5V8l5-5Zm4 4v7m0 3v.01\"/></svg>Caution</p><p>Supporting documentation content.</p></aside>",
+      "css": ".ds-alert { --ds-alert-color: var(--mdd-accent, #4752c4); font: 1rem / 1.75 var(--mdd-font, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif); color: var(--mdd-text, #242534); margin: 1.5rem 0; padding: 1rem 1.25rem; background: var(--mdd-surface, #f6f6f9); border: 1px solid var(--mdd-border, #dddde8); border-inline-start-color: var(--ds-alert-color); border-radius: var(--mdd-radius, 6px); } .ds-tip { --ds-alert-color: var(--mdd-tip, #166534); } .ds-important { --ds-alert-color: var(--mdd-important, #7e22ce); } .ds-warning { --ds-alert-color: var(--mdd-warning, #92400e); } .ds-caution { --ds-alert-color: var(--mdd-caution, #b91c1c); } .ds-alert-label { display: flex; align-items: center; gap: 0.625rem; color: var(--ds-alert-color); } .ds-alert-label svg { flex-shrink: 0; } .ds-alert > :first-child { margin-top: 0; } .ds-alert > :last-child { margin-bottom: 0; } @media (forced-colors: active) { .ds-alert { --ds-alert-color: CanvasText; } }"
     }
   ],
   "narrative": {
     "northStar": "Field Guide with Marginal Notes",
-    "overview": "The reader gives prose a quiet paper ground, with chapters and local headings in its margins. Deep slate text, a restrained teal accent, and compact navigation support sustained reading. The visual density changes between the article and its supporting rails without introducing decorative imagery.\n\nThis record describes the current default reader in `assets/reader.css`, its enhancements in `assets/reader.js`, and its semantic structure in `src/render.ts`. The selected direction is recorded in `.impeccable/surfaces/src-render-ts.md`. It is implementation-derived documentation, not visual approval: browser inspection was blocked by administrator policy and the finish review requires fresh captures. Responsive appearance, rendered contrast, clipping, and interaction presentation remain pending visual verification. Author-supplied themes may override this default system.",
+    "overview": "The reader gives prose a quiet paper ground, with chapters and local headings in its margins. Deep slate text, a restrained teal accent, and compact navigation support sustained reading. The visual density changes between the article and its supporting rails without introducing decorative imagery.\n\nThis record describes the bundled D Theme in `themes/d/theme.css`, reader enhancements in `assets/reader.js`, search behavior in `assets/search-ui.js`, and semantic structure in `src/render.ts`. D Theme v0.2.0 (D26) is versioned independently of MDD v0.1.0. The selected direction remains recorded in `.impeccable/surfaces/src-render-ts.md`. Current browser captures in `.impeccable/review/` cover desktop, mobile, search, alerts, and footer presentation. Keyboard search and mobile overflow checks passed; forced-colors and reduced-motion rules were reviewed in source but were not browser-emulated. Author-supplied themes may override this default system.",
     "keyCharacteristics": [
       "A measured article flanked by chapter navigation and a local outline.",
       "Cool paper surfaces, slate text, and teal navigation states in two themes.",
@@ -202,7 +263,7 @@
       "Do keep the article measure and responsive chapter/outline behavior when extending this reader.",
       "Do preserve native links, disclosures, visible focus, and meaningful current-location states.",
       "Do keep optional JavaScript enhancements independent of basic reading and navigation.",
-      "Do treat this record as source evidence until fresh browser captures complete the visual review."
+      "Do preserve the recorded browser coverage and disclose untested accessibility modes when extending it."
     ],
     "donts": [
       "Don't introduce a new shadow or decorative container language as an incidental extension of this flat reader.",

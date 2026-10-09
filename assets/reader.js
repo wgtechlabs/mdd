@@ -12,15 +12,15 @@
     root.dataset.theme ? root.dataset.theme === "dark" : system.matches;
   const labelTheme = () => {
     if (!toggle) return;
-    toggle.textContent = isDark() ? "Light theme" : "Dark theme";
-    toggle.setAttribute(
-      "aria-label",
-      `Switch to ${isDark() ? "light" : "dark"} theme`,
-    );
+    const target = isDark() ? "light" : "dark";
+    const label = `Switch to ${target} theme`;
+    toggle.dataset.target = target;
+    toggle.setAttribute("aria-label", label);
+    toggle.setAttribute("title", label);
   };
   if (toggle) {
-    toggle.hidden = false;
     labelTheme();
+    toggle.hidden = false;
     system.addEventListener("change", labelTheme);
     toggle.addEventListener("click", () => {
       root.dataset.theme = isDark() ? "light" : "dark";
@@ -30,6 +30,68 @@
         /* Storage is optional. */
       }
       labelTheme();
+    });
+  }
+  const sidebarToggle = document.querySelector(".mdd-sidebar-toggle");
+  const sidebar = document.querySelector(".mdd-sidebar");
+  if (sidebarToggle && sidebar) {
+    const setSidebar = (collapsed) => {
+      if (collapsed && sidebar.contains(document.activeElement))
+        sidebarToggle.focus();
+      sidebar.inert = collapsed;
+      root.dataset.sidebar = collapsed ? "collapsed" : "expanded";
+      const label = collapsed ? "Show sidebar" : "Hide sidebar";
+      sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
+      sidebarToggle.setAttribute("aria-label", label);
+      sidebarToggle.setAttribute("title", label);
+    };
+    let collapsed = false;
+    try {
+      collapsed = localStorage.getItem("mdd-sidebar") === "collapsed";
+    } catch {
+      /* Navigation stays expanded when storage is unavailable. */
+    }
+    setSidebar(collapsed);
+    sidebarToggle.hidden = false;
+    sidebarToggle.addEventListener("click", () => {
+      // Animate reader actions, never the restoration of a saved preference.
+      root.dataset.sidebarMotion = "ready";
+      setSidebar(root.dataset.sidebar !== "collapsed");
+      try {
+        localStorage.setItem("mdd-sidebar", root.dataset.sidebar);
+      } catch {
+        /* Sidebar controls do not require persistent storage. */
+      }
+    });
+  }
+  const sections = new Map();
+  for (const section of document.querySelectorAll(
+    ".mdd-nav-section[data-mdd-nav-key]",
+  )) {
+    const key = `mdd-nav:v1:${section.dataset.mddNavKey}`;
+    let group = sections.get(key);
+    if (!group) {
+      let open = true;
+      try {
+        open = localStorage.getItem(key) !== "closed";
+      } catch {
+        /* Native disclosures still work without storage. */
+      }
+      group = { open, elements: [] };
+      sections.set(key, group);
+    }
+    group.elements.push(section);
+    section.open = group.open;
+    section.addEventListener("toggle", () => {
+      // Restore/sync also queues toggle events; only reader changes update state.
+      if (section.open === group.open) return;
+      group.open = section.open;
+      for (const peer of group.elements) peer.open = group.open;
+      try {
+        localStorage.setItem(key, group.open ? "open" : "closed");
+      } catch {
+        /* The two menus stay in sync even when persistence is unavailable. */
+      }
     });
   }
   const status = document.querySelector(".mdd-status");

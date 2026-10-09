@@ -10,6 +10,11 @@ colors:
   mdd-focus: "#5865f2"
   mdd-accent-soft: "#eceefd"
   mdd-border: "#dddde8"
+  mdd-tip: "#166534"
+  mdd-important: "#7e22ce"
+  mdd-warning: "#92400e"
+  mdd-caution: "#b91c1c"
+  search-backdrop: "rgb(0 0 0 / 45%)"
   mdd-background-dark: "#1b1c25"
   mdd-surface-dark: "#262734"
   mdd-text-dark: "#eeeff8"
@@ -18,6 +23,10 @@ colors:
   mdd-focus-dark: "#adb5ff"
   mdd-accent-soft-dark: "#343854"
   mdd-border-dark: "#3b3e52"
+  mdd-tip-dark: "#86efac"
+  mdd-important-dark: "#d8b4fe"
+  mdd-warning-dark: "#fcd34d"
+  mdd-caution-dark: "#fca5a5"
 typography:
   headline:
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
@@ -60,6 +69,7 @@ typography:
     lineHeight: 1.8
 rounded:
   mdd-radius: "6px"
+  search-dialog: "12px"
   inline-code: "3px"
   focus: "2px"
 spacing:
@@ -115,6 +125,17 @@ components:
     padding: "1rem 1.25rem"
   page-link:
     textColor: "{colors.mdd-accent}"
+  search-dialog:
+    backgroundColor: "{colors.mdd-background}"
+    textColor: "{colors.mdd-text}"
+    rounded: "{rounded.search-dialog}"
+    padding: "1.25rem"
+    width: "min(38rem, calc(100% - 2rem))"
+  search-input:
+    backgroundColor: "{colors.mdd-background}"
+    textColor: "{colors.mdd-text}"
+    rounded: "{rounded.mdd-radius}"
+    padding: "0.65rem 0.75rem"
 ---
 
 # Design System: mdd
@@ -125,7 +146,7 @@ components:
 
 The reader gives prose a quiet paper ground, with chapters and local headings in its margins. Deep slate text, a restrained blurple accent, and compact navigation support sustained reading. The visual density changes between the article and its supporting rails without introducing decorative imagery.
 
-This record describes the current default reader in `assets/reader.css`, its enhancements in `assets/reader.js`, and its semantic structure in `src/render.ts`. The selected direction is recorded in `.impeccable/surfaces/src-render-ts.md`. It is implementation-derived documentation, not visual approval: browser inspection was blocked by administrator policy and the finish review requires fresh captures. Responsive appearance, rendered contrast, clipping, and interaction presentation remain pending visual verification. Author-supplied themes may override this default system.
+This record describes the bundled D Theme in `themes/d/theme.css`, reader enhancements in `assets/reader.js`, search behavior in `assets/search-ui.js`, and semantic structure in `src/render.ts`. D Theme v0.2.0 (D26) is versioned independently of MDD v0.1.0. The selected direction remains recorded in `.impeccable/surfaces/src-render-ts.md`. Current browser captures in `.impeccable/review/` cover desktop, mobile, search, alerts, and footer presentation. Keyboard search and mobile overflow checks passed; forced-colors and reduced-motion rules were reviewed in source but were not browser-emulated. Author-supplied themes may override this default system.
 
 **Key Characteristics:**
 - A measured article flanked by chapter navigation and a local outline.
@@ -157,6 +178,10 @@ The operating-system preference selects dark mode unless the root explicitly req
 
 **The Shared Accent Rule.** Use the existing accent and accent-soft variables for reading links, location, and interaction feedback; use the focus variable for keyboard outlines. Keep these roles coherent across both themes.
 
+### Semantic alerts
+
+Tip, Important, Warning, and Caution use their corresponding `mdd-*` semantic colors for the label, icon, and leading border. The `-dark` entries record their dark-mode overrides. Note retains the shared accent. Every alert has a visible type label and a distinct icon, so color is not its only identifier. These colors do not replace the reading and navigation accent.
+
 ## Typography
 
 **Body and navigation font:** the platform sans stack in `typography.body`, from `--mdd-font`.
@@ -172,7 +197,7 @@ The current implementation uses one sans family for article text, headings, and 
 - **Subsection:** article H3. H4–H6 use body size; their weight remains the native heading weight because the stylesheet does not explicitly set it.
 - **Body:** normal reading text, with a maximum article measure of `70ch`.
 - **Introduction:** a paragraph immediately following a direct-child article H1, using muted text and pretty wrapping.
-- **Navigation and outline:** smaller supporting text. Current chapter and outline links use weight `600`; navigation group labels are `0.8rem` at weight `600`.
+- **Navigation and outline:** smaller supporting text. Current chapter and outline links use weight `600`; navigation group labels are `0.875rem` at weight `600`.
 - **Code:** preformatted blocks use the monospace role; inline code uses `0.87em` relative to its surrounding text. Tables use tabular numerals.
 
 There is no mathematical type-scale ratio in the source. Do not infer one from the observed sizes.
@@ -188,17 +213,19 @@ The article and footer share `--mdd-measure: 70ch`. Desktop reading padding is `
 - Code examples and tables scroll horizontally within their available width; images fit the article. Long prose can wrap rather than widening the page.
 - Coarse pointers receive a `44px` minimum height on toolbar controls, summaries, and mobile outline links.
 
-These are source-defined breakpoints and dimensions; their rendered behavior still needs the pending browser review.
+Current browser review covered `1280×720`, `390×844`, and the user’s `852×740` viewport. The mobile page and search dialog had no horizontal page overflow. This coverage does not replace checks at every breakpoint or accessibility setting.
 
 ## Elevation & Depth
 
 The default reader has no shadows, gradients, backdrop blur, or floating-card treatment. Surface color and one-pixel rules create separation. Sticky navigation changes position without gaining a shadow. Keyboard focus uses a two-pixel accent outline offset by four pixels; it is interaction feedback, not elevation.
 
+Search uses a native modal dialog with the `search-backdrop` scrim. The scrim dims the page without blur or shadow; it is a modal boundary, not a new surface-elevation style.
+
 **The Flat Surface Rule.** Separate the reader's regions with existing surface tones and fine rules; the default reader does not use shadow elevation.
 
 ## Shapes
 
-Controls, chapter links, code blocks, article images, notes, quotations, and article disclosures use the shared `mdd-radius` corner token. Inline code uses its smaller radius; focused controls use the focus radius. Borders are one-pixel solid rules in the border color. There is no pill, badge, ornamental silhouette, or icon system in the default reader.
+Controls, chapter links, code blocks, article images, notes, quotations, and article disclosures use the shared `mdd-radius` corner token. Inline code uses its smaller radius; focused controls use the focus radius. Borders are one-pixel solid rules in the border color. There is no pill, badge, or ornamental silhouette in the default reader. The theme control uses two small outline SVG icons with a consistent two-pixel stroke and currentColor. Search uses the `search-dialog` radius, computed from twice `--mdd-radius`; inputs and result links retain the base radius.
 
 ## Components
 
@@ -212,11 +239,11 @@ The default renderer still displays each documentation owner’s configured titl
 
 Small textual controls share the surface fill, primary text, fine border, and control padding. Hover uses the accent wash. Focus uses the common visible outline. Disabled buttons are dimmed to opacity `0.65` and use the waiting cursor.
 
-The theme control is hidden until its script initializes and labels the action as “Dark theme” or “Light theme.” On phones it has a `2.5rem` minimum height. Copy controls use `0.72rem` text, a minimum width of `5.5rem`, and a minimum height of `2.5rem`.
+The theme control is hidden until its script initializes. It is an icon-only, transparent 44px square using simple sun/moon outline SVGs. The icon shows the target mode; an accessible name and native tooltip say “Switch to light theme” or “Switch to dark theme.” Copy controls use `0.72rem` text, a minimum width of `5.5rem`, and a minimum height of `2.5rem`.
 
 ### Chapter navigation
 
-Chapter links are compact, rounded text rows on the cool surface. Inactive links use muted text; hover adds the accent wash and primary text. `aria-current="page"` adds the accent wash, accent text, and weight `600`. Nested lists indent by `0.8rem`. On phones, the native “Browse documentation” disclosure contains the same links with `0.6rem` vertical padding.
+The chapter rail shares the page background. Links and folder labels use aligned `14px` type with a `20px` line height, a `36px` minimum row, and `12px` horizontal padding. Top-level folder groups have a `20px` preceding gap; deeper groups keep compact spacing. Inactive links use muted text; hover uses the surface fill. `aria-current="page"` adds the blurple accent wash, accent text, and weight `600`. Native folder disclosures use small trailing chevrons; linked folder titles remain separate destinations. Child lists use a `12px` inset and a thin border guide. Phones and coarse pointers receive `44px` minimum rows. The sidebar width, scroll container, and slide behavior stay fixed.
 
 ### Local outline
 
@@ -230,13 +257,27 @@ Code sits inside a rounded, bordered surface with horizontal overflow and a tab 
 
 Notes, blockquotes, and article disclosures share border, corner, and inset treatment. Notes use the surface fill; blockquotes use muted text without that fill. Article disclosures use native details and summary elements, with a semibold summary. No custom accordion animation is implemented.
 
+GitHub Note, Tip, Important, Warning, and Caution alerts retain this note surface and inset. A semantic leading border, visible label, and distinct outline icon distinguish each type. Forced-colors rules use system colors for the border, label, and icon; this mode has source review only.
+
+### Search dialog
+
+Search is an optional enhancement: its trigger stays hidden until the native dialog and script initialize. The trigger and close control have a `44px` minimum target. The dialog is limited to the available viewport, with a separately scrollable result list; phone padding narrows to `1rem`. Search input and results reuse the canvas, muted text, accent, and focus tokens. Result hover and focus use the accent wash.
+
+Matching text in result titles, section labels, and excerpts uses semantic `mark` elements with an accent background and canvas-colored text. Highlights use a small `2px` corner radius. Highlighting adds no padding or weight, so text does not shift as queries change. It preserves the original characters and stays within search results.
+
+Meta/Control+K opens search and focuses the input. Escape closes it even with a nonempty query and restores the opener’s focus. Arrow keys move between the input and ordinary result links; Enter follows the focused link. Normal result activation closes the dialog before native navigation, including a heading on the current page. Empty query, loading, results, no results, load failure, and query errors have distinct status text; failure exposes a retry control. No custom combobox or selection state replaces native links.
+
+### Shared footer
+
+The shared footer keeps contribution actions, Markdown resources, configured social links, attribution, and version information inside the article measure. Social links use `44px` minimum targets, muted text, and a surface fill on hover; focus uses the common outline. Known services use accessible inline icons, while other links retain visible labels. Rows wrap on narrow screens. MDD and D Theme versions remain separate labels.
+
 ### Previous and next links
 
-A fine top rule separates the two-column page navigation from the article. Each link contains a muted direction label and a semibold destination; the next destination aligns right. Hover underlines the destination. These are ordinary text links rather than cards.
+Two-column page navigation follows the article, before the fine rule that starts the footer. Each link contains a muted direction label and a semibold destination; the next destination aligns right. Hover underlines the destination. These are ordinary text links rather than cards.
 
 ### Reading tools and accessibility states
 
-The masthead combines the linked site title, Markdown access, and the optional theme control. A keyboard-visible skip link targets the main article. All links, buttons, and summaries share visible focus styling. Under `prefers-reduced-motion: no-preference`, buttons, desktop chapter links, and desktop outline links transition color and background color over `160ms ease-out`; otherwise the default changes are immediate. No entrance or scrolling animation is defined.
+The masthead combines the linked site title, optional Search control, and optional icon-only theme control. Previous/next navigation follows the article above the divider that begins the footer. The optional contribution row begins the footer, pairing Help improve this page. with Edit this markdown, followed by a separator before the resources. Helpfulness voting is not part of the reader. View Markdown and llms.txt for agents share a compact footer row and wrap when space is limited. Built with mdd sits in the main page footer as an intrinsic-width attribution link. A header icon shows/hides the desktop sidebar, remembering the reader's choice when storage is available. Folder groups use native disclosures, open by default; their landing-page labels remain links. Mobile keeps the Browse documentation disclosure. A keyboard-visible skip link targets the main article. All links, buttons, and summaries share visible focus styling. Under `prefers-reduced-motion: no-preference`, buttons, desktop chapter links, and desktop outline links transition color and background color over `160ms ease-out`; otherwise the default changes are immediate. The desktop sidebar uses an interruptible 240ms slide when motion is allowed; search has no custom entrance animation.
 
 ## Do's and Don'ts
 
@@ -246,7 +287,7 @@ The masthead combines the linked site title, Markdown access, and the optional t
 - **Do** keep the article measure and responsive chapter/outline behavior when extending this reader.
 - **Do** preserve native links, disclosures, visible focus, and meaningful current-location states.
 - **Do** keep optional JavaScript enhancements independent of basic reading and navigation.
-- **Do** treat this record as source evidence until fresh browser captures complete the visual review.
+- **Do** preserve the recorded browser coverage and disclose untested accessibility modes when extending it.
 
 ### Don't:
 

@@ -2,6 +2,86 @@
 
 Initial MDD implementation, October 6, 2026. This record concerns local source and local artifacts. No commit, push, remote CI, package publication, repository visibility change, or live deployment is implied.
 
+## October 9 engine 1.0.1 search excerpt integration
+
+MDD now pins published `@wgtechlabs/mdd-engine@1.0.1`. Its existing export wiring
+ships that package's browser query module, so result excerpts show text around a
+match without duplicating the engine's excerpt logic in the reader. MDD remains
+0.1.0 and D Theme remains 0.2.0 / D26.
+
+- The new reader regression failed against engine 1.0.0: a late body match was
+  absent from the excerpt. It passes with 1.0.1 and verifies visible matched text,
+  semantic highlighting, the 160-code-point bound, and the heading destination.
+- `bun run check`: PASS, lint, typecheck, build, 83 tests / 865 assertions.
+- One isolated installed 28-file archive passed packaged CLI/server/search checks
+  under Node 22.0.0, 24.21.0, and 26.10.0, including all three public prefixes.
+- `bun audit`: PASS, no known vulnerabilities reported.
+- Real Node 24.21.0 browser preview: searching `theme` returned three results,
+  each with a visible highlighted match. The Writing pages excerpt now includes
+  `Selected theme scripts`, and keyboard navigation reaches that result. No
+  console warnings or errors were observed. Capture:
+  `.impeccable/review/engine-101-search.jpg`.
+- Independent bounded adoption review found no blocking issue. No renderer or
+  theme implementation change was needed.
+
+Changes are local and uncommitted. This check does not establish updated MDD
+remote CI, publication, or deployment. The prior broader responsive review was
+not repeated for this dependency-only behavior change.
+
+## October 9 search result highlighting
+
+Matching query terms now appear as semantic marks in result titles, section labels,
+and excerpts. MDD preserves the engine's ranking and the original displayed text;
+article pages receive no search highlights. D Theme uses its existing accent and
+canvas colors. No dependency or engine version changed.
+
+- `bun run check`: PASS, 82 tests / 861 assertions, including partial/multiple terms,
+  overlapping matches, live query replacement, literal HTML, and Unicode cases
+  (decomposed accents, ligatures, dotted I, Greek sigma, Hangul, astral letters).
+- Real Node 24.21.0 preview: light/dark desktop and 390×844 dark mobile inspected.
+  No horizontal overflow, live highlight updates, keyboard focus, and result
+  navigation verified. The destination article had no marks. No console warnings
+  or errors were observed.
+- Captures: `.impeccable/review/search-highlights-desktop.jpg`,
+  `search-highlights-dark.jpg`, and `search-highlights-mobile.jpg`.
+- Independent code review: no actionable findings. A fresh generic visual reviewer
+  substituted for the unavailable shipped reviewer type and returned **ship** for
+  the captured views. Its documentation wording correction was applied.
+- One design detector pass returned only advisories: the already documented `2px`
+  radius and existing radius/font-size values. No unrelated design-system changes
+  were made.
+- The generic documenter verified the highlighting guidance. It also reported
+  older teal narrative and preview metadata in the design sidecar; that existing
+  documentation drift is outside this feature and was left unchanged.
+
+This follow-up did not repeat the prior packed Node compatibility matrix or audit
+because server/package code and dependencies did not change. Forced-colors,
+assistive technology, and physical mobile keyboards were not tested. Changes are
+local and uncommitted; no updated remote CI, publication, or deployment is claimed.
+
+## October 9 engine 1.0.0 integration
+
+MDD now consumes published `@wgtechlabs/mdd-engine@1.0.0`. The reader exports the engine's search index and browser query module, provides a keyboard-accessible search dialog, renders shared footer social links, and styles all five GitHub alerts with D Theme 0.2.0 / D26. The example pages use the new alert syntax. MDD remains 0.1.0 locally; these results do not imply a published MDD release.
+
+| Contract | Evidence | Result |
+| --- | --- | --- |
+| Build, types, lint, regressions | `bun run check` | PASS: 72 tests / 802 assertions |
+| Actual package and Node compatibility | One isolated installed archive; Node 22.0.0, 24.21.0, 26.10.0 | PASS: CLI, build, native preview, source-free serving, search module, footer, alerts |
+| Search and public prefixes | Engine queries over exported indexes at `/`, `/docs/`, `/repository/docs/`, and `/caf%C3%A9/`; browser dialog at `/docs/` | PASS: heading destinations and safe text rendering |
+| Native search interaction | Browser Ctrl+K, Cmd+K, arrows, Enter, Escape with a nonempty query, focus return, and same-document heading selection | PASS: dialog closes and destination stays visible; no-results state verified |
+| Loading and errors | Controller tests for cached loading, close/reopen races, malformed/external indexes, retry, and query limits | PASS; request failure states were not induced in the browser |
+| Shared footer preview | Real Node default/custom documentation directories; create, edit, invalid content, remove | PASS: invalid authoring preserves the previous site |
+| Responsive appearance | Current browser captures at 1280×720, 852×740, and 390×844 | PASS for inspected reader, search, alert, and desktop footer views; no mobile horizontal overflow |
+| Dependency audit | `bun audit` | PASS: no known vulnerabilities |
+
+Browser captures are local artifacts in `.impeccable/review/`: `desktop.jpg`, `desktop-search.jpg`, `desktop-alerts.jpg`, `desktop-footer.jpg`, `mobile.jpg`, `mobile-search.jpg`, and `user-852.jpg`. They supersede the prior browser-access blocker for these inspected states. This is not a complete assistive-technology audit: forced-colors/reduced-motion browser emulation and physical mobile keyboard behavior were not tested. The preview produced no console warnings or errors during the observed interaction.
+
+Independent code review found and closed a same-document search navigation bug: result activation now closes the dialog without suppressing native links or restoring focus over the destination. Browser testing additionally found that search inputs consume Escape to clear their value; the dialog now closes on the first Escape. A separate read-only review found no actionable issue in the footer watcher or preview shutdown fix. Fresh generic agents provided the visual finish review and design documentation because this harness cannot select Impeccable's shipped agent types. The visual reviewer returned **ship** for the seven captured states, with no material findings; uncaptured variants remain outside that visual verdict.
+
+An unfinished HTTP request reproducibly blocked preview replacement before changing development-only shutdown to close active connections. Its regression failed before the fix and passed afterward. The earlier intermittent content-root replacement failure was observed before this integration; the complete suite now passes, but this does not establish that all past intermittent failures had the same cause. No timeout was increased.
+
+The dated October 8 sections below preserve historical results and limitations. No updated remote CI, package publication, or deployment was performed for this local integration.
+
 ## October 8 delivery check
 
 The same local check suite was rerun before preparing `feature/initial-mdd` for the user's branch review: 32 tests / 387 assertions, all four packaged Node runtimes, lint, typecheck, build, and the dependency audit passed. A separate delivery inspection found no apparent secrets or generated files among the 42 candidate source/configuration/documentation files. Visual verification remains pending as documented below. Remote CI, publishing, and deployment are not claimed by these local checks.
@@ -32,11 +112,11 @@ The next CI run passed all normal tests but still intermittently failed preview 
 
 The same run's Gitleaks action could not start because `GITLEAKS_LICENSE` was absent. Its later generic failure message said secrets were detected, but the action log reported a missing organization license, not a completed scan. The secret must be made available to this repository and the scan rerun. The security gate remains enabled.
 
-## Scope
+## October 8 scope
 
 Portable static exporter, default reader, selected theme assets, Markdown/index output, check/build/dev/serve CLI, and Node static server. The application consumes published mdd-engine 0.1.1; it does not duplicate Markdown compilation.
 
-## Current evidence
+## October 8 evidence
 
 - Frozen Bun dependency installation, lint, TypeScript, and Node ESM/declaration build passed.
 - The dependency audit reported no known vulnerabilities.
@@ -57,7 +137,7 @@ Latest local checks after the integration and PR review fixes:
 
 The final independent integration finding was a mismatch between export and server URL validation. Both now share canonical prefix validation, and shared file checks reject controls before promotion; encoded Unicode whitespace remains valid. No framework or runtime dependency was added beyond the published engine.
 
-## Visual verification gap
+## October 8 visual verification gap
 
 The app's browser policy could not be verified before accessing the local preview. Browser access was refused; no workaround was attempted. Desktop/mobile screenshots, keyboard interaction, theme/copy controls, actual contrast, and custom-theme visual behavior have **not** been verified in a browser.
 

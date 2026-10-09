@@ -28,9 +28,10 @@ mdd/
 
 The same build produces readable HTML and plain Markdown. People get a focused reading experience. Agents get a Markdown index they can follow.
 
-:::note[Your files stay yours]
-MDD creates a static directory. You can serve it with any static host or with the included Node server. Reading and navigation work without JavaScript.
-:::
+> [!NOTE]
+> **Your files stay yours**
+>
+> MDD creates a static directory. You can serve it with any static host or with the included Node server. Reading and navigation work without JavaScript.
 
 ## Make it yours
 

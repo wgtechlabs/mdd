@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-import { readFile } from "node:fs/promises";
+import { readFile, realpath } from "node:fs/promises";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { compileProject, type Diagnostic } from "@wgtechlabs/mdd-engine";
 import { build } from "./build.js";
 import { dev } from "./dev.js";
+import { normalizeEditBaseUrl } from "./edit.js";
 import { serve } from "./server.js";
+import { readCustomThemeIdentity, readDThemeIdentity } from "./theme.js";
 
 const help = `Usage: mdd <command> [options]
 
@@ -20,12 +22,14 @@ Options:
   --dir <path>         Documentation directory within the project (default: mdd)
   --out <path>         Output directory relative to the project (default: mdd-dist)
   --base-path <path>   Public URL prefix, such as /docs/
+  --theme <id>         Bundled base theme (default: d); custom CSS still applies
+  --edit-base-url <url> Source edit URL prefix (default: MDD_EDIT_BASE_URL)
   --port <number>      Server port (default: PORT or 3000; 0 selects a free port)
   --host <address>     Bind address (dev: 127.0.0.1; serve: 0.0.0.0)
   --help, -h          Show this help
   --version, -v       Show the installed version
 
-check accepts --project, --dir, --base-path.
+check accepts --project, --dir, --base-path, --theme, --edit-base-url.
 build accepts those options and --out.
 dev accepts all options. serve accepts --project, --out, --port, --host.
 `;
@@ -70,6 +74,8 @@ async function main(): Promise<void> {
       dir: { type: "string" },
       out: { type: "string" },
       "base-path": { type: "string" },
+      theme: { type: "string" },
+      "edit-base-url": { type: "string" },
       port: { type: "string" },
       host: { type: "string" },
       help: { type: "boolean", short: "h" },
@@ -104,9 +110,18 @@ async function main(): Promise<void> {
     return;
   }
   const allowed: Record<string, string[]> = {
-    check: ["project", "dir", "base-path"],
-    build: ["project", "dir", "base-path", "out"],
-    dev: ["project", "dir", "base-path", "out", "port", "host"],
+    check: ["project", "dir", "base-path", "theme", "edit-base-url"],
+    build: ["project", "dir", "base-path", "theme", "edit-base-url", "out"],
+    dev: [
+      "project",
+      "dir",
+      "base-path",
+      "theme",
+      "edit-base-url",
+      "out",
+      "port",
+      "host",
+    ],
     serve: ["project", "out", "port", "host"],
   };
   for (const name of Object.keys(values)) {
@@ -119,6 +134,8 @@ async function main(): Promise<void> {
     mddDir: values.dir,
     basePath: values["base-path"],
     outDir: values.out ?? "mdd-dist",
+    theme: values.theme,
+    editBaseUrl: values["edit-base-url"] ?? process.env.MDD_EDIT_BASE_URL,
   };
   if (command === "check" || command === "build") {
     const result =
@@ -129,6 +146,16 @@ async function main(): Promise<void> {
     if (!result.site) {
       process.exitCode = 1;
       return;
+    }
+    if (command === "check") {
+      if (options.editBaseUrl !== undefined)
+        normalizeEditBaseUrl(options.editBaseUrl);
+      await readDThemeIdentity(options.theme);
+      if ("directory" in result.site.theme)
+        await readCustomThemeIdentity(
+          await realpath(options.projectDir),
+          result.site.theme,
+        );
     }
     console.log(
       command === "check"

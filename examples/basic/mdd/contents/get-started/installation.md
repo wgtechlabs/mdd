@@ -53,6 +53,7 @@ node dist/cli.js build --project /path/to/project --base-path /repository/docs/
 
 Upload the contents of `mdd-dist/` to your static host at that prefix. The prefix changes URLs; it does not add another directory around the output.
 
-:::tip[Serving with Node]
-Use `mdd serve` to serve an existing build. It does not read or compile your source files. A Railway template is a separate upcoming delivery step.
-:::
+> [!TIP]
+> **Serving with Node**
+>
+> Use `mdd serve` to serve an existing build. It does not read or compile your source files. A Railway template is a separate upcoming delivery step.

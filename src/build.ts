@@ -6,9 +6,11 @@ import { promisify } from "node:util";
 import {
   type CompileOptions,
   compileProject,
+  createSearchIndex,
   type Diagnostic,
   type Site,
 } from "@wgtechlabs/mdd-engine";
+import { normalizeEditBaseUrl } from "./edit.js";
 import {
   isMissing,
   isWithin,
@@ -20,8 +22,17 @@ import {
 } from "./files.js";
 import { type BuildManifest, isBasePath } from "./manifest.js";
 import { renderNotFound, renderPage } from "./render.js";
+import {
+  dThemeDirectory,
+  readCustomThemeIdentity,
+  readDThemeIdentity,
+} from "./theme.js";
 
-export type BuildOptions = CompileOptions & { outDir?: string };
+export type BuildOptions = CompileOptions & {
+  outDir?: string;
+  theme?: string;
+  editBaseUrl?: string;
+};
 export type BuildResult =
   | { site: Site; diagnostics: Diagnostic[]; directory: string }
   | { site?: undefined; diagnostics: Diagnostic[]; directory?: undefined };
@@ -124,6 +135,10 @@ async function outputDirectory(
 
 /** Compile into portable files without executing code from the documentation checkout. */
 export async function build(options: BuildOptions): Promise<BuildResult> {
+  const editBaseUrl =
+    options.editBaseUrl === undefined
+      ? undefined
+      : normalizeEditBaseUrl(options.editBaseUrl);
   const compiled = await compileProject(options);
   if (!compiled.site) return compiled;
   const { site, diagnostics } = compiled;
@@ -133,6 +148,17 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
     );
   const root = await realpath(options.projectDir);
   const directory = await outputDirectory(options, site, root);
+  const metadata = JSON.parse(
+    await readFile(path.join(packageRoot, "package.json"), "utf8"),
+  ) as { version: string };
+  const identity = {
+    mddVersion: metadata.version,
+    theme: await readDThemeIdentity(options.theme),
+    customTheme:
+      "directory" in site.theme
+        ? await readCustomThemeIdentity(root, site.theme)
+        : undefined,
+  };
   const files = new Map<string, Buffer>();
   const reserved = new Set<string>();
   const directories = new Map<string, string>();
@@ -174,18 +200,34 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
   }
   for (const page of site.pages) {
     const route = pageDirectory(page.route);
-    add(route ? `${route}/index.html` : "index.html", renderPage(site, page));
+    add(
+      route ? `${route}/index.html` : "index.html",
+      renderPage(site, page, identity, editBaseUrl),
+    );
     add(`markdown/${route ? `${route}/` : ""}index.md`, page.markdown);
   }
-  add("404.html", renderNotFound(site));
+  add("404.html", renderNotFound(site, identity));
   add(
     "llms.txt",
     `# ${markdownText(site.title)}\n\n## Documentation\n\n${site.pages.map((page) => `- [${markdownText(page.title)}](<${site.basePath}markdown/${page.route.slice(1)}index.md>)${page.description ? `: ${markdownText(page.description)}` : ""}`).join("\n")}\n`,
   );
   for (const asset of site.assets)
     add(asset.destination, await readSafeFile(root, asset.source));
-  for (const name of ["reader.css", "reader.js"])
-    add(`_mdd/${name}`, await readSafeFile(packageRoot, `assets/${name}`));
+  add("_mdd/reader.css", await readSafeFile(dThemeDirectory, "theme.css"));
+  add("_mdd/reader.js", await readSafeFile(packageRoot, "assets/reader.js"));
+  add("_mdd/search-index.json", `${JSON.stringify(createSearchIndex(site))}\n`);
+  add(
+    "_mdd/search-ui.js",
+    await readSafeFile(packageRoot, "assets/search-ui.js"),
+  );
+  // The published search entry is a self-contained browser module. Keep its
+  // ranking and schema validation identical to the engine that built the index.
+  add(
+    "_mdd/search.js",
+    await readFile(
+      fileURLToPath(import.meta.resolve("@wgtechlabs/mdd-engine/search")),
+    ),
+  );
   if ("directory" in site.theme) {
     const themeRoot = path.resolve(root, site.theme.directory);
     const tree = await listTree(themeRoot);
@@ -200,9 +242,6 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
         add(`_mdd/theme/${name}`, await readSafeFile(themeRoot, name));
     }
   }
-  const metadata = JSON.parse(
-    await readFile(path.join(packageRoot, "package.json"), "utf8"),
-  ) as { version: string };
   const engineMetadata = JSON.parse(
     await readFile(
       fileURLToPath(

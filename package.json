@@ -21,6 +21,7 @@
   "files": [
     "dist",
     "assets",
+    "themes/d",
     "README.md",
     "LICENSE"
   ],
@@ -28,8 +29,8 @@
     "access": "public"
   },
   "scripts": {
-    "lint": "biome check src tests assets scripts package.json tsconfig.json tsconfig.build.json biome.json",
-    "format": "biome check --write src tests assets scripts package.json tsconfig.json tsconfig.build.json biome.json",
+    "lint": "biome check src tests assets themes scripts package.json tsconfig.json tsconfig.build.json biome.json",
+    "format": "biome check --write src tests assets themes scripts package.json tsconfig.json tsconfig.build.json biome.json",
     "typecheck": "tsc --noEmit",
     "test": "bun run build && bun test",
     "coverage": "bun run build && bun test --coverage",
@@ -39,7 +40,7 @@
     "demo": "bun run build && node dist/cli.js build --project examples/basic --out ../../mdd-dist --base-path /docs/ && node dist/cli.js serve --out mdd-dist --port 4173 --host 127.0.0.1"
   },
   "dependencies": {
-    "@wgtechlabs/mdd-engine": "0.1.1"
+    "@wgtechlabs/mdd-engine": "1.0.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",

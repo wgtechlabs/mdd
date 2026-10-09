@@ -97,3 +97,68 @@ try {
   );
   expect(result.status, result.stderr || String(result.error)).toBe(0);
 }, 15_000);
+
+test("dev replaces the served inventory even with an unfinished HTTP request", () => {
+  const result = spawnSync(
+    "node",
+    [
+      "--input-type=module",
+      "--eval",
+      `
+import http from "node:http";
+import net from "node:net";
+import { syncBuiltinESMExports } from "node:module";
+import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import assert from "node:assert/strict";
+let received;
+const requestStarted = new Promise(resolve => { received = resolve; });
+const createServer = http.createServer;
+http.createServer = (...args) => {
+  const server = createServer(...args);
+  server.on("connection", socket => socket.once("data", received));
+  return server;
+};
+syncBuiltinESMExports();
+const { dev } = await import(${JSON.stringify(new URL("../dist/dev.js", import.meta.url).href)});
+const root = await mkdtemp(join(tmpdir(), "mdd-preview-active-request-"));
+const messages = [];
+let preview;
+let client;
+try {
+  const content = join(root, "mdd/contents");
+  await mkdir(content, { recursive: true });
+  await writeFile(join(content, "index.md"), "# Home\\n");
+  preview = await dev({ projectDir: root, port: 0, host: "127.0.0.1" }, {
+    diagnostics: items => assert.equal(items.length, 0),
+    message: message => messages.push(message),
+    error: error => { throw error; },
+  });
+  const origin = messages.find(message => message.startsWith("Preview on ")).match(/http:\\/\\/127\\.0\\.0\\.1:\\d+/)[0];
+  client = net.createConnection(Number(new URL(origin).port), "127.0.0.1");
+  client.on("error", () => {});
+  await new Promise(resolve => client.once("connect", resolve));
+  // A connected client with incomplete headers is active, not an idle socket.
+  client.write("GET / HTTP/1.1\\r\\nHost: localhost\\r\\n");
+  await requestStarted;
+  await writeFile(join(content, "next.md"), "# New inventory\\n");
+  const deadline = Date.now() + 4000;
+  while (!messages.some(message => message.startsWith("Rebuilt 2 "))) {
+    if (Date.now() > deadline) throw new Error("An active client blocked the preview restart: " + JSON.stringify(messages));
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+  const response = await fetch(origin + "/next/", { signal: AbortSignal.timeout(1000) });
+  assert.equal(response.status, 200);
+  assert.ok((await response.text()).includes("New inventory"));
+} finally {
+  client?.destroy();
+  if (preview) await preview.close();
+  await rm(root, { recursive: true, force: true });
+}
+`,
+    ],
+    { encoding: "utf8", timeout: 8000 },
+  );
+  expect(result.status, result.stderr || String(result.error)).toBe(0);
+}, 10_000);

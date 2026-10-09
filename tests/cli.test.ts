@@ -29,10 +29,23 @@ async function fixture(): Promise<string> {
 }
 
 function run(root: string, ...args: string[]) {
+  return runWithEnv(root, {}, ...args);
+}
+
+function runWithEnv(
+  root: string,
+  environment: NodeJS.ProcessEnv,
+  ...args: string[]
+) {
   return spawnSync("node", [cli, ...args], {
     cwd: root,
     encoding: "utf8",
-    env: { ...process.env, PORT: "0" },
+    env: {
+      ...process.env,
+      PORT: "0",
+      MDD_EDIT_BASE_URL: undefined,
+      ...environment,
+    },
     timeout: 15_000,
   });
 }
@@ -53,7 +66,7 @@ async function until(
 function launch(root: string, ...args: string[]) {
   const child = spawn("node", [cli, ...args], {
     cwd: root,
-    env: { ...process.env, PORT: "0" },
+    env: { ...process.env, PORT: "0", MDD_EDIT_BASE_URL: undefined },
     stdio: ["ignore", "pipe", "pipe"],
   });
   children.push(child);
@@ -105,6 +118,9 @@ test("CLI shows help/version and refuses invalid or misplaced arguments", async 
     ["build", "--unknown"],
     ["check", "--out", "build"],
     ["serve", "--base-path", "/docs/"],
+    ["serve", "--theme", "d"],
+    ["serve", "--edit-base-url", "https://github.com/example/docs/edit/main/"],
+    ["build", "--edit-base-url="],
     ["build", "--project="],
     ["serve", "--port=Infinity"],
     ["serve", "--port=65536"],
@@ -114,6 +130,75 @@ test("CLI shows help/version and refuses invalid or misplaced arguments", async 
     const result = run(root, ...args);
     expect(result.status, args.join(" ")).toBe(1);
     expect(result.stderr).toContain("mdd:");
+  }
+});
+
+test("CLI edit destination uses the environment by default and an explicit flag takes precedence", async () => {
+  const root = await fixture();
+  const environment = {
+    MDD_EDIT_BASE_URL: "https://github.com/example/docs/edit/dev",
+  };
+  const checked = runWithEnv(root, environment, "check");
+  expect(checked.status, checked.stderr).toBe(0);
+  await expect(readFile(join(root, "mdd-dist/index.html"))).rejects.toThrow();
+  const built = runWithEnv(root, environment, "build", "--base-path", "/docs/");
+  expect(built.status, built.stderr).toBe(0);
+  const home = join(root, "mdd-dist/index.html");
+  expect(await readFile(home, "utf8")).toContain(
+    'href="https://github.com/example/docs/edit/dev/mdd/contents/index.md"',
+  );
+  const overridden = runWithEnv(
+    root,
+    { MDD_EDIT_BASE_URL: "javascript:invalid-environment" },
+    "build",
+    "--edit-base-url",
+    "https://github.com/example/docs/edit/main/",
+  );
+  expect(overridden.status, overridden.stderr).toBe(0);
+  expect(await readFile(home, "utf8")).toContain(
+    'href="https://github.com/example/docs/edit/main/mdd/contents/index.md"',
+  );
+  const unconfigured = run(root, "build");
+  expect(unconfigured.status, unconfigured.stderr).toBe(0);
+  expect(await readFile(home, "utf8")).not.toContain("Edit this markdown");
+});
+
+test("check, build, and dev reject invalid edit destinations without replacing output", async () => {
+  const root = await fixture();
+  expect(run(root, "build").status).toBe(0);
+  const home = join(root, "mdd-dist/index.html");
+  const original = await readFile(home, "utf8");
+  await writeFile(join(root, "mdd/contents/index.md"), "# New source\n");
+  for (const command of ["check", "build", "dev"]) {
+    for (const result of [
+      run(root, command, "--edit-base-url", "javascript:alert(1)"),
+      runWithEnv(
+        root,
+        { MDD_EDIT_BASE_URL: "http://example.test/edit/main/" },
+        command,
+      ),
+    ]) {
+      expect(result.status, result.stderr).toBe(1);
+      expect(result.stderr).toContain("mdd:");
+      expect(await readFile(home, "utf8")).toBe(original);
+    }
+  }
+});
+
+test("check, build, and dev reject unknown theme names before changing the site", async () => {
+  const root = await fixture();
+  expect(run(root, "check", "--theme", "d").status).toBe(0);
+  await expect(readFile(join(root, "mdd-dist/index.html"))).rejects.toThrow();
+  const built = run(root, "build", "--theme", "d");
+  expect(built.status, built.stderr).toBe(0);
+  const home = join(root, "mdd-dist/index.html");
+  const original = await readFile(home, "utf8");
+  expect(original).toContain("D Theme — ");
+  for (const command of ["check", "build", "dev"]) {
+    const result = run(root, command, "--theme", "d26");
+    expect(result.status, result.stderr).toBe(1);
+    expect(result.stderr).toContain("mdd:");
+    expect(await readFile(home, "utf8")).toBe(original);
   }
 });
 
@@ -182,6 +267,27 @@ test("serve reads a built snapshot, uses PORT, and shuts down cleanly", async ()
   expect(await exited).toBe(0);
 }, 15_000);
 
+test("check validates optional custom theme metadata without writing a site", async () => {
+  const root = await fixture();
+  const theme = join(root, "mdd/themes/custom");
+  await mkdir(theme, { recursive: true });
+  await writeFile(join(root, "mdd/config.json"), '{"theme":"custom"}');
+  await writeFile(join(theme, "theme.css"), "body { color: red; }");
+  expect(run(root, "check").status).toBe(0);
+  await writeFile(
+    join(theme, "theme.json"),
+    '{"name":"Field","version":"2.0.0-dev.1","release":"Spring"}',
+  );
+  expect(run(root, "check").status).toBe(0);
+  await writeFile(join(theme, "theme.json"), '{"name":"Field"}');
+  const invalid = run(root, "check");
+  expect(invalid.status).toBe(1);
+  expect(invalid.stderr).toContain(
+    "Invalid theme metadata in mdd/themes/custom/theme.json",
+  );
+  await expect(readFile(join(root, "mdd-dist/index.html"))).rejects.toThrow();
+});
+
 test("dev watches configured content/theme roots and keeps the last build through errors", async () => {
   const root = await fixture();
   await mkdir(join(root, "guide"));
@@ -197,7 +303,12 @@ test("dev watches configured content/theme roots and keeps the last build throug
   };
   const configPath = join(root, "mdd", "config.json");
   await writeFile(configPath, JSON.stringify(config));
-  const process = launch(root, "dev");
+  const process = launch(
+    root,
+    "dev",
+    "--edit-base-url",
+    "https://github.com/example/docs/edit/main/",
+  );
   await until(
     async () => {
       if (process.child.exitCode !== null) throw new Error(process.output());
@@ -209,6 +320,9 @@ test("dev watches configured content/theme roots and keeps the last build throug
   const origin = process.output().match(/http:\/\/127\.0\.0\.1:\d+/)?.[0];
   expect(origin).toBeDefined();
   const page = join(root, "mdd-dist", "index.html");
+  expect(await readFile(page, "utf8")).toContain(
+    'href="https://github.com/example/docs/edit/main/guide/index.md"',
+  );
   await writeFile(join(root, "guide", "index.md"), "# Updated preview\n");
   await until(
     () => serves(`${origin}/`, "Updated preview"),
@@ -262,6 +376,9 @@ test("dev watches configured content/theme roots and keeps the last build throug
     process.output,
   );
   expect(await serves(`${origin}/`, "Recovered preview")).toBe(true);
+  expect(await readFile(page, "utf8")).toContain(
+    'href="https://github.com/example/docs/edit/main/replacement/index.md"',
+  );
   expect((await fetch(`${origin}/healthz`)).status).toBe(200);
 }, 30_000);
 
@@ -291,3 +408,85 @@ test("dev rebuilds when a symlinked configuration target changes", async () => {
   );
   expect((await fetch(`${origin}/healthz`)).status).toBe(200);
 }, 15_000);
+
+test.each(["mdd", "documentation/settings"])(
+  "dev watches shared footer creation, edits, and removal in %s",
+  async (mddDir) => {
+    const root = await fixture();
+    const authoring = join(root, mddDir);
+    if (mddDir !== "mdd") {
+      await mkdir(authoring, { recursive: true });
+      await writeFile(
+        join(authoring, "config.json"),
+        JSON.stringify({ paths: { contents: "../../mdd/contents" } }),
+      );
+    }
+    const process = launch(root, "dev", "--dir", mddDir);
+    await until(
+      async () => {
+        if (process.child.exitCode !== null) throw new Error(process.output());
+        return process.output().includes("Preview on");
+      },
+      "Preview did not start for the shared footer.",
+      process.output,
+    );
+    const origin = process.output().match(/http:\/\/127\.0\.0\.1:\d+/)?.[0];
+    expect(origin).toBeDefined();
+    const footer = join(authoring, "footer.md");
+    const page = join(root, "mdd-dist/index.html");
+    await writeFile(
+      footer,
+      ":::socials\n- [Created shared footer.](https://example.com/created)\n:::\n",
+    );
+    await until(
+      () => serves(`${origin}/`, "Created shared footer."),
+      "Creating a shared footer did not rebuild.",
+      process.output,
+    );
+    await writeFile(
+      footer,
+      ":::socials\n- [Updated shared footer.](https://example.com/updated)\n:::\n",
+    );
+    await until(
+      () => serves(`${origin}/`, "Updated shared footer."),
+      "Editing a shared footer did not rebuild.",
+      process.output,
+    );
+    const lastValid = await readFile(page, "utf8");
+    await writeFile(footer, "<script>Invalid footer</script>\n");
+    await until(
+      async () =>
+        process.output().includes("footer.md") &&
+        process.output().includes("error"),
+      "Invalid footer content was not reported.",
+      process.output,
+    );
+    expect(await readFile(page, "utf8")).toBe(lastValid);
+    expect(await serves(`${origin}/`, "Updated shared footer.")).toBe(true);
+    await rm(footer);
+    await until(
+      async () => {
+        try {
+          const response = await fetch(`${origin}/`, {
+            signal: AbortSignal.timeout(1000),
+          });
+          const body = await response.text();
+          return (
+            response.status === 200 &&
+            body.includes("Hello reader.") &&
+            !body.includes("Updated shared footer.")
+          );
+        } catch {
+          return false;
+        }
+      },
+      "Removing an invalid shared footer did not restore the default footer.",
+      process.output,
+    );
+    expect(await readFile(page, "utf8")).not.toContain(
+      "Updated shared footer.",
+    );
+    expect(await serves(`${origin}/healthz`, "ok")).toBe(true);
+  },
+  20_000,
+);

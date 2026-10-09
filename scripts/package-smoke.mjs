@@ -40,16 +40,23 @@ try {
   for (const required of [
     "dist/cli.js",
     "dist/index.d.ts",
-    "assets/reader.css",
     "assets/reader.js",
+    "assets/search-ui.js",
+    "themes/d/theme.css",
+    "themes/d/theme.json",
+    "themes/d/CHANGELOG.md",
     "LICENSE",
   ])
     assert.ok(files.has(required), `Missing packed file: ${required}`);
   assert.ok(
     ![...files].some((file) =>
-      /^(src|tests|examples|\.impeccable)\//.test(file),
+      /^(src|tests|examples|\.impeccable|themes\/archive)\//.test(file),
     ),
     "Development files must not ship.",
+  );
+  assert.ok(
+    !files.has("assets/reader.css"),
+    "Only D Theme owns the reader stylesheet.",
   );
   const consumer = join(temporary, "consumer");
   await mkdir(consumer);

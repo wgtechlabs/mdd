@@ -2,9 +2,11 @@ import { type FSWatcher, watch } from "node:fs";
 import { realpath, stat } from "node:fs/promises";
 import type { Server } from "node:http";
 import { basename, dirname, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { Diagnostic, Site } from "@wgtechlabs/mdd-engine";
 import { type BuildOptions, build } from "./build.js";
 import { serve } from "./server.js";
+import { dThemeDirectory } from "./theme.js";
 
 interface Reporter {
   diagnostics: (diagnostics: Diagnostic[]) => void;
@@ -16,7 +18,9 @@ function closeServer(server: Server): Promise<void> {
   if (!server.listening) return Promise.resolve();
   return new Promise((done, reject) => {
     server.close((error) => (error ? reject(error) : done()));
-    server.closeIdleConnections();
+    // Preview replaces the output inventory. An active keep-alive or partial
+    // request must not hold the old server open and block the next snapshot.
+    server.closeAllConnections();
   });
 }
 
@@ -72,7 +76,11 @@ export async function dev(
       )
         throw error;
     }
-    const roots = new Set([dirname(resolve(options.projectDir, home.source))]);
+    const roots = new Set([
+      dirname(resolve(options.projectDir, home.source)),
+      dThemeDirectory,
+      fileURLToPath(new URL("../assets/", import.meta.url)),
+    ]);
     if ("directory" in site.theme)
       roots.add(resolve(options.projectDir, site.theme.directory));
     // Directory identity also detects replacement at the same path: an old
@@ -110,8 +118,12 @@ export async function dev(
         next.push(watcher);
       }
       for (const config of configs) {
+        // The shared footer belongs beside the authoring config, even when the
+        // config itself is a symlink. Watch its parent so creation/removal work.
+        const names = new Set([basename(config)]);
+        if (config === configPath) names.add("footer.md");
         const configWatcher = watch(dirname(config), (_event, filename) => {
-          if (!filename || filename === basename(config)) schedule();
+          if (!filename || names.has(filename)) schedule();
         });
         configWatcher.on("error", (error) => {
           watchedInputs = undefined;
