@@ -35,6 +35,86 @@ class Disclosure extends EventTarget {
   }
 }
 
+class Element extends EventTarget {
+  className = "";
+  textContent = "";
+  type = "";
+  disabled = false;
+  tabIndex = 0;
+  dataset: Record<string, string> = {};
+  attributes = new Map<string, string>();
+  children: Element[] = [];
+  listeners = new Map<string, (() => void)[]>();
+  classList: string[] = [];
+
+  constructor(
+    readonly tagName: string,
+    text = "",
+  ) {
+    super();
+    this.textContent = text;
+  }
+
+  setAttribute(name: string, value: string) {
+    this.attributes.set(name, value);
+  }
+
+  prepend(child: Element) {
+    this.children.unshift(child);
+  }
+
+  append(child: Element) {
+    this.children.push(child);
+  }
+
+  appendText(text: string) {
+    this.children.push(new Element("#text", text));
+  }
+
+  replaceChildren(fragment: Element) {
+    this.children = fragment.children;
+    this.textContent = "";
+  }
+
+  addEventListener(type: string, listener: () => void) {
+    this.listeners.set(type, [...(this.listeners.get(type) ?? []), listener]);
+  }
+
+  querySelector(selector: string) {
+    return selector === "code"
+      ? (this.children.find((child) => child.tagName === "code") ?? null)
+      : null;
+  }
+}
+
+function textContent(element: Element): string {
+  return element.textContent || element.children.map(textContent).join("");
+}
+
+function codeBlock(source: string, language?: string) {
+  const code = new Element("code", source);
+  if (language) code.classList = [`language-${language}`];
+  const pre = new Element("pre");
+  pre.querySelector = (selector: string) => (selector === "code" ? code : null);
+  return { code, pre };
+}
+
+function highlight(...blocks: Element[]) {
+  runInNewContext(reader, {
+    document: {
+      documentElement: { dataset: {} },
+      querySelector: () => null,
+      querySelectorAll: (selector: string) =>
+        selector === ".mdd-article pre" ? blocks : [],
+      createDocumentFragment: () => new Element("#fragment"),
+      createTextNode: (text: string) => new Element("#text", text),
+      createElement: (tag: string) => new Element(tag),
+    },
+    window: { matchMedia: () => ({ matches: false }) },
+    localStorage: { getItem: () => null, setItem: () => {} },
+  });
+}
+
 function loadReader(
   keys: string[],
   stored = new Map<string, string>(),
@@ -151,4 +231,26 @@ test("native toggles keep working and coalesce correctly when storage is unavail
   mobile.open = true;
   menus.flush();
   expect(desktop.open).toBe(true);
+});
+
+test("highlights supported code without changing text content and leaves unknown languages alone", () => {
+  const { code, pre } = codeBlock('const greeting = "const"; // note', "js");
+  const unknown = codeBlock("plain <text>", "rust");
+  highlight(pre, unknown.pre);
+  expect(code.dataset.highlighted).toBe("true");
+  expect(code.children.map((child) => child.className)).toContain(
+    "mdd-token-keyword",
+  );
+  expect(code.children.map((child) => child.className)).toContain(
+    "mdd-token-string",
+  );
+  expect(code.children.map((child) => child.className)).toContain(
+    "mdd-token-comment",
+  );
+  expect(
+    pre.children.find((child) => child.className === "mdd-code-language")
+      ?.textContent,
+  ).toBe("JavaScript");
+  expect(textContent(code)).toBe('const greeting = "const"; // note');
+  expect(unknown.code.children).toEqual([]);
 });

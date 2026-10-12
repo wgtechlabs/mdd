@@ -41,7 +41,7 @@ does not establish a working Railway template or deployment.
 | Search | Build a serializable index from compiled content and provide a browser-safe query API with validated result URLs and plain-text excerpts | Export the index/query module, load the index on demand, and provide the dialog, keyboard shortcut, result links, and recovery states | Style the shared controls and result hierarchy |
 | Shared footer | Parse and validate the optional `mdd/footer.md` socials block into `site.footer` | Render validated social links and MDD credit in the page footer | Style link icons, spacing, and footer layout |
 | Code blocks | Preserve code text, whitespace, and language labels in escaped semantic HTML | Provide code-copy controls and own future shared code presentation enhancements | Set code fonts, surfaces, borders, spacing, and future token colors |
-| Theme selection and identity | Validate configuration and resolve local custom theme file locations into `site.theme` | Select the bundled base, validate bundled/custom `theme.json` display identity, render versions, load styles, and safely copy selected assets | Define visual styling, name, version, and optional release label; do not require a separate content compiler |
+| Theme selection and identity | Validate configuration and resolve local custom theme file locations into `site.theme` | Select the bundled base, render its version, load styles, and safely copy selected assets | Define visual styling and maintain its own release history; do not require a separate content compiler |
 | Output and hosting | Return a framework-independent site model; write no site files and start no server | Export static HTML/assets/Markdown, preview, and serve validated output with Node | Have no output-writing, server, credential, or deployment role |
 
 MDD consumes the published engine package. It must not duplicate Markdown parsing, invent different route rules, or bypass engine validation. Another frontend can use the same engine without importing MDD or selecting an MDD theme.
@@ -54,7 +54,7 @@ Develop, test, version, and ship **D Theme** in the **`wgtechlabs/mdd` repositor
 
 D Theme has an independent numeric version and a release name. It started at **D26 / 0.1.0** and currently uses **D26 / 0.2.0**; minor and patch versions retain D26, and the planned **1.0.0** major release introduces D27. These are generations of one theme, not separate annual themes. Name changes are deliberate release decisions, never calendar-triggered. Archive released historical snapshots without rewriting their versions; do not invent a release from local development history.
 
-MDD ships the selected D Theme version with the application, but an MDD version bump does not change the theme version. Custom themes also have independent versions and release histories. MDD reads theme identity from `theme.json` and shows the bundled identity beside the installed MDD version. When custom styling is selected, its identity is available inside the bundled theme's collapsed native disclosure. This is reader asset metadata, not Markdown authoring metadata. See the [theme version policy](THEMES.md#version-policy); compatibility checks and version installation remain deferred.
+MDD ships the selected D Theme version with the application, but an mdd version bump does not change the theme version. The footer shows the installed mdd version and D Theme identity. Custom themes remain visual overlays selected by the engine; their styles and assets stay in their theme directories and do not add a separate reader identity. See the [theme version policy](THEMES.md#version-policy).
 
 The current source boundaries are:
 
@@ -75,10 +75,10 @@ Custom themes in a documentation project's configured themes directory override 
 For a fenced block tagged `ts`:
 
 1. **Engine:** recognize the fence, preserve the code and indentation, and emit escaped `<pre><code class="language-ts">…</code></pre>`. Code is displayed as text, never executed.
-2. **MDD:** place that HTML in the article and progressively add the copy control. The code remains readable without JavaScript or a custom theme.
-3. **Theme:** style the code block and its controls. The default reader supplies usable styles; custom themes override their appearance.
+2. **MDD:** progressively add syntax colors and the copy control in the browser. Highlighting wraps original text without changing `textContent`, so copying still returns the source code. Unknown languages and disabled JavaScript retain plain code.
+3. **Theme:** style the code block and its controls, including token colors. The default reader supplies usable styles; custom themes can override their appearance.
 
-Syntax highlighting is not implemented yet. When added, MDD will own the presentation step that identifies language tokens; themes will supply their colors. CSS alone cannot identify keywords in plain code text. A highlighting enhancement must preserve the engine's escaping guarantees, the original code copied by the reader, and plain-code fallback for unknown languages or a disabled enhancer. It must not reparse the Markdown source.
+The reader highlights common syntax in JavaScript/TypeScript, JSON, CSS, HTML, Markdown, YAML, and shell blocks. This small built-in tokenizer is a presentation enhancement, not a complete parser; unrecognized language labels stay plain. It must preserve the engine's escaping guarantees and source text and must not reparse Markdown.
 
 Language headers, code tabs, line numbers, and highlighted lines are also future reader features. If a feature needs new authoring syntax or metadata, the engine first defines and validates that content contract; MDD then presents it. Shared behavior belongs in MDD so every theme can use it.
 
@@ -120,7 +120,7 @@ For changes spanning layers, define the engine contract first, implement the sha
 | Edit this markdown link | MDD combines its configured source editor prefix with the engine's existing `Page.source`; themes style the link |
 | Syntax highlighting | MDD tokenization/presentation; default or custom theme supplies token colors |
 | Blurple palette, fonts, logo placement, or code-block borders | Default theme in MDD, or the selected custom theme |
-| Theme display name/version/release and version footer | Theme authors supply `theme.json`; MDD validates identities and displays the MDD/base theme versions with optional custom styling details in a native disclosure, without changing the engine's content model |
+| Theme display name/version and version footer | D Theme metadata supplies the bundled identity; MDD displays its version with the installed mdd version |
 | Static output, preview rebuilding, HTTP serving, or Railway packaging | MDD |
 | Deployment triggers, provider credentials, or release automation | The relevant Build Flow action, outside the engine and theme layers |
 

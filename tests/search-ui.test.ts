@@ -500,6 +500,17 @@ test("activating a heading result dismisses the modal without overriding native 
   expect(click.defaultPrevented).toBe(false);
 });
 
+test("clicking the search backdrop closes the dialog", () => {
+  const ui = setup();
+  ui.toggle.focus();
+  ui.click(ui.toggle);
+  expect(ui.dialog.open).toBe(true);
+  ui.click(ui.dialog);
+  expect(ui.dialog.open).toBe(false);
+  expect(ui.input.getAttribute("aria-expanded")).toBe("false");
+  expect(ui.document.activeElement).toBe(ui.toggle);
+});
+
 test.each(["/", "/docs/", "/repository/docs/"])(
   "loads and confines navigation at %s",
   async (basePath) => {

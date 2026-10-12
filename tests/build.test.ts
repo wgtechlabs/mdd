@@ -52,6 +52,47 @@ async function fixture(config: object = {}): Promise<string> {
 }
 
 describe("static export", () => {
+  test("exports configured header links and preserves output when reader settings are invalid", async () => {
+    const root = await fixture();
+    const configPath = path.join(root, "mdd/reader.json");
+    await writeFile(
+      configPath,
+      JSON.stringify({
+        header: {
+          links: [
+            {
+              label: "Sponsor",
+              href: "https://github.com/sponsors/wgtechlabs",
+            },
+            { label: "Contribute", href: "https://github.com/wgtechlabs/mdd" },
+          ],
+          cta: { label: "Explore themes", href: "https://wgtechlabs.com/mdd" },
+        },
+      }),
+    );
+    const result = await build({ projectDir: root });
+    if (!result.site) throw new Error("Expected a built site");
+    const page = path.join(result.directory, "index.html");
+    const html = await readFile(page, "utf8");
+    expect(html).toContain(
+      'href="https://github.com/sponsors/wgtechlabs">Sponsor</a>',
+    );
+    expect(html).toContain(
+      'href="https://github.com/wgtechlabs/mdd">Contribute</a>',
+    );
+    expect(html).toContain(
+      'href="https://wgtechlabs.com/mdd">Explore themes</a>',
+    );
+    await writeFile(
+      configPath,
+      JSON.stringify({
+        header: { cta: { label: "Bad", href: "javascript:alert(1)" } },
+      }),
+    );
+    await expect(build({ projectDir: root })).rejects.toThrow("HTTPS");
+    expect(await readFile(page, "utf8")).toBe(html);
+  });
+
   for (const basePath of ["/", "/docs/", "/repository/docs/", "/caf%C3%A9/"]) {
     test(`exports complete static output under ${basePath}`, async () => {
       const root = await fixture({ title: "Example documentation" });
@@ -98,7 +139,7 @@ describe("static export", () => {
         basePath,
         source: { commit: null, dirty: null },
       });
-      expect(html).toContain(`MDD v${manifest.mddVersion}`);
+      expect(html).toContain(`mdd v${manifest.mddVersion}`);
       const index = JSON.parse(
         await readFile(path.join(out, "_mdd/search-index.json"), "utf8"),
       );
@@ -227,9 +268,9 @@ describe("static export", () => {
     const result = await build({ projectDir: root, basePath: "/docs/" });
     expect(result.site).toBeDefined();
     const out = result.directory as string;
-    expect(await readFile(path.join(out, "index.html"), "utf8")).toContain(
-      "Custom styling: custom (version not declared)",
-    );
+    const html = await readFile(path.join(out, "index.html"), "utf8");
+    expect(html).toContain(dThemeLabel);
+    expect(html).not.toContain("Custom styling:");
     expect(
       await readFile(path.join(out, "_mdd/theme/fonts/body.woff2"), "utf8"),
     ).toBe("font-data");
@@ -244,78 +285,6 @@ describe("static export", () => {
     ).toBeNull();
   });
 
-  test("custom theme identity is independent and invalid metadata preserves the last output", async () => {
-    const root = await fixture({
-      paths: { themes: "../styles" },
-      theme: "custom",
-    });
-    const themeRoot = path.join(root, "styles/custom");
-    const metadataFile = path.join(themeRoot, "theme.json");
-    await mkdir(themeRoot, { recursive: true });
-    await writeFile(path.join(themeRoot, "theme.css"), "body { color: red; }");
-    await writeFile(
-      metadataFile,
-      JSON.stringify({
-        name: 'Field <Guide> & "Notes"',
-        version: "2.3.1-rc.7+demo",
-        release: "Spring <2026>",
-      }),
-    );
-    const result = await build({ projectDir: root, basePath: "/docs/" });
-    const out = result.directory as string;
-    const original = await readFile(path.join(out, "index.html"), "utf8");
-    const label =
-      "Custom styling: Field &lt;Guide&gt; &amp; &quot;Notes&quot; — Spring &lt;2026&gt; · v2.3.1-rc.7+demo";
-    for (const page of [
-      "index.html",
-      "get-started/installation/index.html",
-      "404.html",
-    ]) {
-      expect(await readFile(path.join(out, page), "utf8")).toContain(label);
-      expect(await readFile(path.join(out, page), "utf8")).toContain(
-        dThemeLabel,
-      );
-    }
-    for (const invalid of [
-      "{",
-      "null",
-      "[]",
-      "{}",
-      '{"name":"Field","version":1}',
-      '{"name":"Field","version":""}',
-      '{"name":"Field","version":" 1.0.0"}',
-      '{"name":"Field","version":"1.0.0","extra":true}',
-      '{"name":"Field","version":"1.0.0","release":null}',
-      '{"name":"Field","version":"1.0.0","release":1}',
-      '{"name":"Field","version":"1.0.0","release":""}',
-      '{"name":"Field","version":"1.0.0","release":" D27"}',
-      JSON.stringify({ name: "Field", version: "1.0.0", release: "D\n27" }),
-      JSON.stringify({ name: "Field", version: "1.0.0", release: "D27\u202e" }),
-      JSON.stringify({
-        name: "Field",
-        version: "1.0.0",
-        release: "d".repeat(129),
-      }),
-      JSON.stringify({ name: "Field\nGuide", version: "1.0.0" }),
-      JSON.stringify({ name: "Field", version: "1.0.0\u202e" }),
-      JSON.stringify({ name: "Field", version: "v".repeat(129) }),
-    ]) {
-      await writeFile(metadataFile, invalid);
-      await expect(build({ projectDir: root })).rejects.toThrow(
-        "Invalid theme metadata in styles/custom/theme.json",
-      );
-      expect(await readFile(path.join(out, "index.html"), "utf8")).toBe(
-        original,
-      );
-    }
-    await rm(metadataFile);
-    const outside = path.join(root, "outside.json");
-    await writeFile(outside, '{"name":"Outside","version":"9.0.0"}');
-    await symlink(outside, metadataFile);
-    await expect(build({ projectDir: root })).rejects.toThrow("symlink");
-    expect(await readFile(path.join(out, "index.html"), "utf8")).toBe(original);
-  });
-
   test("selects D by its stable name and refuses unknown themes without replacing output", async () => {
     const root = await fixture({ theme: "custom" });
     const custom = path.join(root, "mdd/themes/custom");
@@ -325,7 +294,7 @@ describe("static export", () => {
     const home = path.join(result.directory as string, "index.html");
     const original = await readFile(home, "utf8");
     expect(original).toContain(dThemeLabel);
-    expect(original).toContain("Custom styling: custom (version not declared)");
+    expect(original).not.toContain("Custom styling:");
     expect(original).toContain('href="/_mdd/reader.css"');
     expect(original).toContain('href="/_mdd/theme/theme.css"');
     for (const theme of ["d26", "unknown", "../d", ""]) {

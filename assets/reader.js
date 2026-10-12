@@ -1,4 +1,77 @@
 (() => {
+  const highlightCode = (code) => {
+    const language = [...code.classList]
+      .find((name) => name.startsWith("language-"))
+      ?.slice(9)
+      .toLowerCase();
+    const aliases = {
+      js: "javascript",
+      mjs: "javascript",
+      cjs: "javascript",
+      ts: "typescript",
+      mts: "typescript",
+      cts: "typescript",
+      yml: "yaml",
+      xml: "html",
+      sh: "shell",
+      bash: "shell",
+      zsh: "shell",
+    };
+    const lang = aliases[language] ?? language;
+    const languageNames = {
+      javascript: "JavaScript",
+      typescript: "TypeScript",
+      json: "JSON",
+      css: "CSS",
+      html: "HTML",
+      yaml: "YAML",
+      shell: "Shell",
+      markdown: "Markdown",
+    };
+    const grammar = {
+      javascript:
+        /\b(?:async|await|break|case|catch|class|const|continue|default|delete|do|else|export|extends|false|finally|for|from|function|if|import|in|instanceof|let|new|null|of|return|static|super|switch|this|throw|true|try|typeof|undefined|var|void|while|yield|console|document|globalThis|Math|JSON|Array|Object|Promise|Map|Set|String|Number|Boolean)\b|\b\d+(?:\.\d+)?\b/g,
+      typescript:
+        /\b(?:abstract|any|as|async|await|boolean|break|case|catch|class|const|constructor|continue|default|delete|do|else|enum|export|extends|false|finally|for|from|function|if|implements|import|in|infer|instanceof|interface|keyof|let|namespace|never|new|null|number|of|private|protected|public|readonly|return|static|string|super|switch|this|throw|true|try|type|typeof|undefined|var|void|while|yield|Array|Error|Map|Object|Promise|Record|Set|String|console|document|globalThis)\b|\b\d+(?:\.\d+)?\b/g,
+      json: /\b(?:true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g,
+      css: /#[\da-fA-F]{3,8}\b|\b\d+(?:\.\d+)?(?:px|rem|em|vh|vw|%)?\b|--[\w-]+|\b(?:color|background|display|grid|flex|padding|margin|border|font|width|height|gap|align-items|justify-content)\b/g,
+      html: /&lt;\/?[\w-]+|&gt;|\b[\w-]+(?==)/g,
+      yaml: /\b(?:true|false|null|yes|no)\b|\b\d+(?:\.\d+)?\b|^[\w.-]+(?=\s*:)/gm,
+      shell:
+        /\b(?:sudo|npm|npx|bun|node|git|cd|mkdir|export|echo|curl|pip|python3?)\b|--?[\w-]+/g,
+      markdown:
+        /^#{1,6}\s.*$|^\s*>.*$|^\s*[-*+]\s|\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]*\)/gm,
+    }[lang];
+    if (!grammar || code.dataset.highlighted)
+      return language ? (languageNames[lang] ?? language) : null;
+    const comments = /\/\/[^\n]*|\/\*[\s\S]*?\*\//g;
+    const strings = /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`/g;
+    code.dataset.highlighted = "true";
+    const text = code.textContent ?? "";
+    const fragment = document.createDocumentFragment();
+    let offset = 0;
+    const matches = [
+      ...text.matchAll(comments),
+      ...text.matchAll(strings),
+      ...text.matchAll(grammar),
+    ]
+      .filter((match) => match.index !== undefined)
+      .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+    for (const match of matches) {
+      const token = match[0];
+      const index = match.index;
+      if (index === undefined || index < offset) continue;
+      fragment.append(document.createTextNode(text.slice(offset, index)));
+      const span = document.createElement("span");
+      span.className = `mdd-token-${/^(?:\/\/|\/\*|#)/.test(token) ? "comment" : /^(?:"|'|`)/.test(token) ? "string" : /^(?:\d|true\b|false\b|null\b)/.test(token) ? "literal" : "keyword"}`;
+      span.textContent = token;
+      fragment.append(span);
+      offset = index + token.length;
+    }
+    fragment.append(document.createTextNode(text.slice(offset)));
+    code.replaceChildren(fragment);
+    return language ? (languageNames[lang] ?? language) : null;
+  };
   const root = document.documentElement;
   const toggle = document.querySelector(".mdd-theme-toggle");
   const system = window.matchMedia("(prefers-color-scheme: dark)");
@@ -98,12 +171,19 @@
   for (const pre of document.querySelectorAll(".mdd-article pre")) {
     const code = pre.querySelector("code");
     if (!code) continue;
+    const language = highlightCode(code);
     pre.tabIndex = 0;
     pre.setAttribute("aria-label", "Code example");
     const button = document.createElement("button");
     button.type = "button";
     button.className = "mdd-copy";
     button.textContent = "Copy code";
+    if (language) {
+      const label = document.createElement("span");
+      label.className = "mdd-code-language";
+      label.textContent = language;
+      pre.prepend(label);
+    }
     pre.prepend(button);
     let reset;
     button.addEventListener("click", async () => {

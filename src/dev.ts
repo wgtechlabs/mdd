@@ -121,7 +121,10 @@ export async function dev(
         // The shared footer belongs beside the authoring config, even when the
         // config itself is a symlink. Watch its parent so creation/removal work.
         const names = new Set([basename(config)]);
-        if (config === configPath) names.add("footer.md");
+        if (dirname(config) === configRoot) {
+          names.add("footer.md");
+          names.add("reader.json");
+        }
         const configWatcher = watch(dirname(config), (_event, filename) => {
           if (!filename || names.has(filename)) schedule();
         });

@@ -6,7 +6,7 @@ A theme styles the shared reader. A custom theme adds CSS and optional browser J
 
 The engine supplies semantic article markup; MDD supplies the page shell and shared behavior, including code-copy controls and the light/dark toggle. Themes style those features. New Markdown syntax, route rules, and shared reader controls must be implemented in their owning layer, not separately in each theme. See the [responsibility contract](ARCHITECTURE.md).
 
-Code blocks currently have escaped code and language classes, but no syntax highlighting. Themes can style their containers and text now. Future tokenization belongs to MDD's presentation layer; themes will control token colors. Switching themes must preserve content meaning, navigation, and access to shared controls.
+Code blocks have escaped code and language classes. The reader progressively highlights common syntax in JavaScript/TypeScript, JSON, CSS, HTML, Markdown, YAML, and shell blocks; unknown languages remain plain. Fenced blocks with a language show its name beside the copy control; themes can style that label with `.mdd-code-language`. Themes control the `.mdd-token-keyword`, `.mdd-token-string`, `.mdd-token-comment`, and `.mdd-token-literal` colors. Highlighting preserves `textContent`, so the shared copy control still returns original code. Switching themes must preserve content meaning, navigation, and access to shared controls.
 
 ## Select the base and custom overlay
 
@@ -49,27 +49,9 @@ Keep stylesheet changes and version history in `themes/d/`, including `CHANGELOG
 
 Custom themes have their own versions and release histories, managed by their authors independently of MDD, D Theme, and MDD Engine. Theme version and MDD compatibility are separate concepts.
 
-Every page, including the 404 page, displays the installed MDD version and **D Theme — D26 · v0.2.0** without browser JavaScript. When a custom overlay is selected, the D Theme entry becomes a collapsed native disclosure. Expand it to see **Custom styling** with the overlay name, release, and version. This keeps two primary identities while preserving the details of both styling layers.
+Every page, including the 404 page, displays the installed **mdd** version and **D Theme — D26 · v0.2.0** without browser JavaScript. Custom themes remain visual layers selected through `mdd/config.json`; their styles and assets belong in the theme directory and do not add another version entry to the reader footer.
 
-### Custom theme metadata
-
-Add an optional `theme.json` beside a custom theme's `theme.css`:
-
-```json
-{
-  "name": "Field Guide",
-  "version": "2.1.0",
-  "release": "Meadow"
-}
-```
-
-When present, this file must contain `name` and `version`; `release` is optional. No other fields are accepted. Each supplied value must be a non-empty single-line string, at most 128 characters, with no surrounding whitespace, control characters, or Unicode formatting characters. MDD preserves and HTML-escapes these labels. Versions are display labels; MDD does not interpret or compare them as version ranges. Use your theme's actual release version.
-
-Without the file, existing themes continue to work: the expanded custom-styling details use the selected folder name and says “version not declared.” It never substitutes MDD's or D Theme's version for an unknown custom-theme version. Invalid metadata fails `mdd check` and `mdd build`; failed builds preserve previous output. Symlinks are rejected. The development preview watches the bundled theme and selected custom-theme files, including metadata changes.
-
-MDD owns this reader asset metadata. It reads bundled identity from its package and custom identity from the engine-selected theme directory. The engine continues to own documentation/configuration validation and local theme selection; its published `Site` contract is unchanged. Compatibility ranges, version installation, and automatic updates are not implemented. Keep the custom theme selection string in `mdd/config.json`; do not add version fields there.
-
-The bundled example's `MDD branding` overlay declares its own `0.1.0` in `theme.json` and supplies the project logo over D Theme. Its version belongs to that styling, not to the MDD application. Expand the D Theme footer entry to inspect it.
+The bundled example's `mdd` theme supplies the project logo over D Theme. Its CSS and SVG assets live together in `examples/basic/mdd/themes/mdd/`.
 
 ## Tokens
 

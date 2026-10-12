@@ -11,4 +11,5 @@ coverage/
 !.env.example
 
 mdd-dist/
+mdd-dist-new/
 .impeccable/briefs/
