@@ -37,7 +37,9 @@ let recovered = false;
 const messages = [];
 async function until(check, stage) {
   const deadline = Date.now() + 4000;
-  while (!(await check())) {
+  while (true) {
+    try { if (await check()) return; }
+    catch { /* The preview briefly closes its listener while swapping builds. */ }
     if (Date.now() > deadline) throw new Error(stage + ": " + JSON.stringify({ errorCount, messages }));
     await new Promise(resolve => setTimeout(resolve, 10));
   }
@@ -75,6 +77,9 @@ try {
     catch { return false; }
   }
   assert.equal((await read("/early/")).status, 200);
+  await writeFile(join(root, "mdd/reader.json"), JSON.stringify({ header: { cta: { label: "Preview CTA", href: "https://wgtechlabs.com/mdd" } } }));
+  listeners.get(join(root, "mdd"))("change", "reader.json");
+  await until(async () => (await read("/")).body.includes("Preview CTA"), "Reader settings were not rebuilt");
   await writeFile(join(content, "index.md"), "# Broken\\n\\n[Missing](missing.md)\\n");
   listeners.get(content)("change", "index.md");
   await until(() => errorCount === 1, "Invalid content was not reported");

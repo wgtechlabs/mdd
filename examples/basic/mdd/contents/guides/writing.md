@@ -72,6 +72,19 @@ Write relative Markdown links, such as `[Installation](../get-started/installati
 
 Use heading fragments to link directly to a section. For example, [page metadata](#add-page-metadata) jumps to the heading above.
 
+## Syntax-highlighted code
+
+Code fences are highlighted for JavaScript (`javascript`, `js`, `mjs`, `cjs`), TypeScript (`typescript`, `ts`, `mts`, `cts`), JSON (`json`), CSS (`css`), HTML (`html`, `xml`), Markdown (`markdown`), YAML (`yaml`, `yml`), and shell (`shell`, `sh`, `bash`, `zsh`). Unknown language labels stay plain.
+
+Labeled code blocks show the language in the block header beside **Copy code**.
+
+Use the language after the opening backticks:
+
+```ts
+const greeting: string = "Hello, docs!";
+console.log(greeting);
+```
+
 ## Highlight useful details
 
 Use GitHub-style alerts for notes, tips, important context, warnings, and cautions. Put the uppercase marker on its own line inside a blockquote:
@@ -106,7 +119,7 @@ The `:::details[Title]` component still works. Its title and content remain read
 
 ## Search your documentation
 
-Select **Search** or press **Ctrl+K** / **Cmd+K**. Results include page titles, headings, and excerpts with matching keywords highlighted as you type. Partial words and multiple keywords are supported. Highlighting stays in the results; the documentation page remains unchanged. Use the arrow keys to move between results and Enter to follow a link. Escape closes search and returns focus.
+Select **Search** or press **Ctrl+K** / **Cmd+K**. Results include page titles, headings, and excerpts with matching keywords highlighted as you type. Partial words and multiple keywords are supported. Highlighting stays in the results; the documentation page remains unchanged. Use the arrow keys to move between results and Enter to follow a link. Click outside the dialog, press Escape, or use its close button to return focus to the page.
 
 The index is built from article content and loaded from the same site when search first opens. No external search service or database is required. Reading and navigation still work with JavaScript disabled; search requires JavaScript.
 
@@ -121,3 +134,24 @@ Create `mdd/footer.md` beside your `config.json`. This file is separate from `co
 ```
 
 Use one `socials` block containing a plain unordered list of links with text labels and HTTPS destinations. MDD uses a GitHub icon for GitHub links; other destinations keep their text label. The footer does not create a documentation page or enter the search index. If you use a custom `--mdd-dir`, place `footer.md` in that directory instead.
+
+## Configure header links
+
+MDD reader settings live in `mdd/reader.json`, separate from the engine's
+`mdd/config.json`. Add up to two ordinary links and one highlighted call to
+action; each destination must be an absolute HTTPS URL:
+
+```json
+{
+  "header": {
+    "links": [
+      { "label": "Sponsor", "href": "https://github.com/sponsors/wgtechlabs" },
+      { "label": "Contribute", "href": "https://github.com/wgtechlabs/mdd" }
+    ],
+    "cta": { "label": "Explore themes", "href": "https://wgtechlabs.com/mdd" }
+  }
+}
+```
+
+The example reader shows these links in its header. Omit `reader.json` or the
+`header` object to keep the header focused on documentation controls.

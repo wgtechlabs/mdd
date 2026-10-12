@@ -242,6 +242,9 @@ function resultIcon(kind) {
   };
   toggle.addEventListener("click", open);
   close.addEventListener("click", () => dialog.close());
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
   dialog.addEventListener("close", () => {
     // A queued close event must not steal focus from a reopened dialog.
     if (dialog.open) return;

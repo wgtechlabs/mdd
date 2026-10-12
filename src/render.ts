@@ -1,11 +1,11 @@
 import type { NavigationItem, Page, Site } from "@wgtechlabs/mdd-engine";
 import { editPageUrl } from "./edit.js";
+import type { ReaderConfig } from "./reader-config.js";
 import type { ThemeIdentity } from "./theme.js";
 
 export interface ReaderIdentity {
   mddVersion: string;
   theme: ThemeIdentity;
-  customTheme?: ThemeIdentity;
 }
 
 function escapeHtml(value: string): string {
@@ -24,13 +24,6 @@ function escapeHtml(value: string): string {
 
 function themeLabel(theme: ThemeIdentity): string {
   return `${escapeHtml(theme.name)}${theme.release ? ` — ${escapeHtml(theme.release)}` : ""}${theme.version === null ? " (version not declared)" : ` · v${escapeHtml(theme.version)}`}`;
-}
-
-function themeFooter(identity: ReaderIdentity): string {
-  const label = themeLabel(identity.theme);
-  return identity.customTheme
-    ? `<details class="mdd-theme-info"><summary>${label}</summary><span>Custom styling: ${themeLabel(identity.customTheme)}</span></details>`
-    : `<span>${label}</span>`;
 }
 
 function editIcon(url: string): string {
@@ -76,6 +69,24 @@ function searchDialog(base: string): string {
 <p class="mdd-search-status" id="_mdd-search-status" role="status"></p><ul class="mdd-search-results" id="_mdd-search-results" role="listbox" aria-label="Search results"></ul><button class="mdd-search-retry" type="button" hidden>Try again</button>
 <div class="mdd-search-help" aria-hidden="true"><span><kbd>↑</kbd> <kbd>↓</kbd> Navigate</span><span><kbd>↵</kbd> Open</span><span><kbd>Esc</kbd> Close</span></div>
 </dialog>`;
+}
+
+function headerLinks(config: ReaderConfig): string {
+  const links = config.header?.links ?? [];
+  if (!links.length) return "";
+  return `<nav class="mdd-header-links" aria-label="Project">${links
+    .map(
+      ({ label, href }) =>
+        `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`,
+    )
+    .join("")}</nav>`;
+}
+
+function headerCta(config: ReaderConfig): string {
+  const cta = config.header?.cta;
+  return cta
+    ? `<a class="mdd-header-cta" href="${escapeHtml(cta.href)}">${escapeHtml(cta.label)}</a>`
+    : "";
 }
 
 function navigation(
@@ -132,6 +143,7 @@ function document(
   identity: ReaderIdentity,
   page?: Page,
   editUrl?: string,
+  readerConfig: ReaderConfig = {},
 ): string {
   const base = site.basePath;
   const nav = navigation(site.navigation, base, page?.route);
@@ -164,7 +176,8 @@ ${theme?.js ? `<script src="${escapeHtml(themeUrl(theme.js))}" defer></script>` 
 <a class="mdd-skip" href="#_mdd-main">Skip to content</a>
 <header class="mdd-header">
 <div class="mdd-heading-tools"><button class="mdd-sidebar-toggle" type="button" aria-label="Hide sidebar" aria-controls="_mdd-sidebar" aria-expanded="true" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path class="mdd-sidebar-icon-open" d="M9 4v16"/><path class="mdd-sidebar-icon-closed" d="M7 8v8"/></svg></button><a class="mdd-brand" href="${escapeHtml(base)}">${escapeHtml(site.title)}</a></div>
-<div class="mdd-tools"><button class="mdd-search-toggle" type="button" aria-haspopup="dialog" aria-label="Search documentation" aria-keyshortcuts="Control+k Meta+k" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span class="mdd-search-label">Search</span><kbd class="mdd-search-shortcut" aria-hidden="true">⌘ / Ctrl K</kbd></button><button class="mdd-theme-toggle" type="button" aria-label="Switch theme" hidden>
+<div class="mdd-search-area"><button class="mdd-search-toggle" type="button" aria-haspopup="dialog" aria-label="Search documentation" aria-keyshortcuts="Control+k Meta+k" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span class="mdd-search-label">Search</span><kbd class="mdd-search-shortcut" aria-hidden="true">⌘ / Ctrl K</kbd></button></div>
+<div class="mdd-tools">${headerLinks(readerConfig)}${headerCta(readerConfig)}<button class="mdd-theme-toggle" type="button" aria-label="Switch theme" hidden>
 <svg class="mdd-icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
 <svg class="mdd-icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.9 13a9 9 0 0 1-9.9-9.9A9 9 0 1 0 20.9 13Z"/></svg>
 </button></div>
@@ -180,7 +193,7 @@ ${toc ? `<details class="mdd-mobile-outline"><summary>On this page</summary>${to
 ${editUrl ? `<div class="mdd-page-actions"><span>Help improve this page.</span><a class="mdd-edit-page" href="${escapeHtml(editUrl)}">${editIcon(editUrl)}Edit this markdown</a></div>` : ""}
 <nav class="mdd-agent-links" aria-label="Agent resources">${markdownUrl ? `<a href="${escapeHtml(markdownUrl)}">View Markdown</a>` : ""}<a href="${escapeHtml(base)}llms.txt">llms.txt for agents</a></nav>
 <div class="mdd-footer-bottom">${footerSocials(site)}<a class="mdd-credit" href="https://github.com/wgtechlabs/mdd">Built with <strong>mdd</strong></a></div>
-<div class="mdd-build-info"><span>MDD v${escapeHtml(identity.mddVersion)}</span>${themeFooter(identity)}</div>
+<div class="mdd-build-info"><span>mdd v${escapeHtml(identity.mddVersion)}</span><span>${themeLabel(identity.theme)}</span></div>
 </footer>
 </div>
 <aside class="mdd-outline">${toc ? `<h2>On this page</h2>${toc}` : ""}</aside>
@@ -196,6 +209,7 @@ export function renderPage(
   page: Page,
   identity: ReaderIdentity,
   editBaseUrl?: string,
+  readerConfig: ReaderConfig = {},
 ): string {
   const title = page.headings.some((heading) => heading.depth === 1)
     ? ""
@@ -209,14 +223,22 @@ export function renderPage(
     editBaseUrl === undefined
       ? undefined
       : editPageUrl(editBaseUrl, page.source),
+    readerConfig,
   );
 }
 
-export function renderNotFound(site: Site, identity: ReaderIdentity): string {
+export function renderNotFound(
+  site: Site,
+  identity: ReaderIdentity,
+  readerConfig: ReaderConfig = {},
+): string {
   return document(
     site,
     "Page not found",
     `<h1>Page not found</h1><p>This page may have moved, or the address may be incorrect.</p><p><a href="${escapeHtml(site.basePath)}">Back to the documentation</a></p>`,
     identity,
+    undefined,
+    undefined,
+    readerConfig,
   );
 }

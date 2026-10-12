@@ -1,5 +1,4 @@
 import { fileURLToPath } from "node:url";
-import type { Site } from "@wgtechlabs/mdd-engine";
 import { isMissing, readSafeFile } from "./files.js";
 
 export interface ThemeIdentity {
@@ -22,19 +21,6 @@ export async function readDThemeIdentity(id = "d"): Promise<ThemeIdentity> {
       "D Theme requires theme.json with name, version, and release.",
     );
   return identity;
-}
-
-/** Custom styling is selected by the engine and layered over D Theme. */
-export async function readCustomThemeIdentity(
-  projectDir: string,
-  theme: Extract<Site["theme"], { directory: string }>,
-): Promise<ThemeIdentity> {
-  return (
-    (await readMetadata(projectDir, `${theme.directory}/theme.json`)) ?? {
-      name: theme.name,
-      version: null,
-    }
-  );
 }
 
 async function readMetadata(

@@ -118,6 +118,33 @@ test("reader escapes metadata and supplies working navigation and outline withou
   );
 });
 
+test("renders configured header links and a distinct CTA", () => {
+  const html = renderPage(site, page, identity, undefined, {
+    header: {
+      links: [
+        { label: "Sponsor", href: "https://github.com/sponsors/wgtechlabs" },
+        { label: "Contribute", href: "https://github.com/wgtechlabs/mdd" },
+      ],
+      cta: { label: "Explore themes", href: "https://wgtechlabs.com/mdd" },
+    },
+  });
+  const header = /<header class="mdd-header">([\s\S]*?)<\/header>/.exec(
+    html,
+  )?.[1];
+  expect(header).toContain(
+    '<nav class="mdd-header-links" aria-label="Project">',
+  );
+  expect(header).toContain(
+    '<a href="https://github.com/sponsors/wgtechlabs">Sponsor</a>',
+  );
+  expect(header).toContain(
+    '<a href="https://github.com/wgtechlabs/mdd">Contribute</a>',
+  );
+  expect(header).toContain(
+    '<a class="mdd-header-cta" href="https://wgtechlabs.com/mdd">Explore themes</a>',
+  );
+});
+
 test("shell anchors cannot collide with compiled Markdown headings", async () => {
   const projectDir = await mkdtemp(path.join(tmpdir(), "mdd-render-test-"));
   try {
@@ -159,7 +186,7 @@ test("heading-free pages get a title and custom theme paths are encoded per segm
       },
     },
     { ...page, headings: [], html: "<p>Text</p>" },
-    { ...identity, customTheme: { name: "custom", version: "2.0.0" } },
+    identity,
   );
   expect(html).toContain("<h1>Home &lt;img");
   expect(html).toContain('href="/docs/_mdd/theme/theme.css"');
@@ -317,7 +344,7 @@ test("every reader footer shows the supplied MDD and theme versions without brow
       html,
     )?.[1];
     expect(footer).toBeDefined();
-    expect(footer).toContain("MDD v0.1.0-dev.3");
+    expect(footer).toContain("mdd v0.1.0-dev.3");
     expect(footer).toContain("D Theme — D26 · v0.1.0");
     expect(footer).not.toContain("Custom styling:");
     expect(footer).not.toContain("mdd-theme-info");
@@ -336,18 +363,13 @@ test("reader footer escapes every identity value", () => {
       version: '<script>version()</script> & "theme"',
       release: '<script>release()</script> & "release"',
     },
-    customTheme: {
-      name: '<script>custom()</script> & "custom"',
-      version: "<script>customVersion()</script>",
-      release: "<script>customRelease()</script>",
-    },
   };
   for (const html of [
     renderPage(site, page, untrusted),
     renderNotFound(site, untrusted),
   ]) {
     expect(html).toContain(
-      "MDD v&lt;script&gt;mdd()&lt;/script&gt; &amp; &quot;version&quot;",
+      "mdd v&lt;script&gt;mdd()&lt;/script&gt; &amp; &quot;version&quot;",
     );
     expect(html).toContain(
       "&lt;img src=x onerror=&quot;theme()&quot;&gt; &amp; &#39;name&#39;",
@@ -358,33 +380,29 @@ test("reader footer escapes every identity value", () => {
     expect(html).toContain(
       "&lt;script&gt;release()&lt;/script&gt; &amp; &quot;release&quot;",
     );
-    expect(html).toContain(
-      "Custom styling: &lt;script&gt;custom()&lt;/script&gt; &amp; &quot;custom&quot;",
-    );
-    expect(html).toContain("&lt;script&gt;customVersion()&lt;/script&gt;");
-    expect(html).toContain("&lt;script&gt;customRelease()&lt;/script&gt;");
     expect(html).not.toContain("<script>mdd()");
     expect(html).not.toContain("<script>version()");
     expect(html).not.toContain("<script>release()");
-    expect(html).not.toContain("<script>custom");
     expect(html).not.toContain("<img src=x");
   }
 });
 
-test("custom styling details are collapsed and preserve unknown versions on articles and 404 pages", () => {
-  const legacy: ReaderIdentity = {
-    ...identity,
-    customTheme: { name: "Existing theme", version: null },
+test("reader footer shows the bundled theme identity when a custom theme is selected", () => {
+  const customSite = {
+    ...site,
+    theme: {
+      name: "Existing theme",
+      directory: "mdd/themes/custom",
+      css: "mdd/themes/custom/theme.css",
+    },
   };
   for (const html of [
-    renderPage(site, page, legacy),
-    renderNotFound(site, legacy),
+    renderPage(customSite, page, identity),
+    renderNotFound(customSite, identity),
   ]) {
-    expect(html).toContain("MDD v0.1.0-dev.3");
-    expect(html).toContain(
-      '<details class="mdd-theme-info"><summary>D Theme — D26 · v0.1.0</summary><span>Custom styling: Existing theme (version not declared)</span></details>',
-    );
-    expect(html).not.toContain('<details class="mdd-theme-info" open');
-    expect(html).not.toContain("Existing theme · v0.1.0-dev.3");
+    expect(html).toContain("mdd v0.1.0-dev.3");
+    expect(html).toContain("<span>D Theme — D26 · v0.1.0</span>");
+    expect(html).not.toContain("Custom styling:");
+    expect(html).not.toContain("mdd-theme-info");
   }
 });

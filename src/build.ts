@@ -21,12 +21,9 @@ import {
   writeOutput,
 } from "./files.js";
 import { type BuildManifest, isBasePath } from "./manifest.js";
+import { readReaderConfig } from "./reader-config.js";
 import { renderNotFound, renderPage } from "./render.js";
-import {
-  dThemeDirectory,
-  readCustomThemeIdentity,
-  readDThemeIdentity,
-} from "./theme.js";
+import { dThemeDirectory, readDThemeIdentity } from "./theme.js";
 
 export type BuildOptions = CompileOptions & {
   outDir?: string;
@@ -146,6 +143,10 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
     throw new Error(
       "Unsupported public base path. Use a canonical URL prefix without control characters.",
     );
+  const readerConfig = await readReaderConfig(
+    options.projectDir,
+    options.mddDir,
+  );
   const root = await realpath(options.projectDir);
   const directory = await outputDirectory(options, site, root);
   const metadata = JSON.parse(
@@ -154,10 +155,6 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
   const identity = {
     mddVersion: metadata.version,
     theme: await readDThemeIdentity(options.theme),
-    customTheme:
-      "directory" in site.theme
-        ? await readCustomThemeIdentity(root, site.theme)
-        : undefined,
   };
   const files = new Map<string, Buffer>();
   const reserved = new Set<string>();
@@ -202,11 +199,11 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
     const route = pageDirectory(page.route);
     add(
       route ? `${route}/index.html` : "index.html",
-      renderPage(site, page, identity, editBaseUrl),
+      renderPage(site, page, identity, editBaseUrl, readerConfig),
     );
     add(`markdown/${route ? `${route}/` : ""}index.md`, page.markdown);
   }
-  add("404.html", renderNotFound(site, identity));
+  add("404.html", renderNotFound(site, identity, readerConfig));
   add(
     "llms.txt",
     `# ${markdownText(site.title)}\n\n## Documentation\n\n${site.pages.map((page) => `- [${markdownText(page.title)}](<${site.basePath}markdown/${page.route.slice(1)}index.md>)${page.description ? `: ${markdownText(page.description)}` : ""}`).join("\n")}\n`,

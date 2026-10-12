@@ -1,0 +1,18 @@
+{
+  "header": {
+    "links": [
+      {
+        "label": "Sponsor",
+        "href": "https://github.com/sponsors/wgtechlabs"
+      },
+      {
+        "label": "Contribute",
+        "href": "https://github.com/wgtechlabs/mdd"
+      }
+    ],
+    "cta": {
+      "label": "Explore themes",
+      "href": "https://wgtechlabs.com/mdd"
+    }
+  }
+}
