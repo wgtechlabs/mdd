@@ -20,6 +20,7 @@ mdd/
       installation.md
   themes/
   config.json
+  reader.json
 ```
 
 [Build your first site](./get-started/installation.md) with the local CLI.
@@ -41,4 +42,4 @@ Start with the default theme, or add your own CSS. The content and its presentat
 - **Write for humans and agents.** One source produces both formats.
 - **Choose your host.** Build for a root domain or a nested path.
 
-Explore [writing pages](./guides/writing.md) or [customizing a theme](./guides/themes.md).
+Explore the [API reference](./api-reference/index.md), [writing pages](./guides/writing.md), or [customizing a theme](./guides/themes.md).

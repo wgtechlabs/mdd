@@ -39,7 +39,7 @@ bun install --frozen-lockfile
 bun run demo
 ```
 
-Open `http://127.0.0.1:4173/docs/`. The example includes pages, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation.
+Open `http://127.0.0.1:4173/docs/`. The example includes an API reference, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation.
 
 See [verification](docs/VERIFICATION.md) for current evidence and remaining hosting work.
 
@@ -49,6 +49,7 @@ See [verification](docs/VERIFICATION.md) for current evidence and remaining host
 my-project/
   mdd/
     config.json          # optional
+    reader.json          # optional MDD header links
     footer.md            # optional shared social links
     contents/
       index.md           # required homepage
@@ -57,7 +58,6 @@ my-project/
     themes/
       custom/
         theme.css
-        theme.json       # optional name/version and release label
         theme.js         # optional trusted browser code
 ```
 
@@ -92,9 +92,25 @@ Write social links once in `mdd/footer.md`:
 
 Use one `socials` block containing a flat unordered list of plain-text labels and absolute HTTPS links. Replace the example destination with your project's URL. Attributes, nested content, images, raw HTML, and credential-bearing URLs are rejected. The file belongs beside the documentation configuration, outside `contents/`; it does not become a page or search result. A missing or empty footer file is allowed. MDD renders the links in the page footer beside **Built with mdd**, using recognizable icons where supported and readable labels otherwise.
 
+Configure up to two ordinary header links and one CTA in `mdd/reader.json`:
+
+```json
+{
+  "header": {
+    "links": [
+      { "label": "Sponsor", "href": "https://github.com/sponsors/wgtechlabs" },
+      { "label": "Contribute", "href": "https://github.com/wgtechlabs/mdd" }
+    ],
+    "cta": { "label": "Explore themes", "href": "https://wgtechlabs.com/mdd" }
+  }
+}
+```
+
+This MDD-specific file is separate from the engine's strict `config.json` schema. Links require absolute HTTPS destinations; the example docs show the sample header.
+
 ## Search the documentation
 
-Choose **Search** in the header or press **Ctrl+K** (**⌘K** on macOS). A native dialog provides the search field, result links, and loading, empty, and retry states. Press Escape or use its close button to return to the page. Search requires browser JavaScript; ordinary reading and navigation remain available without it.
+Choose **Search** in the header or press **Ctrl+K** (**⌘K** on macOS). A native dialog provides the search field, result links, and loading, empty, and retry states. Click outside the dialog, press Escape, or use its close button to return to the page. Search requires browser JavaScript; ordinary reading and navigation remain available without it.
 
 Results show pages and individual headings with context breadcrumbs. A page can have several matching sections. Exact and partial matches rank ahead of bounded single-edit typo corrections. Use ↑/↓ to select a result while continuing to type, and Enter to open it. The first result is selected automatically; ordinary text-editing keys keep their native behavior.
 
@@ -144,9 +160,9 @@ A Railway template will consume a separate public content repository at build ti
 
 See [themes](docs/THEMES.md). D Theme lives in [`themes/d/`](themes/d/) and supports system light/dark preference and a persistent reader toggle. Custom CSS loads after its stylesheet; optional `theme.js` runs only in the browser. The build never executes theme scripts or installs source-repository dependencies.
 
-Every page footer shows two primary entries: **MDD v0.1.0** (the installed MDD version) and **D Theme — D26 · v0.2.0**. When custom styling is selected, expand the D Theme entry to see its name, release, and independent version. D26 is a release name for D Theme, not a separate theme: minor and patch updates retain it, and the planned 1.0.0 major release introduces D27. The theme version changes independently of MDD; release names never change automatically with the year. [`themes/archive/`](themes/archive/) is reserved for historical source snapshots.
+Every page footer shows the installed **mdd** version and the bundled **D Theme — D26 · v0.2.0**. D26 is a release name for D Theme, not a separate theme: minor and patch updates retain it, and the planned 1.0.0 major release introduces D27. The theme version changes independently of mdd; release names never change automatically with the year. [`themes/archive/`](themes/archive/) is reserved for historical source snapshots.
 
-Custom themes can declare their own `name`, `version`, and optional `release` in `theme.json`; without the file, their expanded styling details say “version not declared.” MDD validates metadata during `check` and `build`; it does not install theme versions or check compatibility ranges.
+Custom themes provide visual styles and assets through their own theme directories. Their identity stays with the theme; the reader footer shows only the installed mdd and bundled D Theme versions.
 
 ## Reader contributions
 

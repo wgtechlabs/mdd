@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFile, realpath } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { compileProject, type Diagnostic } from "@wgtechlabs/mdd-engine";
@@ -7,7 +7,7 @@ import { build } from "./build.js";
 import { dev } from "./dev.js";
 import { normalizeEditBaseUrl } from "./edit.js";
 import { serve } from "./server.js";
-import { readCustomThemeIdentity, readDThemeIdentity } from "./theme.js";
+import { readDThemeIdentity } from "./theme.js";
 
 const help = `Usage: mdd <command> [options]
 
@@ -151,11 +151,6 @@ async function main(): Promise<void> {
       if (options.editBaseUrl !== undefined)
         normalizeEditBaseUrl(options.editBaseUrl);
       await readDThemeIdentity(options.theme);
-      if ("directory" in result.site.theme)
-        await readCustomThemeIdentity(
-          await realpath(options.projectDir),
-          result.site.theme,
-        );
     }
     console.log(
       command === "check"

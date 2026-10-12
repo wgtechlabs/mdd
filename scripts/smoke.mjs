@@ -189,7 +189,7 @@ try {
     assert.ok(html.includes('class="mdd-alert mdd-caution"'));
     assert.ok(html.includes('aria-label="Social links"'));
     assert.ok(html.includes(`${prefix}_mdd/search-ui.js`));
-    assert.ok(html.includes(`MDD v${metadata.version}`));
+    assert.ok(html.includes(`mdd v${metadata.version}`));
     assert.ok(html.includes(themeLabel));
     assert.ok(html.includes("Edit this markdown</a>"));
     assert.ok(
@@ -299,7 +299,7 @@ try {
     JSON.stringify({ ...theme, release: "D99", version: "99.0.0-smoke" }),
   );
   await waitForPage(`${preview}/docs/`, "D Theme — D99 · v99.0.0-smoke");
-  await waitForPage(`${preview}/docs/`, `MDD v${metadata.version}`);
+  await waitForPage(`${preview}/docs/`, `mdd v${metadata.version}`);
   assert.equal(
     JSON.parse(
       await readFile(join(project, "mdd-dist", "mdd-build.json"), "utf8"),

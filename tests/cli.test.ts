@@ -267,27 +267,6 @@ test("serve reads a built snapshot, uses PORT, and shuts down cleanly", async ()
   expect(await exited).toBe(0);
 }, 15_000);
 
-test("check validates optional custom theme metadata without writing a site", async () => {
-  const root = await fixture();
-  const theme = join(root, "mdd/themes/custom");
-  await mkdir(theme, { recursive: true });
-  await writeFile(join(root, "mdd/config.json"), '{"theme":"custom"}');
-  await writeFile(join(theme, "theme.css"), "body { color: red; }");
-  expect(run(root, "check").status).toBe(0);
-  await writeFile(
-    join(theme, "theme.json"),
-    '{"name":"Field","version":"2.0.0-dev.1","release":"Spring"}',
-  );
-  expect(run(root, "check").status).toBe(0);
-  await writeFile(join(theme, "theme.json"), '{"name":"Field"}');
-  const invalid = run(root, "check");
-  expect(invalid.status).toBe(1);
-  expect(invalid.stderr).toContain(
-    "Invalid theme metadata in mdd/themes/custom/theme.json",
-  );
-  await expect(readFile(join(root, "mdd-dist/index.html"))).rejects.toThrow();
-});
-
 test("dev watches configured content/theme roots and keeps the last build through errors", async () => {
   const root = await fixture();
   await mkdir(join(root, "guide"));
