@@ -220,6 +220,6 @@ bun audit
 
 The smoke check creates a local application archive, installs it in an isolated consumer, and runs the CLI/server with Node. This test does not publish anything. `MDD_TEST_NODE_BINARIES` accepts platform-delimited Node binary paths to exercise one archive across runtimes.
 
-[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Registry package publishing is disabled for MDD; only `mdd-engine` publishes to npm and GitHub Packages. MDD has no npm bootstrap or Trusted Publishing requirement. GitHub Releases and future container delivery are separate application delivery steps, currently inactive. CodeQL is enabled automatically for this public repository; private copies need verified code-scanning access. See [releasing](docs/RELEASING.md).
+[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Registry package publishing is disabled for MDD; only `mdd-engine` publishes to npm and GitHub Packages. MDD has no npm bootstrap or Trusted Publishing requirement. Build Flow publishes the Node CLI/server container using its default artifact settings for Docker Hub and GHCR. GitHub Releases remain inactive. CodeQL is enabled automatically for this public repository; private copies need verified code-scanning access. See [releasing](docs/RELEASING.md).
 
 Follow [AGENTS.md](AGENTS.md), [the product contract](docs/SPEC.md), and [MIT licensing](LICENSE).

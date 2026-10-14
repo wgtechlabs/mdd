@@ -23,8 +23,10 @@ selected content snapshot; the Node runtime serves the resulting site.
 MDD's `package.json` provides dependency, script, runtime, and application-version
 metadata. Its local name and archive smoke tests do not make registry publication
 part of delivery. Keep `private: true` and `enable-package: false`; MDD needs no npm
-token, Trusted Publisher, or initial npm publication. A future container image is
-an application deployment artifact, separate from the engine's npm package.
+token, Trusted Publisher, or initial npm publication. Build Flow publishes the
+Node CLI/server container using its default artifact settings, separate from the
+engine's npm package. The image does not fetch the separate content repository or
+deploy a Railway service.
 
 **Available now:** the engine package, reader, local CLI, static export, and Node
 server. **Still planned:** the Railway template, external content-fetch build, and
