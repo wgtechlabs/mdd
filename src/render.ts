@@ -71,6 +71,10 @@ function searchDialog(base: string): string {
 </dialog>`;
 }
 
+function searchToggle(compact = false): string {
+  return `<button class="mdd-search-toggle${compact ? " mdd-search-toggle-compact" : ""}" type="button" aria-haspopup="dialog" aria-label="Search documentation" aria-keyshortcuts="Control+k Meta+k" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span class="mdd-search-label">Search</span><kbd class="mdd-search-shortcut" aria-hidden="true">⌘ / Ctrl K</kbd></button>`;
+}
+
 function headerLinks(config: ReaderConfig): string {
   const links = config.header?.links ?? [];
   if (!links.length) return "";
@@ -175,8 +179,7 @@ ${theme?.js ? `<script src="${escapeHtml(themeUrl(theme.js))}" defer></script>` 
 <body>
 <a class="mdd-skip" href="#_mdd-main">Skip to content</a>
 <header class="mdd-header">
-<div class="mdd-heading-tools"><button class="mdd-sidebar-toggle" type="button" aria-label="Hide sidebar" aria-controls="_mdd-sidebar" aria-expanded="true" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path class="mdd-sidebar-icon-open" d="M9 4v16"/><path class="mdd-sidebar-icon-closed" d="M7 8v8"/></svg></button><a class="mdd-brand" href="${escapeHtml(base)}">${escapeHtml(site.title)}</a></div>
-<div class="mdd-search-area"><button class="mdd-search-toggle" type="button" aria-haspopup="dialog" aria-label="Search documentation" aria-keyshortcuts="Control+k Meta+k" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><span class="mdd-search-label">Search</span><kbd class="mdd-search-shortcut" aria-hidden="true">⌘ / Ctrl K</kbd></button></div>
+<div class="mdd-heading-tools"><a class="mdd-brand" href="${escapeHtml(base)}">${escapeHtml(site.title)}</a>${searchToggle(true)}</div>
 <div class="mdd-tools">${headerLinks(readerConfig)}${headerCta(readerConfig)}<button class="mdd-theme-toggle" type="button" aria-label="Switch theme" hidden>
 <svg class="mdd-icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
 <svg class="mdd-icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.9 13a9 9 0 0 1-9.9-9.9A9 9 0 1 0 20.9 13Z"/></svg>
@@ -184,7 +187,7 @@ ${theme?.js ? `<script src="${escapeHtml(themeUrl(theme.js))}" defer></script>` 
 </header>
 ${searchDialog(base)}
 <div class="mdd-layout">
-<aside class="mdd-sidebar" id="_mdd-sidebar"><nav aria-label="Documentation">${nav}</nav></aside>
+<aside class="mdd-sidebar" id="_mdd-sidebar"><div class="mdd-sidebar-tools">${searchToggle()}<button class="mdd-sidebar-toggle" type="button" aria-label="Hide sidebar" aria-controls="_mdd-sidebar" aria-expanded="true" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path class="mdd-sidebar-icon-open" d="M9 4v16"/><path class="mdd-sidebar-icon-closed" d="M7 8v8"/></svg></button></div><nav class="mdd-sidebar-nav" aria-label="Documentation">${nav}</nav></aside>
 <div class="mdd-reading">
 <details class="mdd-mobile-navigation"><summary>Browse documentation</summary><nav aria-label="Documentation">${nav}</nav></details>
 ${toc ? `<details class="mdd-mobile-outline"><summary>On this page</summary>${toc}</details>` : ""}

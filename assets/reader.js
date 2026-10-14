@@ -107,11 +107,12 @@
   }
   const sidebarToggle = document.querySelector(".mdd-sidebar-toggle");
   const sidebar = document.querySelector(".mdd-sidebar");
-  if (sidebarToggle && sidebar) {
+  const sidebarNavigation = sidebar?.querySelector(".mdd-sidebar-nav");
+  if (sidebarToggle && sidebar && sidebarNavigation) {
     const setSidebar = (collapsed) => {
       if (collapsed && sidebar.contains(document.activeElement))
         sidebarToggle.focus();
-      sidebar.inert = collapsed;
+      sidebarNavigation.inert = collapsed;
       root.dataset.sidebar = collapsed ? "collapsed" : "expanded";
       const label = collapsed ? "Show sidebar" : "Hide sidebar";
       sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
@@ -217,9 +218,10 @@
       decodeURIComponent(new URL(link.href).hash.slice(1)),
     ),
   );
+  const outline = document.querySelector(".mdd-outline nav");
   let scheduled = false;
   const updateOutline = () => {
-    let active = -1;
+    let active = links.length ? 0 : -1;
     for (let index = 0; index < headings.length; index++) {
       if (headings[index] && headings[index].getBoundingClientRect().top <= 130)
         active = index;
@@ -228,6 +230,12 @@
       if (index === active) link.setAttribute("aria-current", "location");
       else link.removeAttribute("aria-current");
     });
+    if (outline && links[active]) {
+      const linkRect = links[active].getBoundingClientRect();
+      const outlineTop = outline.getBoundingClientRect().top;
+      outline.style.setProperty("--mdd-outline-marker-y", `${linkRect.top - outlineTop}px`);
+      outline.style.setProperty("--mdd-outline-marker-height", `${linkRect.height}px`);
+    }
     scheduled = false;
   };
   if (links.length) {
