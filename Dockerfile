@@ -7,6 +7,12 @@ RUN bun install --frozen-lockfile
 
 COPY src/ ./src/
 RUN bun run build
+
+FROM oven/bun:1.3.10-alpine AS production-deps
+
+WORKDIR /app
+
+COPY package.json bun.lock ./
 RUN bun install --production --frozen-lockfile
 
 FROM node:24-alpine
@@ -17,7 +23,7 @@ ENV PORT=3000
 WORKDIR /app
 
 COPY package.json ./
-COPY --from=build /app/node_modules/ ./node_modules/
+COPY --from=production-deps /app/node_modules/ ./node_modules/
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /usr/local/bin/npm /usr/local/bin/npx \
     && mkdir -p /workspace \
     && chown node:node /workspace
