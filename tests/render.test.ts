@@ -98,7 +98,9 @@ test("reader escapes metadata and supplies working navigation and outline withou
   expect(html).toContain('href="/docs/next/"');
   expect(html).toContain('aria-current="page"');
   expect(html.match(/<h1[ >]/g)).toHaveLength(1);
-  expect(html).toContain('<details class="mdd-mobile-navigation">');
+  expect(html).toContain(
+    '<details class="mdd-mobile-navigation" name="_mdd-mobile-menu">',
+  );
   const header = /<header class="mdd-header">([\s\S]*?)<\/header>/.exec(
     html,
   )?.[1];

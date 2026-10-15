@@ -212,43 +212,104 @@
       }
     });
   }
-  const links = [...document.querySelectorAll(".mdd-outline a")];
+  const outlineGroups = [
+    ...document.querySelectorAll(".mdd-outline nav, .mdd-mobile-outline nav"),
+  ].map((nav) => ({ nav, links: [...nav.querySelectorAll("a")] }));
+  const links = outlineGroups[0]?.links ?? [];
+  const mobileTools = document.querySelector(".mdd-mobile-tools");
   const headings = links.map((link) =>
     document.getElementById(
       decodeURIComponent(new URL(link.href).hash.slice(1)),
     ),
   );
-  const outline = document.querySelector(".mdd-outline nav");
   let scheduled = false;
   const updateOutline = () => {
+    const activationTop = Math.max(
+      130,
+      (mobileTools?.getBoundingClientRect().bottom ?? 0) + 16,
+    );
     let active = links.length ? 0 : -1;
     for (let index = 0; index < headings.length; index++) {
-      if (headings[index] && headings[index].getBoundingClientRect().top <= 130)
+      if (
+        headings[index] &&
+        headings[index].getBoundingClientRect().top <= activationTop
+      )
         active = index;
     }
-    links.forEach((link, index) => {
-      if (index === active) link.setAttribute("aria-current", "location");
-      else link.removeAttribute("aria-current");
-    });
-    if (outline && links[active]) {
-      const linkRect = links[active].getBoundingClientRect();
-      const outlineTop = outline.getBoundingClientRect().top;
-      outline.style.setProperty("--mdd-outline-marker-y", `${linkRect.top - outlineTop}px`);
-      outline.style.setProperty("--mdd-outline-marker-height", `${linkRect.height}px`);
+    const maxScroll = root.scrollHeight - window.innerHeight;
+    if (maxScroll > 0 && window.scrollY >= maxScroll - 2) {
+      // Trailing headings cannot always reach the activation line. At the
+      // bottom, honor a visible anchor target or select the final section.
+      const target = links.findIndex(
+        (link) => new URL(link.href).hash === window.location.hash,
+      );
+      const targetTop = headings[target]?.getBoundingClientRect().top;
+      active =
+        targetTop > activationTop && targetTop < window.innerHeight
+          ? target
+          : links.length - 1;
+    }
+    for (const group of outlineGroups) {
+      group.links.forEach((link, index) => {
+        if (index === active) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      });
+      if (group.links[active]) {
+        const linkRect = group.links[active].getBoundingClientRect();
+        const outlineTop = group.nav.getBoundingClientRect().top;
+        group.nav.style.setProperty(
+          "--mdd-outline-marker-y",
+          `${linkRect.top - outlineTop + group.nav.scrollTop}px`,
+        );
+        group.nav.style.setProperty(
+          "--mdd-outline-marker-height",
+          `${linkRect.height}px`,
+        );
+      }
     }
     scheduled = false;
   };
   if (links.length) {
-    window.addEventListener(
-      "scroll",
-      () => {
-        if (!scheduled) {
-          scheduled = true;
-          requestAnimationFrame(updateOutline);
-        }
-      },
-      { passive: true },
-    );
+    const scheduleOutline = () => {
+      if (!scheduled) {
+        scheduled = true;
+        requestAnimationFrame(updateOutline);
+      }
+    };
+    window.addEventListener("scroll", scheduleOutline, { passive: true });
+    window.addEventListener("hashchange", scheduleOutline);
+    window.addEventListener("resize", scheduleOutline);
+    document
+      .querySelector(".mdd-mobile-outline")
+      ?.addEventListener("toggle", scheduleOutline);
     updateOutline();
+  }
+  if (mobileTools) {
+    const closeMenus = () => {
+      for (const menu of mobileTools.querySelectorAll(":scope > details[open]"))
+        menu.open = false;
+    };
+    document.addEventListener("click", (event) => {
+      if (!mobileTools.contains(event.target)) closeMenus();
+      else if (
+        event.target.closest("a") &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.shiftKey &&
+        !event.altKey
+      )
+        closeMenus();
+    });
+    mobileTools.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      const summary = mobileTools.querySelector(
+        ":scope > details[open] > summary",
+      );
+      if (summary) {
+        closeMenus();
+        summary.focus();
+        event.preventDefault();
+      }
+    });
   }
 })();

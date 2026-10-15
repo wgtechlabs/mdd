@@ -189,8 +189,10 @@ ${searchDialog(base)}
 <div class="mdd-layout">
 <aside class="mdd-sidebar" id="_mdd-sidebar"><div class="mdd-sidebar-tools">${searchToggle()}<button class="mdd-sidebar-toggle" type="button" aria-label="Hide sidebar" aria-controls="_mdd-sidebar" aria-expanded="true" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path class="mdd-sidebar-icon-open" d="M9 4v16"/><path class="mdd-sidebar-icon-closed" d="M7 8v8"/></svg></button></div><nav class="mdd-sidebar-nav" aria-label="Documentation">${nav}</nav></aside>
 <div class="mdd-reading">
-<details class="mdd-mobile-navigation"><summary>Browse documentation</summary><nav aria-label="Documentation">${nav}</nav></details>
-${toc ? `<details class="mdd-mobile-outline"><summary>On this page</summary>${toc}</details>` : ""}
+<div class="mdd-mobile-tools">
+<details class="mdd-mobile-navigation" name="_mdd-mobile-menu"><summary aria-label="Browse documentation"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Menu</span></summary><nav aria-label="Documentation">${nav}</nav></details>
+${toc ? `<details class="mdd-mobile-outline" name="_mdd-mobile-menu"><summary><span class="mdd-sr-only">On this page: </span><span class="mdd-outline-title">${escapeHtml(title)}</span></summary>${toc}</details>` : ""}
+</div>
 <main id="_mdd-main" tabindex="-1"><article class="mdd-article">${content}</article>${page ? pageLinks(site, page) : ""}</main>
 <footer class="mdd-footer">
 ${editUrl ? `<div class="mdd-page-actions"><span>Help improve this page.</span><a class="mdd-edit-page" href="${escapeHtml(editUrl)}">${editIcon(editUrl)}Edit this markdown</a></div>` : ""}
