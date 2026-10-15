@@ -6,7 +6,9 @@ Move the full search control into the documentation sidebar and show a compact
 search control beside the sidebar toggle when navigation is collapsed. Keep the
 site brand, project links, and CTA in the top bar. Align the sidebar to the left
 edge and slide its navigation fully offscreen when collapsed, while leaving its
-search and toggle controls available. Preserve D Theme's color palette and the
+search and toggle controls available. At mobile and tablet widths, use a sticky
+bar with documentation-menu and page-outline disclosures. Keep the active page
+outline synchronized while scrolling. Preserve D Theme's color palette and the
 existing disclosure and sidebar preference behavior.
 
 ## 0.2.0 — D26 (unreleased)
