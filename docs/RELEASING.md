@@ -9,15 +9,17 @@ The caller is `.github/workflows/build-flow.yml`, pinned to Build Flow v1.0.0. I
 - `package.json` has `private: true` to prevent accidental npm publication. This does not change the GitHub repository's public visibility.
 - Build Flow uses `enable-package: false` permanently for the application. There is no `MDD_PUBLISHING_ENABLED` activation variable.
 - GitHub Releases remain disabled with `enable-release: false` until Railway application delivery is configured. They are separate from package registry publication and do not depend on an MDD npm package.
-- Container publishing remains disabled because this phase has no production container or Railway template.
-- The pinned orchestrator requires a successful enabled artifact flow before a GitHub Release. Enabling releases alone is insufficient; configure the intended application artifact, such as a container, when implementing deployment.
+- Container publishing is enabled with `enable-container: true`. All container artifact options use the pinned Build Flow Action defaults, including publishing to Docker Hub and GHCR. The organization secrets `DOCKER_HUB_USERNAME` and `DOCKER_HUB_ACCESS_TOKEN` are inherited by the reusable workflow.
+- The pinned orchestrator requires a successful enabled artifact flow before a GitHub Release. Releases remain disabled until Railway application delivery is configured.
 - The caller retains permissions declared by the pinned reusable workflow chain, including its container workflow's package permission. It does not request `id-token: write` because MDD has no OIDC publishing flow.
 - CodeQL is enabled automatically for public-repository events. Private copies can set `MDD_PRIVATE_CODEQL_ENABLED=true` after verifying that GitHub code scanning is available. This condition does not grant scanning access or change visibility.
 
-The CLI and build API run from a built checkout. The smoke check creates and installs a temporary local archive to verify the CLI, server, assets, and Node compatibility outside the development checkout; it does not publish MDD to any registry.
+The Dockerfile builds the CLI with Bun and runs it on Node 24 LTS. The image can validate, build, preview, or serve a mounted MDD project; its entrypoint is the MDD CLI. It does not fetch a separate content repository or deploy a Railway service.
+
+The smoke check creates and installs a temporary local archive to verify the CLI, server, assets, and Node compatibility outside the development checkout; it does not publish MDD to any registry.
 
 ## Delivery workflow
 
-Use feature/fix → dev squash PRs and dev → main regular merge PRs through Clean Workflow. Verify the current-head CI and security checks before merging. The next delivery work is the Railway template and its application build/start configuration. Configure it independently of npm; each deployment reads one public content repository. Any GitHub Release or container flow must describe that application delivery, not an MDD registry package.
+Use feature/fix → dev squash PRs and dev → main regular merge PRs through Clean Workflow. Verify the current-head CI and security checks before merging. The next delivery work is the Railway template and its application build/start configuration. Configure it independently of npm; each deployment reads one public content repository. The container artifact is application delivery, not an MDD registry package.
 
 The maintainer made MDD public on October 10, 2026. The main build [37967930053](https://github.com/wgtechlabs/mdd/actions/runs/37967930053) passed the supported Node matrix, Gitleaks, and CodeQL. Earlier private-repository failures reflected unavailable organization secrets under GitHub Free. No registry publication or live deployment is claimed by those checks.

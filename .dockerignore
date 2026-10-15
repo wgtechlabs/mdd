@@ -1,0 +1,12 @@
+.git
+.github
+.impeccable
+.tmp
+node_modules
+dist
+mdd-dist
+mdd-dist-new
+coverage
+.env
+.env.*
+!.env.example
