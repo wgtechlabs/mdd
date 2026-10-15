@@ -41,9 +41,10 @@ function resultIcon(kind) {
 }
 
 (() => {
-  const toggles = typeof document.querySelectorAll === "function"
-    ? [...document.querySelectorAll(".mdd-search-toggle")]
-    : [document.querySelector(".mdd-search-toggle")].filter(Boolean);
+  const toggles =
+    typeof document.querySelectorAll === "function"
+      ? [...document.querySelectorAll(".mdd-search-toggle")]
+      : [document.querySelector(".mdd-search-toggle")].filter(Boolean);
   const dialog = document.querySelector(".mdd-search-dialog");
   const input = dialog?.querySelector(".mdd-search-input");
   const close = dialog?.querySelector(".mdd-search-close");
@@ -242,7 +243,9 @@ function resultIcon(kind) {
     if (!index && !loading && !loadFailed) void load();
     else update();
   };
-  toggles.forEach((toggle) => toggle.addEventListener("click", open));
+  toggles.forEach((toggle) => {
+    toggle.addEventListener("click", open);
+  });
   close.addEventListener("click", () => dialog.close());
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();

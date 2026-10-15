@@ -984,8 +984,8 @@ main:focus {
     linear-gradient(var(--mdd-accent), var(--mdd-accent)) center / 2px 100%
     no-repeat;
 }
-.mdd-outline li,
-.mdd-mobile-outline li {
+.mdd-outline nav li,
+.mdd-mobile-outline nav li {
   --mdd-outline-indent: 0px;
   position: relative;
 }
