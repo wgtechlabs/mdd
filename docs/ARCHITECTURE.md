@@ -11,7 +11,7 @@ Here, **article rendering** means converting Markdown into semantic HTML; **read
 | Component | Delivery and ownership |
 | --- | --- |
 | `wgtechlabs/mdd-engine` | Publishes `@wgtechlabs/mdd-engine` to npm and GitHub Packages. Owns the headless compiler and search APIs. |
-| `wgtechlabs/mdd` | Contains the reader frontend, Node server, CLI, static exporter, and bundled D Theme. Owns the Railway template and its application build/start configuration. Does not publish an MDD npm or GitHub Packages package. |
+| `wgtechlabs/mdd` | Contains the documentation renderer, reader frontend, Node server, static exporter, local development tooling, and bundled D Theme. Owns the Railway template and its application build/start configuration. Does not publish an MDD npm or GitHub Packages package. |
 | User's content repository | Supplies Markdown, configuration, and optional theme assets under `mdd/`. It is an input to the application, not the Railway service's application source. |
 | Planned `mdd-build-flow-action` | Invokes MDD for GitHub Pages builds or coordinates Railway content updates. It owns deployment triggers and provider credentials; it does not replace the engine or server. |
 
@@ -24,12 +24,13 @@ MDD's `package.json` provides dependency, script, runtime, and application-versi
 metadata. Its local name and archive smoke tests do not make registry publication
 part of delivery. Keep `private: true` and `enable-package: false`; MDD needs no npm
 token, Trusted Publisher, or initial npm publication. Build Flow publishes the
-Node CLI/server container using its default artifact settings, separate from the
-engine's npm package. The image does not fetch the separate content repository or
-deploy a Railway service.
+Node renderer/server container using its default artifact settings, separate from
+the engine's npm package. At startup the image builds a mounted content project
+and serves its rendered output; it does not fetch a separate content repository
+or deploy a Railway service.
 
-**Available now:** the engine package, reader, local CLI, static export, and Node
-server. **Still planned:** the Railway template, external content-fetch build, and
+**Available now:** the engine package, reader, local development tooling, static
+export, and Node server. **Still planned:** the Railway template, external content-fetch build, and
 deployment action. Static output also supports GitHub Pages. A passing local build
 does not establish a working Railway template or deployment.
 
@@ -37,7 +38,7 @@ does not establish a working Railway template or deployment.
 
 | Concern | MDD Engine | MDD | Themes |
 | --- | --- | --- | --- |
-| Authoring and validation | Read local configuration/content; validate paths, frontmatter, Markdown components, links, and assets; return diagnostics | Provide CLI/build feedback and preserve previous output on failed builds | Supply selected CSS, assets, and optional trusted browser JavaScript |
+| Authoring and validation | Read local configuration/content; validate paths, frontmatter, Markdown components, links, and assets; return diagnostics | Provide local tooling/build feedback and preserve previous output on failed builds | Supply selected CSS, assets, and optional trusted browser JavaScript |
 | Content | Parse Markdown once; emit sanitized article HTML, readable Markdown, metadata, and headings | Compose engine article output into the reader; escape shell metadata | Style content using documented selectors |
 | Navigation | Derive routes, public URLs, ordered navigation, and heading anchors | Render sidebar, outline, previous/next links, and mobile navigation | Style their appearance and responsive layout |
 | Search | Build a serializable index from compiled content and provide a browser-safe query API with validated result URLs and plain-text excerpts | Export the index/query module, load the index on demand, and provide the dialog, keyboard shortcut, result links, and recovery states | Style the shared controls and result hierarchy |

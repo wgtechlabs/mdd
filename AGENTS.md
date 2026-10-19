@@ -2,7 +2,7 @@
 
 ## Product boundary
 
-This is `wgtechlabs/mdd`: the documentation reader, CLI, static exporter, and Node server. Its hosted delivery target is a Railway template, with one public content repository per deployment. Consume the published `@wgtechlabs/mdd-engine` package for content/configuration validation, Markdown, routes, navigation, and diagnostics. Never duplicate the compiler or import a sibling checkout. See `docs/SPEC.md` for the product contract.
+This is `wgtechlabs/mdd`: the documentation renderer, reader, static exporter, and Node server. Local CLI commands are development tooling, not the product interface. Its hosted delivery target is a Railway template, with one public content repository per deployment. Consume the published `@wgtechlabs/mdd-engine` package for content/configuration validation, Markdown, routes, navigation, and diagnostics. Never duplicate the compiler or import a sibling checkout. See `docs/SPEC.md` for the product contract.
 
 **Delivery rule:** publish the engine package; deploy MDD through its Railway
 template. The template belongs in this repository and must distinguish the MDD
@@ -49,5 +49,5 @@ WG Tech Labs Clean Workflow is adopted. Use its Clean Coding, Clean Code Review,
 - Preserve unrelated changes, reviewer history, and both long-lived branches. Do not self-approve.
 - Use GHLT for authorized label template changes. Do not delete labels as a side effect of adopting conventions.
 - Package publication, public exposure, live deployment, and merging require the applicable user authorization. Preserve the repository's existing visibility.
-- MDD is an application, not a registry package. Keep `package.json` private and Build Flow `enable-package: false`; only `mdd-engine` publishes to npm and GitHub Packages. MDD needs no npm token, Trusted Publisher, or first-package bootstrap. Build Flow publishes the Node CLI/server container using its default container artifact settings. This is separate from npm publication and does not imply a Railway deployment.
+- MDD is an application, not a registry package. Keep `package.json` private and Build Flow `enable-package: false`; only `mdd-engine` publishes to npm and GitHub Packages. MDD needs no npm token, Trusted Publisher, or first-package bootstrap. Build Flow publishes the Node renderer/server container using its default container artifact settings. This is separate from npm publication and does not imply a Railway deployment.
 - A green build does not prove publication, deployment, or runtime behavior. Verify the actual outcome and disclose missing evidence.

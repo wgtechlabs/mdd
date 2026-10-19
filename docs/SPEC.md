@@ -1,10 +1,10 @@
 # mdd specification
 
-Status: local reader/exporter/CLI/server implementation with published `@wgtechlabs/mdd-engine@1.1.0` adoption on October 10, 2026. The separate `wgtechlabs/mdd` repository exists. The user delegated frontend choices: static HTML/CSS, a clean editorial reader, and direct implementation. See VERIFICATION.md for current evidence and remaining visual/hosting gates. This document specifies intended behavior; it does not establish MDD publication or a working Railway deployment.
+Status: local reader/exporter/server implementation with published `@wgtechlabs/mdd-engine@1.1.0` adoption on October 10, 2026. Local command-line tools support development and static export; they are not the MDD product interface. The separate `wgtechlabs/mdd` repository exists. The user delegated frontend choices: static HTML/CSS, a clean editorial reader, and direct implementation. See VERIFICATION.md for current evidence and remaining visual/hosting gates. This document specifies intended behavior; it does not establish MDD publication or a working Railway deployment.
 
 ## Purpose and boundary
 
-mdd is the documentation website product: reader frontend, CLI, static exporter, server, and planned Railway template. It consumes the independently versioned mdd-engine package. It is also the single build entry point for the deployment action. The [delivery contract](ARCHITECTURE.md#delivery-contract) separates the published engine package, MDD's Railway application, and the user's content repository. The engine is installed as a dependency; MDD is deployed as an application, with no MDD npm publication step.
+mdd is the documentation renderer and server, with a reader frontend, static exporter, and planned Railway template. Local command-line tools support development and static export; the server container starts the renderer and HTTP server directly. MDD consumes the independently versioned mdd-engine package and is the single build entry point for the deployment action. The [delivery contract](ARCHITECTURE.md#delivery-contract) separates the published engine package, MDD's Railway application, and the user's content repository. The engine is installed as a dependency; MDD is deployed as an application, with no MDD npm publication step.
 
 All authoring/configuration is file-based. No admin dashboard, accounts, database, plugin runtime, or multi-site host is required.
 
@@ -12,13 +12,15 @@ The [responsibility contract](ARCHITECTURE.md) defines the boundary between MDD 
 
 ## Runtime and release contract
 
-Use TypeScript and Bun for dependencies/scripts/tests/builds. The shipped CLI and server support Node.js 22, 24, and 26, matching mdd-engine. The default development and Railway runtime is always the latest Node.js LTS, currently Node 24 as verified on October 3, 2026; Node 26 compatibility does not make it the default.
+Use TypeScript and Bun for dependencies/scripts/tests/builds. The shipped server supports Node.js 22, 24, and 26, matching mdd-engine. The default development and Railway runtime is always the latest Node.js LTS, currently Node 24 as verified on October 3, 2026; Node 26 compatibility does not make it the default.
 
 Use `.node-version` and `.nvmrc` for the LTS default, package engines for the supported range, and Build Flow `ci-matrix-versions: '["22","24","26"]'` for compatibility. Follow the same minimum-version verification and Bun lockfile policy as mdd-engine. Pin resolved versions for reproducibility and update the default deliberately when the latest LTS changes. Build browser assets for browsers and server code for Node. The production image uses Node LTS and does not need Bun at runtime.
 
-mdd-engine is a normal package dependency, not a Git submodule, sibling filesystem import, or copied parser. Pin a tested engine version for each released mdd build. Use Clean Workflow and Build Flow for the MDD application. Only mdd-engine is published to npm and GitHub Packages. Keep MDD registry publication disabled and `package.json` private; its local `@wgtechlabs/mdd` identifier does not imply registry distribution. MDD is MIT licensed; its server and frontend are intended for a Railway template with one public content repository per deployment. The MDD container publishes the Node CLI/server using Build Flow's default artifact settings, independently of npm. No MDD token, Trusted Publisher, or first-package bootstrap is needed. The container artifact does not establish a live deployment or authorize changing repository visibility.
+mdd-engine is a normal package dependency, not a Git submodule, sibling filesystem import, or copied parser. Pin a tested engine version for each released mdd build. Use Clean Workflow and Build Flow for the MDD application. Only mdd-engine is published to npm and GitHub Packages. Keep MDD registry publication disabled and `package.json` private; its local `@wgtechlabs/mdd` identifier does not imply registry distribution. MDD is MIT licensed; its server and frontend are intended for a Railway template with one public content repository per deployment. The MDD container publishes the Node renderer/server using Build Flow's default artifact settings, independently of npm. No MDD token, Trusted Publisher, or first-package bootstrap is needed. The container artifact does not establish a live deployment or authorize changing repository visibility.
 
-## Command interface
+## Local development commands
+
+These commands are developer tooling for validation, static export, and local preview. The published server container does not expose this CLI; it builds the mounted project and starts the HTTP server directly.
 
 | Command | Behavior |
 |---|---|
@@ -95,7 +97,7 @@ Content updates must preserve the currently deployed mdd application revision an
 ## Acceptance criteria
 
 - The same content/theme fixture works in static export and Railway without divergent rendering rules.
-- The same packaged CLI can build the fixture and the built server can serve it under real Node 22, 24, and 26, without Bun installed. The default final server image uses the latest LTS; verify the declared minimum Node version before publication.
+- The server container can build a mounted fixture and serve it under real Node 22, 24, and 26, without Bun installed. The default final server image uses the latest LTS; verify the declared minimum Node version before publication.
 - A generic static server proves deep links, 404 behavior, assets, Markdown output, and all required prefixes.
 - Default/custom themes pass keyboard, mobile, contrast, and focus checks with screenshot evidence.
 - A template deployment works from a public repository URL and its default `mdd/` folder.

@@ -6,7 +6,7 @@ COPY package.json bun.lock tsconfig.json tsconfig.build.json ./
 RUN bun install --frozen-lockfile
 
 COPY src/ ./src/
-RUN bun run build
+RUN bun run build && rm -f dist/cli.js dist/cli.d.ts
 
 FROM oven/bun:1.3.10-alpine AS production-deps
 
@@ -19,12 +19,16 @@ FROM node:24-alpine
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV MDD_PROJECT_DIR=/workspace
+ENV MDD_DOCS_DIR=mdd
+ENV MDD_OUTPUT_DIR=/tmp/mdd-dist
 
 WORKDIR /app
 
 COPY package.json ./
 COPY --from=production-deps /app/node_modules/ ./node_modules/
-RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /usr/local/bin/npm /usr/local/bin/npx \
+RUN node -e 'const fs = require("node:fs"); const path = "/app/package.json"; const manifest = JSON.parse(fs.readFileSync(path, "utf8")); delete manifest.bin; fs.writeFileSync(path, JSON.stringify(manifest));' \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /usr/local/bin/npm /usr/local/bin/npx \
     && mkdir -p /workspace \
     && chown node:node /workspace
 
@@ -36,5 +40,5 @@ USER node
 WORKDIR /workspace
 
 EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 CMD ["node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/healthz').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
-ENTRYPOINT ["node", "/app/dist/cli.js"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 CMD ["node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/healthz').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+ENTRYPOINT ["node", "/app/dist/container-server.js"]

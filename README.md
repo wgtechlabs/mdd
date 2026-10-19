@@ -9,7 +9,7 @@
 
 MDD turns a repository's Markdown into a documentation website you can host yourself. People get a readable site; agents get the same content as Markdown. Everything is configured through files.
 
-This repository provides the reader frontend and Node server intended for deployment through a Railway template, plus the local CLI and static exporter. The published [`@wgtechlabs/mdd-engine@1.1.0`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, navigation, shared footer metadata, and headless search.
+This repository provides the documentation renderer, reader frontend, static exporter, and Node server intended for deployment through a Railway template. Local command-line tools support development and static export; the server container starts the renderer and HTTP server directly. The published [`@wgtechlabs/mdd-engine@1.1.0`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, navigation, shared footer metadata, and headless search.
 
 | Project | Responsibility | Delivery |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ This repository provides the reader frontend and Node server intended for deploy
 
 The Railway template will deploy **this application** and accept a separate public
 **content repository URL**. Each deployment will build and serve that repository's
-`mdd/` folder as one documentation site. The local reader, CLI, static export, and
+`mdd/` folder as one documentation site. The local reader, static export, and
 server work today; the Railway template and content-fetch integration are still to
 be implemented. Static output can also be hosted on GitHub Pages.
 
@@ -42,6 +42,16 @@ bun run demo
 Open `http://127.0.0.1:4173/docs/`. The example includes an API reference, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation.
 
 See [verification](docs/VERIFICATION.md) for current evidence and remaining hosting work.
+
+## Run the server container
+
+The published container builds documentation from a mounted project and serves the rendered site. The mount must contain the project's `mdd/` directory.
+
+```sh
+docker run --rm -p 3000:3000 -v "$PWD:/workspace" wgtechlabs/mdd:latest
+```
+
+The container uses `/workspace` as `MDD_PROJECT_DIR`, `/workspace/mdd` as `MDD_DOCS_DIR`, `/tmp/mdd-dist` as `MDD_OUTPUT_DIR`, `0.0.0.0` as `HOST`, and `3000` as `PORT`. Set these environment variables to customize the project, docs, output, base path, theme, edit URL, host, or port. The container starts the renderer and server directly; it does not expose the local development CLI.
 
 ## Write documentation
 
@@ -220,6 +230,6 @@ bun audit
 
 The smoke check creates a local application archive, installs it in an isolated consumer, and runs the CLI/server with Node. This test does not publish anything. `MDD_TEST_NODE_BINARIES` accepts platform-delimited Node binary paths to exercise one archive across runtimes.
 
-[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Registry package publishing is disabled for MDD; only `mdd-engine` publishes to npm and GitHub Packages. MDD has no npm bootstrap or Trusted Publishing requirement. Build Flow publishes the Node CLI/server container using its default artifact settings for Docker Hub and GHCR. GitHub Releases remain inactive. CodeQL is enabled automatically for this public repository; private copies need verified code-scanning access. See [releasing](docs/RELEASING.md).
+[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Registry package publishing is disabled for MDD; only `mdd-engine` publishes to npm and GitHub Packages. MDD has no npm bootstrap or Trusted Publishing requirement. Build Flow publishes the Node renderer/server container using its default artifact settings for Docker Hub and GHCR. GitHub Releases remain inactive. CodeQL is enabled automatically for this public repository; private copies need verified code-scanning access. See [releasing](docs/RELEASING.md).
 
 Follow [AGENTS.md](AGENTS.md), [the product contract](docs/SPEC.md), and [MIT licensing](LICENSE).

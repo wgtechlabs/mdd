@@ -14,7 +14,7 @@ The caller is `.github/workflows/build-flow.yml`, pinned to Build Flow v1.0.0. I
 - The caller retains permissions declared by the pinned reusable workflow chain, including its container workflow's package permission. It does not request `id-token: write` because MDD has no OIDC publishing flow.
 - CodeQL is enabled automatically for public-repository events. Private copies can set `MDD_PRIVATE_CODEQL_ENABLED=true` after verifying that GitHub code scanning is available. This condition does not grant scanning access or change visibility.
 
-The Dockerfile builds the CLI with Bun and runs it on Node 24 LTS. The image can validate, build, preview, or serve a mounted MDD project; its entrypoint is the MDD CLI. It does not fetch a separate content repository or deploy a Railway service.
+The Dockerfile compiles the MDD renderer with Bun and runs the Node 24 LTS server. At startup, the server builds the mounted project at `/workspace/mdd` into `/tmp/mdd-dist` and serves the rendered site on `PORT` (default `3000`). Mount a project containing an `mdd/` directory at `/workspace`; set `MDD_PROJECT_DIR`, `MDD_DOCS_DIR`, or `MDD_OUTPUT_DIR` to customize those paths. The image does not fetch a separate content repository or deploy a Railway service.
 
 The smoke check creates and installs a temporary local archive to verify the CLI, server, assets, and Node compatibility outside the development checkout; it does not publish MDD to any registry.
 
