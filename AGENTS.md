@@ -2,7 +2,7 @@
 
 ## Product boundary
 
-This is `wgtechlabs/mdd`: the documentation reader, CLI, static exporter, and Node server. Its hosted delivery target is a Railway template, with one public content repository per deployment. Consume the published `@wgtechlabs/mdd-engine` package for content/configuration validation, Markdown, routes, navigation, and diagnostics. Never duplicate the compiler or import a sibling checkout. See `docs/SPEC.md` for the product contract.
+This is `wgtechlabs/mdd`: the documentation renderer, reader, static exporter, and Node server. MDD has no standalone CLI; its container builds a mounted content project and starts the HTTP server directly. Its hosted delivery target is a Railway template, with one public content repository per deployment. Consume the published `@wgtechlabs/mdd-engine` package for content/configuration validation, Markdown, routes, navigation, and diagnostics. Never duplicate the compiler or import a sibling checkout. See `docs/SPEC.md` for the product contract.
 
 **Delivery rule:** publish the engine package; deploy MDD through its Railway
 template. The template belongs in this repository and must distinguish the MDD
@@ -20,13 +20,13 @@ Develop, test, version, and ship **D Theme** in this repository under `themes/d/
 
 D Theme has its own numeric version and release name in `themes/d/theme.json`, independent of the MDD application version. The initial identity is D Theme / D26 / 0.1.0; minor and patch updates keep D26, and the planned 1.0.0 major release introduces D27. Release names change deliberately with major design releases, never automatically with the calendar. Preserve historical source snapshots in `themes/archive/`; they are versions of D Theme, not separate annual themes. Custom themes also have independent author-managed versions.
 
-MDD owns the version footer. Show the installed `mdd` version and bundled D Theme identity only; custom themes remain visual layers selected by the engine and do not add footer metadata. Keep theme-specific styles and assets in their theme directories. The MDD-only `--theme d` option selects the bundled base; `config.theme` keeps the engine's default/local-custom meaning. Do not invent new engine configuration or mutate `Site.theme` to point at package files. Follow [the theme version policy](docs/THEMES.md#version-policy); compatibility checks and version installation are deferred.
+MDD owns the version footer. Show the installed `mdd` version and bundled D Theme identity only; custom themes remain visual layers selected by the engine and do not add footer metadata. Keep theme-specific styles and assets in their theme directories. D Theme is the bundled base; `config.theme` selects a local custom overlay using the engine contract. Do not invent new engine configuration or mutate `Site.theme` to point at package files. Follow [the theme version policy](docs/THEMES.md#version-policy); compatibility checks and version installation are deferred.
 
 ## Toolchain and quality
 
 - TypeScript, Bun 1.3.10 tooling and a single committed `bun.lock`.
 - Ship Node-compatible ESM and explicit TypeScript declarations. Never ship Bun runtime APIs.
-- Support Node 22, 24, and 26. Default to the latest LTS, currently Node 24.21.0 as verified October 2026. Verify the declared minimum and run the same packaged CLI/server smoke test in each supported Node major.
+- Support Node 22, 24, and 26. Default to the latest LTS, currently Node 24.21.0 as verified October 2026. Verify the declared minimum and run the packaged renderer/server smoke check in each supported Node major.
 - Use strict TypeScript, fixture-based tests, lint, build, dependency audit, and actual static/server checks. Do not infer Node compatibility from Bun tests.
 - Follow Grilling for unresolved decisions, APEX for implementation, Impeccable for frontend direction, Make Interfaces Feel Better for polish, and Thermo-Nuclear review for substantial changes. Reuse settled user decisions and relevant verification.
 - Prefer platform APIs, existing packages, and the smallest correct implementation. Do not introduce a frontend framework without a material reason and the user's direction.
@@ -49,5 +49,5 @@ WG Tech Labs Clean Workflow is adopted. Use its Clean Coding, Clean Code Review,
 - Preserve unrelated changes, reviewer history, and both long-lived branches. Do not self-approve.
 - Use GHLT for authorized label template changes. Do not delete labels as a side effect of adopting conventions.
 - Package publication, public exposure, live deployment, and merging require the applicable user authorization. Preserve the repository's existing visibility.
-- MDD is an application, not a registry package. Keep `package.json` private and Build Flow `enable-package: false`; only `mdd-engine` publishes to npm and GitHub Packages. MDD needs no npm token, Trusted Publisher, or first-package bootstrap. Local archive checks verify the application in isolation and do not publish it. GitHub Releases and future container delivery are separate from npm and remain inactive until application delivery is configured.
+- MDD is an application, not a registry package. Keep `package.json` private and Build Flow `enable-package: false`; only `mdd-engine` publishes to npm and GitHub Packages. MDD needs no npm token, Trusted Publisher, or first-package bootstrap. Build Flow publishes the Node renderer/server container using its default container artifact settings. This is separate from npm publication and does not imply a Railway deployment.
 - A green build does not prove publication, deployment, or runtime behavior. Verify the actual outcome and disclose missing evidence.

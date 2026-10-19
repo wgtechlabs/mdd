@@ -32,10 +32,10 @@
     "typecheck": "tsc --noEmit",
     "test": "bun run build && bun test",
     "coverage": "bun run build && bun test --coverage",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "bun scripts/build.mjs",
     "check": "bun run lint && bun run typecheck && bun run test",
     "smoke": "node scripts/package-smoke.mjs",
-    "demo": "bun run build && node dist/cli.js build --project examples/basic --out ../../mdd-dist --base-path /docs/ && node dist/cli.js serve --out mdd-dist --port 4173 --host 127.0.0.1"
+    "demo": "bun run build && node scripts/demo.mjs"
   },
   "dependencies": {
     "@wgtechlabs/mdd-engine": "1.1.0"
@@ -45,8 +45,5 @@
     "@types/bun": "1.4.2",
     "@types/node": "22",
     "typescript": "7.0.2"
-  },
-  "bin": {
-    "mdd": "./dist/cli.js"
   }
 }

@@ -41,7 +41,10 @@ function resultIcon(kind) {
 }
 
 (() => {
-  const toggle = document.querySelector(".mdd-search-toggle");
+  const toggles =
+    typeof document.querySelectorAll === "function"
+      ? [...document.querySelectorAll(".mdd-search-toggle")]
+      : [document.querySelector(".mdd-search-toggle")].filter(Boolean);
   const dialog = document.querySelector(".mdd-search-dialog");
   const input = dialog?.querySelector(".mdd-search-input");
   const close = dialog?.querySelector(".mdd-search-close");
@@ -49,7 +52,7 @@ function resultIcon(kind) {
   const results = dialog?.querySelector(".mdd-search-results");
   const retry = dialog?.querySelector(".mdd-search-retry");
   if (
-    !toggle ||
+    !toggles.length ||
     !dialog ||
     typeof dialog.showModal !== "function" ||
     !input ||
@@ -240,7 +243,9 @@ function resultIcon(kind) {
     if (!index && !loading && !loadFailed) void load();
     else update();
   };
-  toggle.addEventListener("click", open);
+  toggles.forEach((toggle) => {
+    toggle.addEventListener("click", open);
+  });
   close.addEventListener("click", () => dialog.close());
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();
@@ -253,7 +258,7 @@ function resultIcon(kind) {
     if (!returnFocus) return;
     if (returnFocus?.isConnected && typeof returnFocus.focus === "function")
       returnFocus.focus();
-    else toggle.focus();
+    else toggles[0].focus();
   });
   retry.addEventListener("click", () => {
     input.focus();
@@ -297,5 +302,7 @@ function resultIcon(kind) {
       open();
     }
   });
-  toggle.hidden = false;
+  toggles.forEach((toggle) => {
+    toggle.hidden = false;
+  });
 })();

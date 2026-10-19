@@ -9,7 +9,7 @@
 
 MDD turns a repository's Markdown into a documentation website you can host yourself. People get a readable site; agents get the same content as Markdown. Everything is configured through files.
 
-This repository provides the reader frontend and Node server intended for deployment through a Railway template, plus the local CLI and static exporter. The published [`@wgtechlabs/mdd-engine@1.1.0`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, navigation, shared footer metadata, and headless search.
+This repository provides the documentation renderer, reader frontend, static exporter, and Node server intended for deployment through a Railway template. MDD builds the mounted documentation project and starts the HTTP server directly. The published [`@wgtechlabs/mdd-engine@1.1.0`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, navigation, shared footer metadata, and headless search.
 
 | Project | Responsibility | Delivery |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ This repository provides the reader frontend and Node server intended for deploy
 
 The Railway template will deploy **this application** and accept a separate public
 **content repository URL**. Each deployment will build and serve that repository's
-`mdd/` folder as one documentation site. The local reader, CLI, static export, and
+`mdd/` folder as one documentation site. The local reader, static export, and
 server work today; the Railway template and content-fetch integration are still to
 be implemented. Static output can also be hosted on GitHub Pages.
 
@@ -42,6 +42,16 @@ bun run demo
 Open `http://127.0.0.1:4173/docs/`. The example includes an API reference, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation.
 
 See [verification](docs/VERIFICATION.md) for current evidence and remaining hosting work.
+
+## Run the server container
+
+The published container builds documentation from a mounted project and serves the rendered site. The mount must contain the project's `mdd/` directory.
+
+```sh
+docker run --rm -p 3000:3000 -v "$PWD:/workspace" wgtechlabs/mdd:latest
+```
+
+The container uses `/workspace` as `MDD_PROJECT_DIR`, `/workspace/mdd` as `MDD_DOCS_DIR`, `/tmp/mdd-dist` as `MDD_OUTPUT_DIR`, `0.0.0.0` as `HOST`, and `3000` as `PORT`. Set these environment variables to customize the project, docs, output, base path, edit URL, host, or port.
 
 ## Write documentation
 
@@ -118,25 +128,24 @@ Matching text is highlighted using the engine's original-text ranges, including 
 
 The engine creates the index and ranks queries. MDD exports it as `_mdd/search-index.json`, loads it when search is opened, and renders result titles, sections, and excerpts as text. The engine's browser-safe query module is exported as `_mdd/search.js`; MDD's dialog behavior is `_mdd/search-ui.js`. Search works from the same static build under the site's configured prefix, with no external search service or server-side query endpoint.
 
-## Commands
+## Build a static site
 
-From the MDD checkout after `bun run build`:
+The renderer's build API exports a complete static site without a command-line interface:
 
-```sh
-node dist/cli.js check --project /path/to/my-project
-node dist/cli.js build --project /path/to/my-project --base-path /docs/
-node dist/cli.js dev --project /path/to/my-project
-node dist/cli.js serve --project /path/to/my-project --port 3000
+```js
+import { build } from '/path/to/mdd/dist/index.js';
+
+const result = await build({
+  projectDir: '/path/to/my-project',
+  outDir: 'mdd-dist',
+  basePath: '/docs/',
+});
+
+if (!result.site) {
+  console.error(result.diagnostics);
+  process.exitCode = 1;
+}
 ```
-
-| Command | Behavior |
-| --- | --- |
-| `check` | Validate content and show source diagnostics without writing output |
-| `build` | Write a complete static site to `mdd-dist/` |
-| `dev` | Rebuild when content, configuration, or the selected theme changes; refresh the browser to see changes |
-| `serve` | Serve an existing build, with no source checkout or compilation required |
-
-`--project` defaults to the current directory. `--dir` selects the documentation folder; `--out` selects output relative to the project. `--base-path` sets the complete public URL prefix during check/build/dev. `--theme d` explicitly selects the bundled D Theme for those commands; omitting it has the same result. A configured custom theme still loads over that base. Serving reads the prefix and already-built theme files from output. `--port` overrides `PORT`; preview binds to `127.0.0.1`, while `serve` binds to `0.0.0.0` by default. Run `--help` for command-specific options.
 
 Build output must be outside documentation inputs and cannot replace the project root or an unrelated directory. Rebuilds accept only empty directories or unchanged MDD output, verified against `.mdd-output.json`. Edit source files, not generated output. If you deliberately edit output, move it aside before rebuilding. An interrupted build can leave a sibling `.mdd-dist.mdd-lock`; remove it only after confirming no build is running.
 
@@ -144,13 +153,7 @@ Build output must be outside documentation inputs and cannot replace the project
 
 The output contains one HTML file per page, `_assets/`, `_mdd/` (including the search index and browser modules), `404.html`, `markdown/`, `llms.txt`, and `mdd-build.json`. No browser framework or remote service is required. Navigation and content work without JavaScript; theme switching, code-copy controls, search, and section tracking enhance the reader when scripts run.
 
-For a nested site, pass the full prefix:
-
-```sh
-node dist/cli.js build --project /path/to/my-project --base-path /repository/docs/
-```
-
-Serve the contents of `mdd-dist/` at that URL. The output itself is not wrapped in extra `repository/docs/` directories. Keep the hidden `.mdd-output.json` inventory when using `mdd serve`; it verifies file hashes at startup and serves only declared files. The running server treats the build as immutable; restart it after replacing output. `/healthz` checks inventory identity and declared file presence, not every content hash on every request. Configure your static host to use `404.html` for missing paths; the Node server returns real 404 responses automatically. Upload only this output directory, never the project checkout.
+For a nested site, set `basePath` to the full prefix, such as `/repository/docs/`, in the `build()` options. Serve the contents of `mdd-dist/` at that URL. The output itself is not wrapped in extra `repository/docs/` directories. The Node server verifies the hidden `.mdd-output.json` inventory at startup and serves only declared files. The running server treats the build as immutable; restart it after replacing output. `/healthz` checks inventory identity and declared file presence, not every content hash on every request. Configure your static host to use `404.html` for missing paths; the Node server returns real 404 responses automatically. Upload only this output directory, never the project checkout.
 
 The build manifest reports MDD/engine versions, the URL prefix, and Git commit when available. `source.dirty` is `null` (unknown): the exporter deliberately avoids Git status because configured Git filters can execute commands. Content must remain stable during a build; production should build from an immutable checkout.
 
@@ -169,9 +172,11 @@ Custom themes provide visual styles and assets through their own theme directori
 Add **Edit this markdown** below each article by setting the source editor URL
 prefix when building:
 
-```sh
-mdd build --project /path/to/project \
-  --edit-base-url https://github.com/owner/repository/edit/main/
+```js
+build({
+  projectDir: '/path/to/project',
+  editBaseUrl: 'https://github.com/owner/repository/edit/main/',
+});
 ```
 
 MDD appends the engine's source file path, so `mdd/contents/guides/install.md`
@@ -179,13 +184,12 @@ links to that exact file, regardless of its public route or deployment prefix.
 The link works in static exports without browser JavaScript. It is omitted when
 no edit destination is configured and on the 404 page.
 
-Use `MDD_EDIT_BASE_URL` for CLI builds/previews, or `editBaseUrl` in the library's
-`build()` options. An explicit CLI flag overrides the environment variable.
-`check`, `build`, and `dev` accept the option; `serve` uses the already-built links.
+Use `MDD_EDIT_BASE_URL` when starting the server, or pass `editBaseUrl` in the
+`build()` options for a static export.
 The prefix must be HTTPS with no credentials, query, or fragment. Use the content
 repository and an editable branch. MDD does not guess these from the app repository.
 
-Paths are relative to `--project`. For a project under `examples/basic/`, include
+Paths are relative to `projectDir`. For a project under `examples/basic/`, include
 that folder in the prefix, for example
 `https://github.com/owner/repository/edit/main/examples/basic/`. For a branch named
 `feature/docs`, encode the branch slash as `feature%2Fdocs` in the prefix.
@@ -218,8 +222,8 @@ bun run smoke
 bun audit
 ```
 
-The smoke check creates a local application archive, installs it in an isolated consumer, and runs the CLI/server with Node. This test does not publish anything. `MDD_TEST_NODE_BINARIES` accepts platform-delimited Node binary paths to exercise one archive across runtimes.
+The smoke check creates a local application archive, installs it in an isolated consumer, and verifies the renderer API and HTTP server with Node. This check does not publish anything. `MDD_TEST_NODE_BINARIES` accepts platform-delimited Node binary paths to exercise one archive across runtimes.
 
-[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Registry package publishing is disabled for MDD; only `mdd-engine` publishes to npm and GitHub Packages. MDD has no npm bootstrap or Trusted Publishing requirement. GitHub Releases and future container delivery are separate application delivery steps, currently inactive. CodeQL is enabled automatically for this public repository; private copies need verified code-scanning access. See [releasing](docs/RELEASING.md).
+[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Registry package publishing is disabled for MDD; only `mdd-engine` publishes to npm and GitHub Packages. MDD has no npm bootstrap or Trusted Publishing requirement. Build Flow publishes the Node renderer/server container using its default artifact settings for Docker Hub and GHCR. GitHub Releases remain inactive. CodeQL is enabled automatically for this public repository; private copies need verified code-scanning access. See [releasing](docs/RELEASING.md).
 
 Follow [AGENTS.md](AGENTS.md), [the product contract](docs/SPEC.md), and [MIT licensing](LICENSE).

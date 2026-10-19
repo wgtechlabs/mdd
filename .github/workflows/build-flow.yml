@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 # Reusable workflows cannot increase the caller's permissions.
-# The pinned orchestrator declares package permissions for its container workflow
-# even while that flow is disabled. MDD does not need an OIDC token permission.
+# The pinned orchestrator declares package permissions for its container workflow.
+# MDD does not need an OIDC token permission.
 permissions:
   contents: write
   packages: write
@@ -36,6 +36,8 @@ jobs:
       ci-build-command: bun run build && bun run smoke && bun audit
       # MDD is an application; only mdd-engine publishes to package registries.
       enable-package: false
+      enable-container: true
+      container-registry: both
       # GitHub Releases remain inactive until application delivery is configured.
       # They do not require an MDD npm package or Trusted Publisher.
       enable-release: false

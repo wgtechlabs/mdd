@@ -11,7 +11,7 @@ Minor and patch updates retain their current release name. Changing the year
 never changes the active theme or its identity automatically.
 
 No historical snapshot exists yet. Archive contents are source references and
-are excluded from the published MDD package. The CLI selects the current bundled
-D Theme through `--theme d`; archived snapshots are not independently selectable
-or automatically installed. Any deliberate historical fix must get a new
+are excluded from the published MDD package. MDD always uses the current bundled
+D Theme; archived snapshots are not independently selectable or automatically
+installed. Any deliberate historical fix must get a new
 versioned snapshot; do not silently change a released snapshot.

@@ -12,7 +12,7 @@ D Theme keeps the stable identifier `d`. D26 is its release name: minor and patc
 
 The theme is developed inside the MDD repository under `themes/d/`. Historical source snapshots belong in `themes/archive/`. Shared reader controls remain part of MDD.
 
-Omit the `theme` field from your project's configuration to use D Theme alone. The MDD CLI's `--theme d` option explicitly selects the same bundled base for checking, building, or previewing. The configuration field selects a local custom overlay instead; it does not select bundled themes by ID.
+Omit the `theme` field from your project's configuration to use D Theme alone. Set it to a local theme name to layer custom styles over D Theme; project configuration does not select bundled theme IDs.
 
 ## Create a theme
 

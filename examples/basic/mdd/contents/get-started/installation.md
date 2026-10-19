@@ -5,11 +5,11 @@ order: 1
 ---
 # Build your first site
 
-Start with a Markdown file and the local MDD checkout. You need Bun for development and Node.js 22 or newer to run the built CLI.
+Start with a Markdown file and the local MDD checkout. You need Bun for development and Node.js 22 or newer to run the renderer and server.
 
 ## Prepare the project
 
-From the MDD repository, install dependencies and build the CLI:
+From the MDD repository, install dependencies and build the renderer:
 
 ```sh
 bun install --frozen-lockfile
@@ -24,36 +24,16 @@ Create `mdd/contents/index.md` inside your documentation project:
 This is the beginning of our documentation.
 ```
 
-## Check and build
+## Run the server
 
-Point the CLI at that project. These commands use a local checkout; they do not require MDD to be published.
-
-```sh
-node dist/cli.js check --project /path/to/project
-node dist/cli.js build --project /path/to/project
-```
-
-The build writes `mdd-dist/` in the documentation project. An invalid link or configuration stops the build and leaves the previous output intact.
-
-## Preview locally
+Use the MDD container to build and serve a project containing an `mdd/` directory:
 
 ```sh
-node dist/cli.js dev --project /path/to/project
+docker run --rm -p 3000:3000 -v "/path/to/project:/workspace" wgtechlabs/mdd:latest
 ```
 
-Save a Markdown file and refresh the browser after the rebuild. The preview uses the same static output as a production build.
+The server builds the documentation when it starts and serves the rendered site on port 3000. An invalid link or configuration stops startup without replacing the previous build.
 
 ## Deploy static output
 
-For a project site with a nested prefix, supply the complete public path:
-
-```sh
-node dist/cli.js build --project /path/to/project --base-path /repository/docs/
-```
-
-Upload the contents of `mdd-dist/` to your static host at that prefix. The prefix changes URLs; it does not add another directory around the output.
-
-> [!TIP]
-> **Serving with Node**
->
-> Use `mdd serve` to serve an existing build. It does not read or compile your source files. A Railway template is a separate upcoming delivery step.
+For static hosting, use the renderer's `build()` API and provide the complete public path in `basePath`, such as `/repository/docs/`. The build writes `mdd-dist/` in the documentation project. Upload its contents to the static host; the prefix changes URLs but does not add another directory around the output. See the repository README for the build API example.
