@@ -17,7 +17,6 @@ async function main(): Promise<void> {
     mddDir: process.env.MDD_DOCS_DIR,
     outDir: process.env.MDD_OUTPUT_DIR ?? "/tmp/mdd-dist",
     basePath: process.env.MDD_BASE_PATH,
-    theme: process.env.MDD_THEME,
     editBaseUrl: process.env.MDD_EDIT_BASE_URL,
   });
 

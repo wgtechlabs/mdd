@@ -23,7 +23,7 @@ mdd/
   reader.json
 ```
 
-[Build your first site](./get-started/installation.md) with the local CLI.
+[Build your first site](./get-started/installation.md) with the MDD renderer.
 
 ## Write once, read anywhere
 

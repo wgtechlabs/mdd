@@ -16,7 +16,7 @@ The caller is `.github/workflows/build-flow.yml`, pinned to Build Flow v1.0.0. I
 
 The Dockerfile compiles the MDD renderer with Bun and runs the Node 24 LTS server. At startup, the server builds the mounted project at `/workspace/mdd` into `/tmp/mdd-dist` and serves the rendered site on `PORT` (default `3000`). Mount a project containing an `mdd/` directory at `/workspace`; set `MDD_PROJECT_DIR`, `MDD_DOCS_DIR`, or `MDD_OUTPUT_DIR` to customize those paths. The image does not fetch a separate content repository or deploy a Railway service.
 
-The smoke check creates and installs a temporary local archive to verify the CLI, server, assets, and Node compatibility outside the development checkout; it does not publish MDD to any registry.
+The smoke check creates and installs a temporary local archive to verify the renderer API, server, assets, and Node compatibility outside the development checkout; it asserts that the package exposes no CLI binary. It does not publish MDD to any registry.
 
 ## Delivery workflow
 

@@ -27,7 +27,6 @@ import { dThemeDirectory, readDThemeIdentity } from "./theme.js";
 
 export type BuildOptions = CompileOptions & {
   outDir?: string;
-  theme?: string;
   editBaseUrl?: string;
 };
 export type BuildResult =
@@ -154,7 +153,7 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
   ) as { version: string };
   const identity = {
     mddVersion: metadata.version,
-    theme: await readDThemeIdentity(options.theme),
+    theme: await readDThemeIdentity(),
   };
   const files = new Map<string, Buffer>();
   const reserved = new Set<string>();

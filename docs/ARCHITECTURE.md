@@ -71,7 +71,7 @@ The current source boundaries are:
 | `themes/archive/` | Historical D Theme source snapshots with preserved release identities |
 | `examples/basic/mdd/themes/mdd/` | Example custom theme: MDD-branded CSS and logo assets |
 
-Custom themes in a documentation project's configured themes directory override the bundled styling. D Theme is the default base, with an explicit MDD CLI selector `--theme d` for check/build/dev. This does not change `config.theme`: omitting that configuration field selects no custom overlay, while a local custom name still resolves through the engine. Do not forge engine theme paths or reinterpret a local folder name as a bundled theme ID. Keep shared controls in MDD so their behavior is available to all themes; keep their colors, typography, and other visual choices in the styling layer.
+Custom themes in a documentation project's configured themes directory override the bundled styling. D Theme is always the bundled base. `config.theme` selects a local custom overlay through the engine contract; it does not select a bundled theme ID. Do not forge engine theme paths or reinterpret a local folder name as a bundled theme ID. Keep shared controls in MDD so their behavior is available to all themes; keep their colors, typography, and other visual choices in the styling layer.
 
 ## Code-block pipeline
 

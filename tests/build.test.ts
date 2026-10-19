@@ -42,7 +42,7 @@ async function fixture(config: object = {}): Promise<string> {
   );
   await writeFile(
     path.join(root, "mdd/contents/get-started/installation.md"),
-    "# Installation\n\n## Set up\n\nRun `mdd build`.\n",
+    "# Installation\n\n## Set up\n\nRun the documentation server.\n",
   );
   await writeFile(
     path.join(root, "mdd/contents/images/logo.png"),
@@ -285,22 +285,18 @@ describe("static export", () => {
     ).toBeNull();
   });
 
-  test("selects D by its stable name and refuses unknown themes without replacing output", async () => {
+  test("uses the bundled D Theme as the default base", async () => {
     const root = await fixture({ theme: "custom" });
     const custom = path.join(root, "mdd/themes/custom");
     await mkdir(custom, { recursive: true });
     await writeFile(path.join(custom, "theme.css"), "body { color: red; }");
-    const result = await build({ projectDir: root, theme: "d" });
+    const result = await build({ projectDir: root });
     const home = path.join(result.directory as string, "index.html");
     const original = await readFile(home, "utf8");
     expect(original).toContain(dThemeLabel);
     expect(original).not.toContain("Custom styling:");
     expect(original).toContain('href="/_mdd/reader.css"');
     expect(original).toContain('href="/_mdd/theme/theme.css"');
-    for (const theme of ["d26", "unknown", "../d", ""]) {
-      await expect(build({ projectDir: root, theme })).rejects.toThrow();
-      expect(await readFile(home, "utf8")).toBe(original);
-    }
   });
 
   test("preserves last output on author errors and removes stale files on successful rebuild", async () => {

@@ -12,9 +12,7 @@ export const dThemeDirectory = fileURLToPath(
 );
 
 /** The bundled theme has a stable ID and its own version, independent of MDD. */
-export async function readDThemeIdentity(id = "d"): Promise<ThemeIdentity> {
-  if (id !== "d")
-    throw new Error(`Unknown bundled theme: ${id}. Use --theme d.`);
+export async function readDThemeIdentity(): Promise<ThemeIdentity> {
   const identity = await readMetadata(dThemeDirectory, "theme.json");
   if (!identity?.release)
     throw new Error(
