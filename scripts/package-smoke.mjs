@@ -38,7 +38,7 @@ try {
   )[0];
   const files = new Set(archive.files.map((file) => file.path));
   for (const required of [
-    "dist/cli.js",
+    "dist/container-server.js",
     "dist/index.d.ts",
     "assets/reader.js",
     "assets/search-ui.js",
@@ -54,6 +54,7 @@ try {
     ),
     "Development files must not ship.",
   );
+  assert.ok(!files.has("dist/cli.js"), "The application must not ship a CLI.");
   assert.ok(
     !files.has("assets/reader.css"),
     "Only D Theme owns the reader stylesheet.",
@@ -83,8 +84,9 @@ try {
     await readFile(join(installed, "package.json"), "utf8"),
   );
   assert.equal(
-    resolve(installed, metadata.bin.mdd),
-    join(installed, "dist", "cli.js"),
+    metadata.bin,
+    undefined,
+    "The application must not expose a CLI binary.",
   );
   const binaries = process.env.MDD_TEST_NODE_BINARIES?.split(delimiter).filter(
     Boolean,

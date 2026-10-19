@@ -10,13 +10,7 @@ Code blocks have escaped code and language classes. The reader progressively hig
 
 ## Select the base and custom overlay
 
-D Theme is the bundled base by default. The MDD CLI accepts `--theme d` for check/build/dev to select it explicitly:
-
-```sh
-node dist/cli.js build --project /path/to/my-project --theme d
-```
-
-The library equivalent is `build({ projectDir: '/path/to/my-project', theme: 'd' })`. Only `d` is currently bundled; unknown IDs fail validation. This MDD build option is separate from the engine's configuration contract.
+D Theme is always the bundled base. Set `theme` in `mdd/config.json` only when selecting a local custom overlay; bundled theme identifiers are not part of the project configuration contract.
 
 To add a custom overlay, create `mdd/themes/custom/theme.css` and set `"theme": "custom"` in `mdd/config.json`. With a custom `paths.themes`, put `custom/` inside that configured directory instead. Custom CSS loads after D Theme. Omit the configuration's `theme` field to use the base alone. Do not set `"theme": "d"` to select the bundled base: that configuration value means a local `d/` custom-theme folder.
 

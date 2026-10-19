@@ -16,7 +16,7 @@ Repository owners and AI agents author documentation through files. Readers need
 
 ## Product Purpose
 
-MDD turns a repository's `mdd/` folder into documentation that its owner can host. The separate published mdd-engine package owns compilation; this application owns the reader, CLI, static output, and server.
+MDD turns a repository's `mdd/` folder into a rendered documentation website that its owner can host. The separate published mdd-engine package owns compilation; this application owns the reader, static output, and server. MDD is a renderer and server with no standalone CLI interface.
 
 MDD's hosted delivery target is a Railway template. Only MDD Engine is a registry
 package; MDD consumes it as a dependency and does not need npm publication or
@@ -25,14 +25,14 @@ content repository URL. See the [delivery contract](docs/ARCHITECTURE.md#deliver
 
 ## Operating Context
 
-Authors edit Markdown, configuration, and selected theme files in Git. Static output can be served from GitHub Pages under a chosen prefix. The local reader, CLI, exporter, and Node server are implemented. The Railway template and external content-fetch integration remain planned, with one public content repository per deployment. There is no dashboard or database.
+Authors edit Markdown, configuration, and selected theme files in Git. Static output can be served from GitHub Pages under a chosen prefix. The local reader, exporter, and Node server are implemented. The Railway template and external content-fetch integration remain planned, with one public content repository per deployment. There is no dashboard or database.
 
 ## Capabilities and Constraints
 
 - File-derived navigation, article content, heading links, table of contents, previous/next pages, and a real not-found page.
 - Reading and navigation work without JavaScript. Enhancements must not require a hosted service.
 - Themes use CSS and optional browser JavaScript; author code never runs during compilation.
-- Local commands validate, build, preview, and serve. Agent exports include normalized Markdown and an index.
+- The server builds the configured documentation project and serves the rendered reader. The build API supports static exports with normalized Markdown and a search index.
 - Separate repositories, published engine dependency, Bun tools, Node 22/24/26 support with latest LTS default.
 - Private content repositories, plugins, accounts, search services, AI chat, and multiple sites are deferred.
 
