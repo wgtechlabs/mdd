@@ -6,6 +6,7 @@ COPY package.json bun.lock tsconfig.json tsconfig.build.json ./
 RUN bun install --frozen-lockfile
 
 COPY src/ ./src/
+COPY scripts/build.mjs ./scripts/build.mjs
 RUN bun run build
 
 FROM oven/bun:1.3.10-alpine AS production-deps
