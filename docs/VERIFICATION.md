@@ -16,7 +16,11 @@ the `build()` API. Local development uses Bun package scripts, not a product CLI
   22.22.2, including static output at `/`, `/docs/`, and `/repository/docs/`.
 - The local Bun test runner could not execute the suite on this Windows host: its
   Node compatibility layer resolved the temporary directory as `undefined\\temp`.
-  The PR's updated Build Flow checks are the remaining full-suite verification.
+- Build Flow passed lint, typecheck, tests, coverage, build, package smoke, and
+  audit under Node 22, 24, and 26. Its multi-platform container build and Trivy
+  scans also passed; PR-tagged images were published to Docker Hub and GHCR.
+- The local Docker daemon was unavailable, so the published image was not run
+  locally.
 
 ## October 10 compact section search and delivery preparation
 
