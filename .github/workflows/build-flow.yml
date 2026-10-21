@@ -38,8 +38,7 @@ jobs:
       enable-package: false
       enable-container: true
       container-registry: both
-      # GitHub Releases remain inactive until application delivery is configured.
-      # They do not require an MDD npm package or Trusted Publisher.
-      enable-release: false
+      # Publish versioned GitHub Releases after an enabled artifact succeeds.
+      enable-release: true
       # Public repositories enable CodeQL; private copies need verified access.
       enable-codeql: ${{ github.event.repository.private == false || vars.MDD_PRIVATE_CODEQL_ENABLED == 'true' }}
