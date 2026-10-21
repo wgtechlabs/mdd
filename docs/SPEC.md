@@ -6,7 +6,7 @@ Status: local renderer/reader/exporter/server implementation with published `@wg
 
 mdd is the documentation renderer and server, with a reader frontend, static export API, and planned Railway template. The server builds a mounted content project and starts the HTTP server directly. MDD consumes the independently versioned mdd-engine package and is the single build entry point for the deployment action. The [delivery contract](ARCHITECTURE.md#delivery-contract) separates the published engine package, MDD's Railway application, and the user's content repository. The engine is installed as a dependency; MDD is deployed as an application, with no MDD npm publication step or standalone CLI.
 
-All authoring/configuration is file-based. No admin dashboard, accounts, database, plugin runtime, or multi-site host is required.
+Today, MDD is file-configured and has no admin dashboard, accounts, database, plugin runtime, or multi-site host. The roadmap prioritizes MDD Full on Railway; whether Full needs a database and which hosted features it would enable remain open product decisions. MDD Light is planned as a static, database-free GitHub Pages option for later.
 
 The [responsibility contract](ARCHITECTURE.md) defines the boundary between MDD Engine, MDD, and themes. The engine renders semantic article HTML; MDD composes the reader and owns shared interactions; themes style that markup. Keep content parsing and validation in the engine, including any future authoring syntax needed by reader features.
 
@@ -54,11 +54,11 @@ Reserve generated paths before writing output and reject content collisions. Ser
 
 One build receives the complete effective prefix: `/`, `/docs/`, or `/repository/docs/`. All page links, theme assets, images, headings, Markdown URLs, and index entries must respect it. The deployment layer computes the host-specific prefix; the renderer does not guess a repository name.
 
-GitHub Pages receives this static output and runs no Node process. [GitHub Pages hosting model](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)
+MDD Light is planned to deliver this static output to GitHub Pages without a Node process or database. The exporter exists today, but the MDD Light installation and update flow is not yet implemented. [GitHub Pages hosting model](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages)
 
-## Railway template and source configuration
+## MDD Full: Railway template and source configuration
 
-The Railway service source is the mdd application repository. The user's repository is a separate content input.
+MDD Full is the current roadmap focus and Railway is the recommended host. The Railway service source is the mdd application repository; the user's repository is a separate content input. Whether hosted features require a database is still to be decided.
 
 | Variable | Contract |
 |---|---|
@@ -75,7 +75,7 @@ During the image build, fetch the selected commit, verify the resolved SHA, run 
 
 Consume `MDD_SOURCE_SHA` before the Docker fetch/build layer so changed docs invalidate that cache. Initial branch-based builds also need a deployment-specific cache input so a fresh deployment does not reuse an old branch checkout. Keep dependency layers reusable. These are proposed implementation rules to validate on Railway, not a claim of a tested template. [Docker build variables](https://docs.railway.com/builds/dockerfiles)
 
-Pass `MDD_BASE_PATH` into the engine/frontend build and configure serving consistently; `/healthz` remains a server readiness route at the root. The runtime serves built files only. It needs no Git checkout, source credentials, persistent volume, or database. One service hosts one docs site.
+Pass `MDD_BASE_PATH` into the engine/frontend build and configure serving consistently; `/healthz` remains a server readiness route at the root. The current runtime serves built files only and does not use a database. Do not carry this current stateless implementation detail forward as a Full product requirement: define the database's purpose, ownership, and lifecycle only if Full's confirmed features need persistence. One service hosts one docs site.
 
 ## Readiness, updates, and failure behavior
 
@@ -88,6 +88,7 @@ Content updates must preserve the currently deployed mdd application revision an
 ## Acceptance criteria
 
 - The same content/theme fixture works in static export and Railway without divergent rendering rules.
+- Before implementing database support in MDD Full, product requirements identify the persistent data and user-facing features it enables; avoid adding a database that has no defined role.
 - The server container can build a mounted fixture and serve it under real Node 22, 24, and 26, without Bun installed. The default final server image uses the latest LTS; verify the declared minimum Node version before publication.
 - A generic static server proves deep links, 404 behavior, assets, Markdown output, and all required prefixes.
 - Default/custom themes pass keyboard, mobile, contrast, and focus checks with screenshot evidence.
