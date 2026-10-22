@@ -303,7 +303,11 @@ export async function serve(options: {
   const { manifest, inventory, files } = await validateBuild(root);
   const prefix = decodeURIComponent(manifest.basePath);
   const plugins = await startPlugins(process.env.DATABASE_URL);
-  const handleFeedbackApi = createFeedbackApi(plugins.feedback, files, manifest);
+  const handleFeedbackApi = createFeedbackApi(
+    plugins.feedback,
+    files,
+    manifest,
+  );
   const server = createServer(async (request, response) => {
     try {
       const pathname = requestPath(request.url ?? "");

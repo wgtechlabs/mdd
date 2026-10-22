@@ -211,7 +211,10 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
     add(asset.destination, await readSafeFile(root, asset.source));
   add("_mdd/reader.css", await readSafeFile(dThemeDirectory, "theme.css"));
   add("_mdd/reader.js", await readSafeFile(packageRoot, "assets/reader.js"));
-  add("_mdd/feedback.js", await readSafeFile(packageRoot, "assets/feedback.js"));
+  add(
+    "_mdd/feedback.js",
+    await readSafeFile(packageRoot, "assets/feedback.js"),
+  );
   add("_mdd/search-index.json", `${JSON.stringify(createSearchIndex(site))}\n`);
   add(
     "_mdd/search-ui.js",
