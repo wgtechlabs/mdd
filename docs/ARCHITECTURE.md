@@ -15,7 +15,7 @@ Here, **article rendering** means converting Markdown into semantic HTML; **read
 | User's content repository | Supplies Markdown, configuration, and optional theme assets under `mdd/`. It is an input to the application, not the Railway service's application source. |
 | Planned `mdd-build-flow-action` | Invokes MDD for GitHub Pages builds or coordinates Railway content updates. It owns deployment triggers and provider credentials; it does not replace the engine or server. |
 
-MDD Full is the current roadmap focus and Railway is the recommended deployment. Its template will use `wgtechlabs/mdd` as the application source and accept a separate user content repository. MDD Light will provide a static export path for GitHub Pages later. Their installation and update flows differ. The role of a database in MDD Full is an open product decision; do not treat the current stateless server as proof that Full will remain database-free or assume a schema before requirements are set.
+MDD Standard and MDD Light are capability profiles selected by database availability, independent of hosting provider. A usable configured database enables Standard and its built-in database-dependent plugins; when no usable database is available, MDD runs Light capabilities and keeps documentation serving available. MDD Full on Railway is the current roadmap focus and recommended deployment: its template should provision a database and use `wgtechlabs/mdd` as the application source, with a separate user content repository. GitHub Pages has no database and will use Light capabilities. Railway without a usable database also uses Light. Their installation and update flows differ. Database vendor and schema remain implementation decisions.
 
 MDD's `package.json` provides dependency, script, runtime, and application-version
 metadata. Its local name and archive smoke tests do not make registry publication
@@ -26,7 +26,7 @@ the engine's npm package. At startup the image builds a mounted content project
 and serves its rendered output; it does not fetch a separate content repository
 or deploy a Railway service.
 
-**Available now:** the engine package, reader, local development tooling, static export, and Node server. **Current roadmap focus:** MDD Full's Railway template and hosted product requirements. **Planned for later:** MDD Light's GitHub Pages installation and update flow. Neither deployment flow is complete. The role of a database in Full remains undecided; a passing local build does not establish a working Railway template or deployment.
+**Available now:** the engine package, reader, local development tooling, static export, and Node server. **Current roadmap focus:** MDD Standard's Railway template, database provisioning, and the first built-in feedback plugin. **Planned for later:** MDD Light's GitHub Pages installation and update flow. Neither deployment flow nor database detection, feedback storage, or admin view is implemented yet; a passing local build does not establish a working Railway template or deployment.
 
 ## Ownership
 
@@ -95,7 +95,7 @@ The engine reads `mdd/footer.md` once as shared source, validates its `:::social
 
 ## Theme contract and trust
 
-Themes customize colors, typography, spacing, borders, assets, and layout styling through [documented tokens and selectors](THEMES.md). MDD owns accessible markup, shared controls, and their behavior. Theme authors must preserve readable content, contrast, focus indicators, and usable responsive layouts. Full template replacement and plugin loading are deferred.
+Themes customize colors, typography, spacing, borders, assets, and layout styling through [documented tokens and selectors](THEMES.md). MDD owns accessible markup, shared controls, and their behavior. Theme authors must preserve readable content, contrast, focus indicators, and usable responsive layouts. Arbitrary third-party plugin loading and full template replacement are deferred; the built-in feedback plugin is an MDD-owned Standard capability.
 
 Switching between valid themes must preserve authored meaning, compiled routes, navigation order, content diagnostics, and normalized Markdown. Invalid theme configuration still produces its own diagnostics. Theme-specific scripts must not become a requirement for interpreting documentation or using shared reader features.
 
