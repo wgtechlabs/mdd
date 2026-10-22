@@ -6,16 +6,16 @@ Here, **article rendering** means converting Markdown into semantic HTML; **read
 
 ## Delivery contract
 
-**MDD Engine is the registry package. MDD Full on Railway is the current product focus; MDD Light on GitHub Pages is planned for later.**
+**MDD Engine is the registry package. MDD Standard on Railway is the current product focus; MDD Light on GitHub Pages is planned for later.**
 
 | Component | Delivery and ownership |
 | --- | --- |
 | `wgtechlabs/mdd-engine` | Publishes `@wgtechlabs/mdd-engine` to npm and GitHub Packages. Owns the headless compiler and search APIs. |
-| `wgtechlabs/mdd` | Contains the documentation renderer, reader frontend, Node server, static exporter, local development tooling, and bundled D Theme. Owns the planned MDD Full Railway template and MDD Light static export flow. Does not publish an MDD npm or GitHub Packages package. |
+| `wgtechlabs/mdd` | Contains the documentation renderer, reader frontend, Node server, plugin storage, static exporter, local development tooling, and bundled D Theme. Supplies the MDD Standard application; Railway template creation is separate deployment work. Does not publish an MDD npm or GitHub Packages package. |
 | User's content repository | Supplies Markdown, configuration, and optional theme assets under `mdd/`. It is an input to the application, not the Railway service's application source. |
 | Planned `mdd-build-flow-action` | Invokes MDD for GitHub Pages builds or coordinates Railway content updates. It owns deployment triggers and provider credentials; it does not replace the engine or server. |
 
-MDD Full is the current roadmap focus and Railway is the recommended deployment. Its template will use `wgtechlabs/mdd` as the application source and accept a separate user content repository. MDD Light will provide a static export path for GitHub Pages later. Their installation and update flows differ. The role of a database in MDD Full is an open product decision; do not treat the current stateless server as proof that Full will remain database-free or assume a schema before requirements are set.
+MDD Standard is the database-backed Node server profile; MDD Light is static and database-free. A usable `DATABASE_URL` enables Standard's built-in server-side plugins regardless of host. Without a usable database, MDD keeps serving docs and disables database-dependent plugins. The recommended Standard deployment is Railway with Postgres; GitHub Pages remains Light. The Railway template is deployment work outside this feature branch.
 
 MDD's `package.json` provides dependency, script, runtime, and application-version
 metadata. Its local name and archive smoke tests do not make registry publication
@@ -26,7 +26,7 @@ the engine's npm package. At startup the image builds a mounted content project
 and serves its rendered output; it does not fetch a separate content repository
 or deploy a Railway service.
 
-**Available now:** the engine package, reader, local development tooling, static export, and Node server. **Current roadmap focus:** MDD Full's Railway template and hosted product requirements. **Planned for later:** MDD Light's GitHub Pages installation and update flow. Neither deployment flow is complete. The role of a database in Full remains undecided; a passing local build does not establish a working Railway template or deployment.
+**Available now:** the engine package, reader, local development tooling, static export, and Node server. **Being added:** the generic namespaced plugin storage interface and built-in feedback feature for MDD Standard. **Planned separately:** the Railway template, authenticated Analytics API, and MDD Analytics deployment. MDD Light's GitHub Pages installation/update flow remains later work. A local build does not establish a working Railway template or deployment.
 
 ## Ownership
 
@@ -95,7 +95,13 @@ The engine reads `mdd/footer.md` once as shared source, validates its `:::social
 
 ## Theme contract and trust
 
-Themes customize colors, typography, spacing, borders, assets, and layout styling through [documented tokens and selectors](THEMES.md). MDD owns accessible markup, shared controls, and their behavior. Theme authors must preserve readable content, contrast, focus indicators, and usable responsive layouts. Full template replacement and plugin loading are deferred.
+Themes customize colors, typography, spacing, borders, assets, and layout styling through [documented tokens and selectors](THEMES.md). MDD owns accessible markup, shared controls, and their behavior. Theme authors must preserve readable content, contrast, focus indicators, and usable responsive layouts. Third-party plugin discovery/loading and full template replacement are deferred.
+
+## Server-side plugins and storage
+
+MDD core registers trusted built-in server plugins and gives each an in-process `PluginStorage` handle scoped to its plugin ID. The generic storage API supports get, bounded list/count, insert, update, and delete over JSON records; plugins cannot address another namespace through their handle and do not receive raw SQL or database credentials. The PostgreSQL adapter owns the shared table and initialization. This is an isolation boundary for built-in code, not a sandbox for arbitrary third-party plugins.
+
+Feedback is the first plugin. Its browser UI submits to an MDD-owned public handler; that handler validates origin, payload size, vote, and page route before calling the plugin. The plugin writes through its scoped storage handle. The handler exposes only an aggregate helpful-response percentage. Raw records have no public route. A future authenticated Analytics API is separate from both the internal Plugin API and these public feedback routes.
 
 Switching between valid themes must preserve authored meaning, compiled routes, navigation order, content diagnostics, and normalized Markdown. Invalid theme configuration still produces its own diagnostics. Theme-specific scripts must not become a requirement for interpreting documentation or using shared reader features.
 
