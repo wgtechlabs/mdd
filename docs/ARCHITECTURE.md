@@ -6,19 +6,16 @@ Here, **article rendering** means converting Markdown into semantic HTML; **read
 
 ## Delivery contract
 
-**MDD Engine is the registry package. MDD is the Railway template application.**
+**MDD Engine is the registry package. MDD Full on Railway is the current product focus; MDD Light on GitHub Pages is planned for later.**
 
 | Component | Delivery and ownership |
 | --- | --- |
 | `wgtechlabs/mdd-engine` | Publishes `@wgtechlabs/mdd-engine` to npm and GitHub Packages. Owns the headless compiler and search APIs. |
-| `wgtechlabs/mdd` | Contains the documentation renderer, reader frontend, Node server, static exporter, local development tooling, and bundled D Theme. Owns the Railway template and its application build/start configuration. Does not publish an MDD npm or GitHub Packages package. |
+| `wgtechlabs/mdd` | Contains the documentation renderer, reader frontend, Node server, static exporter, local development tooling, and bundled D Theme. Owns the planned MDD Full Railway template and MDD Light static export flow. Does not publish an MDD npm or GitHub Packages package. |
 | User's content repository | Supplies Markdown, configuration, and optional theme assets under `mdd/`. It is an input to the application, not the Railway service's application source. |
 | Planned `mdd-build-flow-action` | Invokes MDD for GitHub Pages builds or coordinates Railway content updates. It owns deployment triggers and provider credentials; it does not replace the engine or server. |
 
-The Railway template will use `wgtechlabs/mdd` as the application source and accept
-`MDD_REPO_URL` for a separate public content repository. One deployment serves one
-documentation site. Its build consumes the published engine dependency and the
-selected content snapshot; the Node runtime serves the resulting site.
+MDD Full is the current roadmap focus and Railway is the recommended deployment. Its template will use `wgtechlabs/mdd` as the application source and accept a separate user content repository. MDD Light will provide a static export path for GitHub Pages later. Their installation and update flows differ. The role of a database in MDD Full is an open product decision; do not treat the current stateless server as proof that Full will remain database-free or assume a schema before requirements are set.
 
 MDD's `package.json` provides dependency, script, runtime, and application-version
 metadata. Its local name and archive smoke tests do not make registry publication
@@ -29,10 +26,7 @@ the engine's npm package. At startup the image builds a mounted content project
 and serves its rendered output; it does not fetch a separate content repository
 or deploy a Railway service.
 
-**Available now:** the engine package, reader, local development tooling, static
-export, and Node server. **Still planned:** the Railway template, external content-fetch build, and
-deployment action. Static output also supports GitHub Pages. A passing local build
-does not establish a working Railway template or deployment.
+**Available now:** the engine package, reader, local development tooling, static export, and Node server. **Current roadmap focus:** MDD Full's Railway template and hosted product requirements. **Planned for later:** MDD Light's GitHub Pages installation and update flow. Neither deployment flow is complete. The role of a database in Full remains undecided; a passing local build does not establish a working Railway template or deployment.
 
 ## Ownership
 
