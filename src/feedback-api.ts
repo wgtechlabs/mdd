@@ -6,6 +6,7 @@ import type { FeedbackPlugin, FeedbackVote } from "./plugins/feedback.js";
 export const feedbackPath = "/api/mdd/plugins/feedback";
 const maxBodyBytes = 1024;
 const windowMs = 60_000;
+const maxSummariesPerWindow = 120;
 const maxVotesPerWindow = 30;
 const maxRateLimitEntries = 10_000;
 
@@ -83,7 +84,7 @@ async function readBody(request: IncomingMessage): Promise<unknown> {
   }
 }
 
-function voteRateKey(request: IncomingMessage): string | null {
+function clientRateKey(request: IncomingMessage): string | null {
   if (process.env.MDD_TRUST_PROXY === "true") {
     const forwarded = request.headers["x-real-ip"];
     if (typeof forwarded === "string" && isIP(forwarded)) return forwarded;
@@ -110,6 +111,24 @@ export function createFeedbackApi(
 ) {
   const prefix = decodeURIComponent(manifest.basePath);
   const rateLimits = new Map<string, { started: number; count: number }>();
+  function consumeRateLimit(client: string, scope: string, maximum: number) {
+    const now = Date.now();
+    if (rateLimits.size > maxRateLimitEntries / 2) {
+      for (const [key, limit] of rateLimits) {
+        if (now - limit.started >= windowMs) rateLimits.delete(key);
+      }
+    }
+    const key = `${scope}:${client}`;
+    const current = rateLimits.get(key);
+    if (current && now - current.started < windowMs) {
+      if (current.count >= maximum) return false;
+      current.count++;
+    } else {
+      if (rateLimits.size >= maxRateLimitEntries) return false;
+      rateLimits.set(key, { started: now, count: 1 });
+    }
+    return true;
+  }
 
   return async function handleFeedbackApi(
     request: IncomingMessage,
@@ -126,6 +145,14 @@ export function createFeedbackApi(
       const page = pageRoute(url.searchParams.get("page"), prefix, files);
       if (!page) {
         respondJson(response, 400, { error: "Invalid documentation page." });
+        return true;
+      }
+      const client = clientRateKey(request);
+      if (
+        !client ||
+        !consumeRateLimit(client, "summary", maxSummariesPerWindow)
+      ) {
+        respondJson(response, 429, { error: "Feedback rate limit reached." });
         return true;
       }
       try {
@@ -169,30 +196,10 @@ export function createFeedbackApi(
       respondJson(response, 415, { error: "Expected JSON." });
       return true;
     }
-    const client = voteRateKey(request);
-    if (!client) {
+    const client = clientRateKey(request);
+    if (!client || !consumeRateLimit(client, "vote", maxVotesPerWindow)) {
       respondJson(response, 429, { error: "Feedback rate limit reached." });
       return true;
-    }
-    const now = Date.now();
-    if (rateLimits.size > maxRateLimitEntries / 2) {
-      for (const [key, limit] of rateLimits) {
-        if (now - limit.started >= windowMs) rateLimits.delete(key);
-      }
-    }
-    const current = rateLimits.get(client);
-    if (current && now - current.started < windowMs) {
-      if (current.count >= maxVotesPerWindow) {
-        respondJson(response, 429, { error: "Feedback rate limit reached." });
-        return true;
-      }
-      current.count++;
-    } else {
-      if (rateLimits.size >= maxRateLimitEntries) {
-        respondJson(response, 429, { error: "Feedback rate limit reached." });
-        return true;
-      }
-      rateLimits.set(client, { started: now, count: 1 });
     }
     let body: unknown;
     try {

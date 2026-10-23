@@ -411,15 +411,22 @@ export async function serve(options: {
       );
     }
   });
+  let closePlugins: Promise<void> | undefined;
+  const closePluginStorage = () => (closePlugins ??= plugins.close());
   server.once("close", () => {
-    void plugins.close().catch(() => {});
+    void closePluginStorage().catch(() => {});
   });
-  await new Promise<void>((resolveListening, reject) => {
-    server.once("error", reject);
-    server.listen(options.port ?? 3000, options.host ?? "127.0.0.1", () => {
-      server.off("error", reject);
-      resolveListening();
+  try {
+    await new Promise<void>((resolveListening, reject) => {
+      server.once("error", reject);
+      server.listen(options.port ?? 3000, options.host ?? "127.0.0.1", () => {
+        server.off("error", reject);
+        resolveListening();
+      });
     });
-  });
+  } catch (error) {
+    await closePluginStorage().catch(() => {});
+    throw error;
+  }
   return server;
 }
