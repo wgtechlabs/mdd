@@ -2,19 +2,23 @@
 
 ## Product boundary
 
-This is `wgtechlabs/mdd`: the documentation renderer, reader, static exporter, and Node server. MDD has no standalone CLI; its container builds a mounted content project and starts the HTTP server directly. The current roadmap prioritizes MDD Full on Railway, with one user content repository per deployment. MDD Light static hosting through GitHub Pages is planned for later. Consume the published `@wgtechlabs/mdd-engine` package for content/configuration validation, Markdown, routes, navigation, and diagnostics. Never duplicate the compiler or import a sibling checkout. See `docs/SPEC.md` for the product contract.
+This is `wgtechlabs/mdd`: the documentation renderer, reader, static exporter, and Node server. MDD has no standalone CLI; its container builds a mounted content project and starts the HTTP server directly. The current roadmap prioritizes MDD Standard on Railway, with one user content repository per deployment. MDD Light static hosting through GitHub Pages is planned for later. Consume the published `@wgtechlabs/mdd-engine` package for content/configuration validation, Markdown, routes, navigation, and diagnostics. Never duplicate the compiler or import a sibling checkout. See `docs/SPEC.md` for the product contract.
 
-**Delivery direction:** focus on MDD Full and its Railway template first; plan MDD
-Light/GitHub Pages afterward. Keep the app source separate from the user's content
-repository. Neither deployment flow is complete yet. The role and requirements of
-a database in MDD Full remain undecided; do not invent schema or persistence
-behavior before that product decision. Follow the [delivery contract](docs/ARCHITECTURE.md#delivery-contract); do not add an MDD npm bootstrap, registry release, or Trusted Publisher as a prerequisite.
+**Delivery direction:** focus on MDD Standard application behavior first; Railway
+template creation is handled separately, and MDD Light/GitHub Pages follows later.
+Keep the app source separate from the user's content repository. A usable
+`DATABASE_URL` enables the generic server-side Plugin Storage API and built-in
+feedback plugin; without it, docs remain available and database plugins stay
+disabled. Do not add a dashboard, owner accounts, public raw-data route, or
+authenticated Analytics API to the feedback feature. Follow the [delivery
+contract](docs/ARCHITECTURE.md#delivery-contract); do not add an MDD npm bootstrap,
+registry release, or Trusted Publisher as a prerequisite.
 
 Follow [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for layer ownership. The engine owns semantic article HTML and authoring syntax; MDD owns the page shell, accessible shared controls, and presentation enhancements; themes own visual styling. Code-copy behavior belongs to MDD. Syntax highlighting is not implemented; future tokenization belongs to MDD and token colors to themes. Any new authoring metadata still needs an engine contract first. Theme changes must preserve content meaning and compiled navigation.
 
 Use the published engine's `createSearchIndex`, browser-safe `search`, and `validateSearchIndex` APIs; do not build a second indexer or ranking system. MDD exports the index and browser modules and owns the search dialog's loading, retry, keyboard, and focus behavior. Search results use text nodes and stay inside the same documentation origin and base path. Consume `Site.footer.socials` for the shared footer; footer parsing and HTTPS link validation belong to the engine. GitHub alerts are semantic engine output; D Theme adds decorative icons and styling without live-alert roles. Keep these controls outside article HTML and normalized Markdown.
 
-Today, authoring happens through repository files and the app has no database, account system, plugin runtime, or multi-site service. Treat this as current implementation state, not a permanent product constraint: whether MDD Full needs database-backed features is under consideration. MDD Light is intended to remain a static, database-free deployment. Private source repositories and deployment-action implementation are deferred. Planned Railway hosting will use one public content repository per deployment; the app repository is a separate input.
+Today, authoring happens through repository files; MDD has no account system or multi-site service. Database-backed plugin behavior belongs to MDD Standard; MDD Light remains static and database-free. The plugin storage interface is server-side only, scoped by plugin ID, and must not expose arbitrary SQL or another plugin's records. Private source repositories and deployment-action implementation are deferred. Planned hosting will use one public content repository per deployment; the app repository is a separate input.
 
 Develop, test, version, and ship **D Theme** in this repository under `themes/d/`, with stable identifier `d`. Its stylesheet is `themes/d/theme.css`; shared shell markup and browser behavior remain in `src/render.ts` and `assets/reader.js`. Keep the exported stylesheet URL `_mdd/reader.css` stable. Custom themes overlay D Theme without redefining shared reader features. Do not move bundled styling into the engine or require a separate theme repository/package.
 

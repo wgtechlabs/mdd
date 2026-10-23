@@ -3,8 +3,10 @@ import { constants } from "node:fs";
 import { type FileHandle, lstat, open, realpath } from "node:fs/promises";
 import { createServer, type Server, type ServerResponse } from "node:http";
 import { extname, join, relative, resolve, sep } from "node:path";
+import { createFeedbackApi } from "./feedback-api.js";
 import { listTree, protectedName, readSafeFile } from "./files.js";
 import { type BuildManifest, isBasePath } from "./manifest.js";
+import { startPlugins } from "./plugin-runtime.js";
 
 const contentTypes: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -300,8 +302,16 @@ export async function serve(options: {
   const root = await realpath(resolve(options.directory));
   const { manifest, inventory, files } = await validateBuild(root);
   const prefix = decodeURIComponent(manifest.basePath);
+  const plugins = await startPlugins(process.env.DATABASE_URL);
+  const handleFeedbackApi = createFeedbackApi(
+    plugins.feedback,
+    files,
+    manifest,
+  );
   const server = createServer(async (request, response) => {
     try {
+      const pathname = requestPath(request.url ?? "");
+      if (await handleFeedbackApi(request, response, pathname)) return;
       if (request.method !== "GET" && request.method !== "HEAD") {
         response.setHeader("Allow", "GET, HEAD");
         respond(
@@ -313,7 +323,6 @@ export async function serve(options: {
         );
         return;
       }
-      const pathname = requestPath(request.url ?? "");
       if (pathname === "/healthz") {
         response.setHeader("Cache-Control", "no-store");
         try {
@@ -402,12 +411,22 @@ export async function serve(options: {
       );
     }
   });
-  await new Promise<void>((resolveListening, reject) => {
-    server.once("error", reject);
-    server.listen(options.port ?? 3000, options.host ?? "127.0.0.1", () => {
-      server.off("error", reject);
-      resolveListening();
-    });
+  let closePlugins: Promise<void> | undefined;
+  const closePluginStorage = () => (closePlugins ??= plugins.close());
+  server.once("close", () => {
+    void closePluginStorage().catch(() => {});
   });
+  try {
+    await new Promise<void>((resolveListening, reject) => {
+      server.once("error", reject);
+      server.listen(options.port ?? 3000, options.host ?? "127.0.0.1", () => {
+        server.off("error", reject);
+        resolveListening();
+      });
+    });
+  } catch (error) {
+    await closePluginStorage().catch(() => {});
+    throw error;
+  }
   return server;
 }
