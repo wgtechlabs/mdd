@@ -25,7 +25,7 @@ content repository URL. See the [delivery contract](docs/ARCHITECTURE.md#deliver
 
 ## Operating Context
 
-Authors edit Markdown, configuration, and selected theme files in Git. Static output can be served from GitHub Pages under a chosen prefix. The local reader, exporter, and Node server are implemented. The Railway template and external content-fetch integration remain planned, with one public content repository per deployment. There is no dashboard or account system. A PostgreSQL-backed feedback plugin is available when `DATABASE_URL` is configured; whether MDD Full needs additional database-backed features remains undecided.
+Authors edit Markdown, configuration, and selected theme files in Git. Static output can be served from GitHub Pages under a chosen prefix. The local reader, exporter, and Node server are implemented. The Railway template and external content-fetch integration remain planned, with one public content repository per deployment. There is no dashboard or account system. A PostgreSQL-backed feedback plugin is available when a usable `DATABASE_URL` is configured; whether MDD Full needs additional database-backed features remains undecided.
 
 ## Capabilities and Constraints
 
