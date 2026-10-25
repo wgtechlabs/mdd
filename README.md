@@ -1,62 +1,58 @@
-# mdd
+# MDD
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="brand/logo/mdd-wordmark-white.svg">
-  <img src="brand/logo/mdd-wordmark-blurple.svg" alt="mdd" width="240" height="102">
-</picture>
+![MDD banner — Free, open-source documentation](<https://ghrb.waren.build/render/banner?header=MDD&subheader=Free,+open-source+documentation&bg=5865F2-1B1C25&color=FFFFFF&stats=false>)
 
-**Markdown in. Documentation out.**
+MDD is free, open-source software for turning Markdown into clear documentation websites. Give your project docs people can navigate and agents can read as Markdown. Everything is configured through files.
 
-MDD turns a repository's Markdown into a documentation website you can host yourself. People get a readable site; agents get the same content as Markdown. Everything is configured through files.
+This repository contains **MDD Standard**: the documentation reader, static exporter, and Node server. It uses the published [**@wgtechlabs/mdd-engine**](https://github.com/wgtechlabs/mdd-engine) package for Markdown compilation, validation, navigation, and search.
 
-This repository provides the documentation renderer, reader frontend, static exporter, and Node server intended for deployment through a Railway template. MDD builds the mounted documentation project and starts the HTTP server directly. The published [`@wgtechlabs/mdd-engine@1.1.0`](https://github.com/wgtechlabs/mdd-engine) package owns Markdown compilation, validation, routes, navigation, shared footer metadata, and headless search.
+## ✨ Features
+
+- **One source, two readers:** render Markdown as a website and make the same pages available as Markdown for agents.
+- **Static or server output:** export a site for static hosting or run the Node server in a container.
+- **Built-in reader tools:** search, code copying, table of contents, theme switching, and source edit links.
+- **Customizable appearance:** use the bundled D Theme or add a local theme overlay.
+- **File-based configuration:** keep documentation, reader links, shared footer links, and themes with the project.
+- **Page helpfulness feedback:** optionally collect votes and show the aggregate percentage when a usable database is configured.
 
 | Project | Responsibility | Delivery |
 | --- | --- | --- |
-| **MDD Engine** (`wgtechlabs/mdd-engine`) | Headless Markdown processing, validation, navigation, and search | Published dependency: `@wgtechlabs/mdd-engine` on npm and GitHub Packages |
-| **MDD Standard** (`wgtechlabs/mdd`, this repository) | Hosted documentation application with database-backed built-in plugins | Railway with Postgres is recommended; feedback is the first plugin |
+| **MDD Engine** (wgtechlabs/mdd-engine) | Headless Markdown processing, validation, navigation, and search | Published dependency on npm and GitHub Packages |
+| **MDD Standard** (wgtechlabs/mdd, this repository) | Documentation application using MDD Engine and database-backed plugins | Railway is the recommended deployment; the feedback plugin is the first built-in plugin |
 | **MDD Light** | Static documentation output | GitHub Pages support and its installation flow are planned; no database |
 
-## Product delivery roadmap
+**MDD Standard on Railway is the current product focus.** A usable `DATABASE_URL` enables server-side plugins, including the built-in feedback plugin, which collects page helpfulness votes and displays only the aggregate percentage. The Railway template and content-repository integration remain deployment work.
 
-**MDD Standard on Railway is the current product focus and recommended hosting path.** A usable database enables built-in plugins; no usable database leaves the documentation site working in Light mode. The first plugin collects page helpfulness feedback and shows only the aggregate percentage. This repository implements the application behavior; Railway template creation remains separate deployment work.
+**MDD Light is planned for later.** The static exporter works today, but its GitHub Pages installation and update flow is not implemented. Standard and Light will have separate setup paths.
 
-**MDD Light for GitHub Pages is planned for later.** The static exporter works today, but the Light installation and update flow is not yet implemented. Standard and Light will have different setup paths.
+## 🚀 Getting Started
 
-- **MDD Engine:** compile Markdown into validated site data and safe article HTML, including code blocks and alerts; create and query a portable search index.
-- **MDD:** compose the website, add shared reader controls such as code copying and search, and export or serve it.
-- **Themes:** customize colors, typography, spacing, and assets through the shared reader's styling hooks. The bundled **D Theme** is developed in this repository and has its own version and release name: **D26, version 0.2.0**. Custom themes can overlay it with their own versions. See the [version policy](docs/THEMES.md#version-policy).
+Use Bun 1.3.10 and Node.js 24 LTS by default. The built application supports Node.js 22, 24, and 26 without Bun at runtime.
 
-See [delivery boundaries](docs/ARCHITECTURE.md#delivery-contract) and [responsibilities](docs/ARCHITECTURE.md#ownership) for where each feature belongs.
-
-The Page space logo, blurple palette, icons, and usage guidance live in the [brand kit](brand/README.md).
-
-## Try the local implementation
-
-Use Bun 1.3.10 and Node.js 24 LTS by default. The built application supports Node 22, 24, and 26 without Bun at runtime.
-
-```sh
+~~~sh
 bun install --frozen-lockfile
 bun run demo
-```
+~~~
 
-Open `http://127.0.0.1:4173/docs/`. The example includes an API reference, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation.
+Open <http://127.0.0.1:4173/docs/>. The example includes an API reference, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation. See [verification](docs/VERIFICATION.md) for current evidence and remaining hosting work.
 
-See [verification](docs/VERIFICATION.md) for current evidence and remaining hosting work.
+### Run the server container
 
-## Run the server container
+The published container builds documentation from a mounted project. The mount must contain the project's mdd/ directory.
 
-The published container builds documentation from a mounted project and serves the rendered site. The mount must contain the project's `mdd/` directory.
-
-```sh
+~~~sh
 docker run --rm -p 3000:3000 -v "$PWD:/workspace" wgtechlabs/mdd:latest
-```
+~~~
 
-The container uses `/workspace` as `MDD_PROJECT_DIR`, `/workspace/mdd` as `MDD_DOCS_DIR`, `/tmp/mdd-dist` as `MDD_OUTPUT_DIR`, `0.0.0.0` as `HOST`, and `3000` as `PORT`. Set these environment variables to customize the project, docs, output, base path, edit URL, host, or port.
+The container defaults to /workspace for `MDD_PROJECT_DIR`, /workspace/mdd for `MDD_DOCS_DIR`, /tmp/mdd-dist for `MDD_OUTPUT_DIR`, 0.0.0.0 for HOST, and 3000 for PORT. Environment variables can customize the project, docs, output, base path, edit URL, host, and port.
 
-## Write documentation
+## 📖 Usage
 
-```text
+### Write documentation
+
+Create an mdd/ directory in the documentation project:
+
+~~~text
 my-project/
   mdd/
     config.json          # optional
@@ -70,70 +66,24 @@ my-project/
       custom/
         theme.css
         theme.js         # optional trusted browser code
-```
+~~~
 
-Folders become navigation groups; Markdown files become pages. An `index.md` is the landing page for its folder. The engine validates local links, supports ordinary Markdown and frontmatter, and renders GitHub-style alerts plus `:::details` disclosures.
+Folders become navigation groups; Markdown files become pages. An `index.md` is the landing page for its folder. MDD supports ordinary Markdown, frontmatter, GitHub-style alerts, and `:::details` disclosures. The engine validates local links.
 
-```markdown
+Use NOTE, TIP, IMPORTANT, WARNING, or CAUTION on the opening line of a root-level blockquote:
+
+~~~markdown
 > [!NOTE]
 > Keep your documentation beside the code it describes.
-```
+~~~
 
-Use `NOTE`, `TIP`, `IMPORTANT`, `WARNING`, or `CAUTION` on the opening line of a root-level blockquote. Keep the uppercase marker on its own line; nested blockquotes remain ordinary quotes. Engine 1.0.0 removes `:::note`, `:::tip`, and `:::warning`: replace them with alert blockquotes and move any custom title into the body. Old directives fail with `REMOVED_COMPONENT` instead of silently changing meaning. `:::details[More information]` remains supported. See [writing pages](examples/basic/mdd/contents/guides/writing.md).
+Keep the uppercase marker on its own line; nested blockquotes remain ordinary quotes. Engine 1.0.0 removed `:::note`, `:::tip`, and `:::warning`; replace them with alert blockquotes and move any custom title into the body. Those old directives fail with `REMOVED_COMPONENT`. `:::details[More information]` remains supported. See [writing pages](examples/basic/mdd/contents/guides/writing.md).
 
-```json
-{
-  "title": "My project",
-  "paths": { "contents": "./contents", "themes": "./themes" },
-  "theme": "custom"
-}
-```
+### Build a static site
 
-All configuration fields are optional. Omit `theme` to use D Theme alone. The configuration's `theme` field selects a local custom overlay; it does not select a bundled theme by ID. Paths are relative to the configuration folder and must stay within the documentation checkout. MDD has no dashboard or owner accounts. Feedback requires `DATABASE_URL`; the server stores page, vote, and timestamp records and does not expose raw votes publicly.
+The build API exports a complete static site without a command-line interface:
 
-## Shared footer links
-
-Write social links once in `mdd/footer.md`:
-
-```markdown
-:::socials
-- [GitHub](https://github.com/wgtechlabs/mdd)
-:::
-```
-
-Use one `socials` block containing a flat unordered list of plain-text labels and absolute HTTPS links. Replace the example destination with your project's URL. Attributes, nested content, images, raw HTML, and credential-bearing URLs are rejected. The file belongs beside the documentation configuration, outside `contents/`; it does not become a page or search result. A missing or empty footer file is allowed. MDD renders the links in the page footer beside **Built with mdd**, using recognizable icons where supported and readable labels otherwise.
-
-Configure up to two ordinary header links and one CTA in `mdd/reader.json`:
-
-```json
-{
-  "header": {
-    "links": [
-      { "label": "Sponsor", "href": "https://github.com/sponsors/wgtechlabs" },
-      { "label": "Contribute", "href": "https://github.com/wgtechlabs/mdd" }
-    ],
-    "cta": { "label": "Explore themes", "href": "https://wgtechlabs.com/mdd" }
-  }
-}
-```
-
-This MDD-specific file is separate from the engine's strict `config.json` schema. Links require absolute HTTPS destinations; the example docs show the sample header.
-
-## Search the documentation
-
-Choose **Search** in the header or press **Ctrl+K** (**⌘K** on macOS). A native dialog provides the search field, result links, and loading, empty, and retry states. Click outside the dialog, press Escape, or use its close button to return to the page. Search requires browser JavaScript; ordinary reading and navigation remain available without it.
-
-Results show pages and individual headings with context breadcrumbs. A page can have several matching sections. Exact and partial matches rank ahead of bounded single-edit typo corrections. Use ↑/↓ to select a result while continuing to type, and Enter to open it. The first result is selected automatically; ordinary text-editing keys keep their native behavior.
-
-Matching text is highlighted using the engine's original-text ranges, including corrected spellings and Unicode text. Short excerpts appear when the match is in the body rather than the primary label. The engine selects excerpt text around a match, so words farther down a section remain visible in the preview. Excerpts are bounded and may not show every word of a multiword query. Highlights are limited to the result list; opening a result shows the original documentation page.
-
-The engine creates the index and ranks queries. MDD exports it as `_mdd/search-index.json`, loads it when search is opened, and renders result titles, sections, and excerpts as text. The engine's browser-safe query module is exported as `_mdd/search.js`; MDD's dialog behavior is `_mdd/search-ui.js`. Search works from the same static build under the site's configured prefix, with no external search service or server-side query endpoint.
-
-## Build a static site
-
-The renderer's build API exports a complete static site without a command-line interface:
-
-```js
+~~~js
 import { build } from '/path/to/mdd/dist/index.js';
 
 const result = await build({
@@ -146,62 +96,21 @@ if (!result.site) {
   console.error(result.diagnostics);
   process.exitCode = 1;
 }
-```
+~~~
 
-Build output must be outside documentation inputs and cannot replace the project root or an unrelated directory. Rebuilds accept only empty directories or unchanged MDD output, verified against `.mdd-output.json`. Edit source files, not generated output. If you deliberately edit output, move it aside before rebuilding. An interrupted build can leave a sibling `.mdd-dist.mdd-lock`; remove it only after confirming no build is running.
+Build output must be outside documentation inputs and cannot replace the project root or an unrelated directory. Rebuilds accept only empty directories or unchanged MDD output, verified against `.mdd-output.json`. Edit source files, not generated output. If you deliberately edit output, move it aside before rebuilding. Remove an interrupted build's sibling `.mdd-dist.mdd-lock` only after confirming no build is running.
 
-## Host the output
+### Host the output
 
 The output contains one HTML file per page, `_assets/`, `_mdd/` (including the search index and browser modules), `404.html`, `markdown/`, `llms.txt`, and `mdd-build.json`. No browser framework or remote service is required. Navigation and content work without JavaScript; theme switching, code-copy controls, search, and section tracking enhance the reader when scripts run.
 
-For a nested site, set `basePath` to the full prefix, such as `/repository/docs/`, in the `build()` options. Serve the contents of `mdd-dist/` at that URL. The output itself is not wrapped in extra `repository/docs/` directories. The Node server verifies the hidden `.mdd-output.json` inventory at startup and serves only declared files. The running server treats the build as immutable; restart it after replacing output. `/healthz` checks inventory identity and declared file presence, not every content hash on every request. Configure your static host to use `404.html` for missing paths; the Node server returns real 404 responses automatically. Upload only this output directory, never the project checkout.
+For a nested site, set `basePath` to the full prefix, such as /repository/docs/, in `build()` options and serve the contents of `mdd-dist/` at that URL. The output is not wrapped in extra repository/docs/ directories. The Node server verifies the hidden `.mdd-output.json` inventory at startup and serves only declared files. Restart it after replacing output. /healthz checks inventory identity and declared file presence, not every content hash on every request. Configure a static host to use `404.html` for missing paths; the Node server returns real 404 responses automatically. Upload only the output directory, never the project checkout.
 
-The build manifest reports MDD/engine versions, the URL prefix, and Git commit when available. `source.dirty` is `null` (unknown): the exporter deliberately avoids Git status because configured Git filters can execute commands. Content must remain stable during a build; production should build from an immutable checkout.
+The build manifest reports MDD/engine versions, URL prefix, and Git commit when available. `source.dirty` is null (unknown): the exporter avoids Git status because configured Git filters can execute commands. Keep content stable during a build; production should build from an immutable checkout.
 
-MDD Standard on Railway is the current roadmap focus. The application supports database-backed feedback when `DATABASE_URL` is usable; template creation and content-repository integration remain separate deployment work. MDD Light and its GitHub Pages installation flow are planned for later. See [the specification](docs/SPEC.md).
+### Use the build API from a checkout
 
-## Customize the reader
-
-See [themes](docs/THEMES.md). D Theme lives in [`themes/d/`](themes/d/) and supports system light/dark preference and a persistent reader toggle. Custom CSS loads after its stylesheet; optional `theme.js` runs only in the browser. The build never executes theme scripts or installs source-repository dependencies.
-
-Every page footer shows the installed **mdd** version and the bundled **D Theme — D26 · v0.2.0**. D26 is a release name for D Theme, not a separate theme: minor and patch updates retain it, and the planned 1.0.0 major release introduces D27. The theme version changes independently of mdd; release names never change automatically with the year. [`themes/archive/`](themes/archive/) is reserved for historical source snapshots.
-
-Custom themes provide visual styles and assets through their own theme directories. Their identity stays with the theme; the reader footer shows only the installed mdd and bundled D Theme versions.
-
-## Reader contributions
-
-Add **Edit this markdown** below each article by setting the source editor URL
-prefix when building:
-
-```js
-build({
-  projectDir: '/path/to/project',
-  editBaseUrl: 'https://github.com/owner/repository/edit/main/',
-});
-```
-
-MDD appends the engine's source file path, so `mdd/contents/guides/install.md`
-links to that exact file, regardless of its public route or deployment prefix.
-The link works in static exports without browser JavaScript. It is omitted when
-no edit destination is configured and on the 404 page.
-
-Use `MDD_EDIT_BASE_URL` when starting the server, or pass `editBaseUrl` in the
-`build()` options for a static export.
-The prefix must be HTTPS with no credentials, query, or fragment. Use the content
-repository and an editable branch. MDD does not guess these from the app repository.
-
-Paths are relative to `projectDir`. For a project under `examples/basic/`, include
-that folder in the prefix, for example
-`https://github.com/owner/repository/edit/main/examples/basic/`. For a branch named
-`feature/docs`, encode the branch slash as `feature%2Fdocs` in the prefix.
-GitLab and other hosts can use their equivalent HTTPS file-editor prefix.
-MDD encodes each source filename segment and validates the prefix during checking
-and building; invalid values preserve previous output. Do not put this reader
-option into the engine's `mdd/config.json`.
-
-## Use the build API from a checkout
-
-```js
+~~~js
 import { build, serve } from './dist/index.js';
 
 const result = await build({ projectDir: '/path/to/project', basePath: '/docs/' });
@@ -211,20 +120,120 @@ if (!result.site) {
   const server = await serve({ directory: result.directory, port: 3000 });
   // Close the returned Node HTTP server when finished.
 }
-```
+~~~
 
-Build the checkout with `bun run build` before importing its local API. MDD does not require registry publication. Authoring errors return diagnostics without replacing the old output. Operational failures reject with an error.
+Build the checkout with bun run build before importing its local API. Registry publication is not required. Authoring errors return diagnostics without replacing old output; operational failures reject with an error.
 
-## Develop and release
+### Search the documentation
 
-```sh
+Choose **Search** in the header or press **Ctrl+K** (**⌘K** on macOS). The native dialog provides result links and loading, empty, and retry states. Click outside, press Escape, or use its close button to return to the page. Search requires browser JavaScript; ordinary reading and navigation remain available without it.
+
+Results include pages and individual headings with context breadcrumbs. Exact and partial matches rank ahead of bounded single-edit typo corrections. Use ↑/↓ to select a result while typing and Enter to open it. The first result is selected automatically; ordinary text-editing keys keep their native behavior.
+
+Matching text is highlighted using the engine's original-text ranges, including corrected spellings and Unicode. Short excerpts appear when a match is in the body rather than the primary label. Excerpts are bounded and may not show every word of a multiword query. Highlights stay in the result list; opening a result shows the original documentation page.
+
+The engine creates the index and ranks queries. MDD exports it as ``_mdd/`search-index.json`, loads it when search opens, and renders result titles, sections, and excerpts as text. The engine's browser-safe query module is ``_mdd/`search.js`; MDD's dialog behavior is ``_mdd/`search-ui.js`. Search works under the configured site prefix without an external search service or server-side query endpoint.
+
+### Customize the reader
+
+See [themes](docs/THEMES.md). D Theme lives in [`themes/d/`](themes/d/) and supports system light/dark preference and a persistent reader toggle. Custom CSS loads after its stylesheet; optional `theme.js` runs only in the browser. The build never executes theme scripts or installs source-repository dependencies.
+
+Every page footer shows the installed **mdd** version and bundled **D Theme — D26 · v0.2.0**. D26 is a release name for D Theme, not a separate theme: minor and patch updates retain it, and the planned 1.0.0 major release introduces D27. The theme version changes independently of mdd; release names never change automatically with the year. [`themes/archive/`](themes/archive/) is reserved for historical source snapshots.
+
+Custom themes provide visual styles and assets through their own theme directories. Their identity stays with the theme; the reader footer shows only the installed mdd and bundled D Theme versions.
+
+### Add source edit links
+
+Set the source editor URL prefix when building to show **Edit this markdown** below each article:
+
+~~~js
+build({
+  projectDir: '/path/to/project',
+  editBaseUrl: 'https://github.com/owner/repository/edit/main/',
+});
+~~~
+
+MDD appends the engine's source file path, so `mdd/`contents/`guides/install.md` links to that file regardless of its public route or deployment prefix. The link works in static exports without browser JavaScript. It is omitted when no edit destination is configured and on the 404 page.
+
+Use `MDD_EDIT_BASE_URL` when starting the server, or pass `editBaseUrl` in `build()` options for a static export. The prefix must be HTTPS with no credentials, query, or fragment. Use the content repository and an editable branch; MDD does not guess these from the app repository.
+
+Paths are relative to `projectDir`. For a project under `examples/basic/`, include that folder in the prefix, for example https://github.com/owner/repository/edit/main/`examples/basic/`. For a branch named `feature/docs`, encode the branch slash as `feature%2Fdocs`. GitLab and other hosts can use their equivalent HTTPS file-editor prefix. MDD encodes each source filename segment and validates the prefix during checking and building; invalid values preserve previous output. Do not put this reader option in the engine's `mdd/config.json`.
+
+## ⚙️ Configuration
+
+All fields in the engine configuration are optional. Omit theme to use D Theme alone. Its theme field selects a local custom overlay; it does not select a bundled theme by ID. Paths are relative to the configuration folder and must stay within the documentation checkout.
+
+~~~json
+{
+  "title": "My project",
+  "paths": { "contents": "./contents", "themes": "./themes" },
+  "theme": "custom"
+}
+~~~
+
+Configure up to two ordinary header links and one CTA in `mdd/reader.json`:
+
+~~~json
+{
+  "header": {
+    "links": [
+      { "label": "Sponsor", "href": "https://github.com/sponsors/wgtechlabs" },
+      { "label": "Contribute", "href": "https://github.com/wgtechlabs/mdd" }
+    ],
+    "cta": { "label": "Explore themes", "href": "https://wgtechlabs.com/mdd" }
+  }
+}
+~~~
+
+This MDD-specific file is separate from the engine's strict config.json schema. Links require absolute HTTPS destinations; the [example docs](examples/basic/mdd/) show the sample header.
+
+Write social links once in `mdd/footer.md`:
+
+~~~markdown
+:::socials
+- [GitHub](https://github.com/wgtechlabs/mdd)
+:::
+~~~
+
+Use one `socials` block with a flat unordered list of plain-text labels and absolute HTTPS links. Replace the example destination with your project's URL. Attributes, nested content, images, raw HTML, and credential-bearing URLs are rejected. The file belongs beside the documentation configuration, outside `contents/`; it does not become a page or search result. A missing or empty footer file is allowed. MDD renders social links beside **Built with mdd**, using recognizable icons where supported and readable labels otherwise.
+
+The server uses /workspace as `MDD_PROJECT_DIR`, /workspace/mdd as `MDD_DOCS_DIR`, /tmp/mdd-dist as `MDD_OUTPUT_DIR`, 0.0.0.0 as HOST, and 3000 as PORT by default. Set these environment variables to customize the project, docs, output, base path, edit URL, host, or port. MDD has no dashboard or owner accounts. Without a usable `DATABASE_URL`, docs remain available and database plugins stay disabled.
+
+## 📚 Documentation
+
+- [Product specification](docs/SPEC.md)
+- [Architecture and delivery boundaries](docs/ARCHITECTURE.md)
+- [Theme guide and version policy](docs/THEMES.md)
+- [Verification record](docs/VERIFICATION.md)
+- [Release process](docs/RELEASING.md)
+- [Brand kit](brand/README.md)
+- [Writing pages example](examples/basic/mdd/contents/guides/writing.md)
+
+## 🛠️ Development
+
+~~~sh
 bun run check
 bun run smoke
 bun audit
-```
+~~~
 
-The smoke check creates a local application archive, installs it in an isolated consumer, and verifies the renderer API and HTTP server with Node. This check does not publish anything. `MDD_TEST_NODE_BINARIES` accepts platform-delimited Node binary paths to exercise one archive across runtimes.
+The smoke check creates a local application archive, installs it in an isolated consumer, and verifies the renderer API and HTTP server with Node. It does not publish anything. `MDD_TEST_NODE_BINARIES` accepts platform-delimited Node binary paths to exercise one archive across runtimes.
 
-[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Registry package publishing is disabled for MDD; only `mdd-engine` publishes to npm and GitHub Packages. MDD has no npm bootstrap or Trusted Publishing requirement. Build Flow publishes the Node renderer/server container using its default artifact settings for Docker Hub and GHCR, and creates versioned GitHub Releases after a successful eligible `main` build publishes every enabled artifact. These application releases do not publish MDD to npm or GitHub Packages. CodeQL is enabled automatically for this public repository; private copies need verified code-scanning access. See [releasing](docs/RELEASING.md).
+[Build Flow](.github/workflows/build-flow.yml) follows the engine's Node matrix and Bun commands. Registry package publishing is disabled for MDD; only mdd-engine publishes to npm and GitHub Packages. MDD has no npm bootstrap or Trusted Publishing requirement. Build Flow publishes the Node renderer/server container using its default artifact settings for Docker Hub and GHCR, and creates versioned GitHub Releases after a successful eligible main build publishes every enabled artifact. These application releases do not publish MDD to npm or GitHub Packages. CodeQL is enabled automatically for this public repository; private copies need verified code-scanning access.
 
-Follow [AGENTS.md](AGENTS.md), [the product contract](docs/SPEC.md), and [MIT licensing](LICENSE).
+## 🤝 Contributing
+
+Follow [AGENTS.md](AGENTS.md), the [product contract](docs/SPEC.md), and the layer ownership rules in [architecture](docs/ARCHITECTURE.md). Keep changes aligned with the documented boundary between MDD Engine, MDD, and themes.
+
+## 🐛 Issues & Support
+
+Report bugs and request changes in [GitHub Issues](https://github.com/wgtechlabs/mdd/issues). For questions about product direction, see the [specification](docs/SPEC.md).
+
+## 📄 License
+
+MDD is released under the [MIT License](LICENSE).
+
+## 👥 Authors & Contributors
+
+Maintained by [WG Tech Labs](https://github.com/wgtechlabs).
+
