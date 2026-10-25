@@ -52,6 +52,17 @@ The logo consists of custom vector paths, not a font. No font files are included
 - Keep the mark upright and free of shadows, gradients, outlines, extra strokes, and gestures.
 - Give meaningful logo images an accessible name such as `MDD`; use empty alternative text when adjacent text already supplies that name.
 
+## Product message and README banner
+
+Use this product line: **Free, open-source documentation for humans and agents.** MDD is MIT-licensed software that turns a project's Markdown into a readable documentation website and exposes the same content as Markdown for agents.
+
+The README banner uses the white Page space wordmark over a blurple-to-dark-neutral gradient. Use the supplied PNG wordmark as a custom inline image because GitHub Repo Banner embeds supported raster images, not SVG. Keep the wordmark next to the tagline rather than retyping or modifying the logo.
+
+~~~markdown
+![icon src="https://raw.githubusercontent.com/wgtechlabs/mdd/dev/brand/png/mdd-wordmark-white.png" w="260px"]
+~~~
+
+Set the banner subtitle to the approved product line and use the logo on a dark or blurple background. The image URL must be a direct public HTTPS PNG, JPEG, GIF, WebP, or AVIF URL; the banner service embeds the image in the generated SVG. Review the result at full size and normal README width. See the [GitHub Repo Banner custom image guide](https://github.com/warengonzaga/github-repo-banner/blob/main/docs/api.md#custom-icons-and-positioned-images) for current limits and syntax.
 ## Web assets and previews
 
 `icons/head-snippet.html` and `icons/site.webmanifest` are reusable integration examples. When using them on another site, copy the referenced files into the served output and adapt their URLs, scope, and start URL to that site's base path. A manifest and icons alone do not enable PWA behaviour. The maskable icon is a separate file with its own safe padding.
@@ -59,3 +70,4 @@ The logo consists of custom vector paths, not a font. No font files are included
 `preview/overview.png`, `preview/validation.png`, and `preview/presentation.html` document the artwork and show design contexts. Mockups are illustrative, not screenshots proving a live application change or deployment.
 
 The repository's [MIT licence](../LICENSE) remains applicable. This guide makes no trademark-clearance claim; a professional trademark and similarity search remains pending before formal registration or a wider identity launch.
+

@@ -1,6 +1,6 @@
 # MDD
 
-![MDD banner — Free, open-source documentation for humans and agents](<https://ghrb.waren.build/render/banner?header=MDD&subheader=Free,+open-source+documentation+for+humans+and+agents&bg=5865F2-1B1C25&color=FFFFFF&stats=false>)
+![MDD wordmark banner — Free, open-source documentation for humans and agents](<https://ghrb.waren.build/render/banner?header=%21%5Bicon%20src%3D%22https%3A%2F%2Fraw.githubusercontent.com%2Fwgtechlabs%2Fmdd%2Fdev%2Fbrand%2Fpng%2Fmdd-wordmark-white.png%22%20w%3D%22260px%22%5D&subheader=Free%2C%20open-source%20documentation%20for%20humans%20and%20agents&bg=5865F2-1B1C25&color=FFFFFF>)
 
 MDD is free, open-source software for turning Markdown into clear documentation websites. Give your project docs humans can navigate and agents can read as Markdown. Everything is configured through files.
 

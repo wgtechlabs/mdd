@@ -38,7 +38,7 @@ Authors edit Markdown, configuration, and selected theme files in Git. Static ou
 
 ## Brand Commitments
 
-The product is named mdd (Markdown Docs). Its voice is direct and useful. The approved “Page space” lowercase wordmark and blurple (`#5865F2`) identity are documented in `brand/README.md`. MDD’s own example uses this logo through its selected theme; documentation owners retain their configured site title and can supply their own theme.
+The product is named mdd (Markdown Docs). Its voice is direct and useful. Use the approved line “Free, open-source documentation for humans and agents”: MDD publishes readable sites for people and exposes the same content as Markdown for agents. The approved “Page space” lowercase wordmark and blurple (`#5865F2`) identity are documented in `brand/README.md`. MDD’s own example uses this logo through its selected theme; documentation owners retain their configured site title and can supply their own theme.
 
 ## Evidence on Hand
 
@@ -54,3 +54,4 @@ The published engine package and its documented API are available. Example docum
 ## Accessibility & Inclusion
 
 Semantic HTML, visible keyboard focus, responsive reading, reduced-motion support, sufficient contrast, and functional navigation without JavaScript are implementation acceptance criteria.
+
