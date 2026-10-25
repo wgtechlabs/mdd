@@ -56,7 +56,7 @@ The logo consists of custom vector paths, not a font. No font files are included
 
 Use this product line: **Free, open-source documentation for humans and agents.** MDD is MIT-licensed software that turns a project's Markdown into a readable documentation website and exposes the same content as Markdown for agents.
 
-The README banner uses the white Page space wordmark over a blurple-to-dark-neutral gradient. Use the supplied PNG wordmark as a custom inline image because GitHub Repo Banner embeds supported raster images, not SVG. Keep the wordmark next to the tagline rather than retyping or modifying the logo.
+The README banner uses the white Page space wordmark over a dark-blue Pexels starfield photograph, with a 2 px blur and 72% brightness for legibility. Use the supplied PNG wordmark as a custom inline image because GitHub Repo Banner embeds supported raster images, not SVG. Keep the wordmark next to the tagline rather than retyping or modifying the logo.
 
 ~~~markdown
 ![icon src="https://raw.githubusercontent.com/wgtechlabs/mdd/dev/brand/png/mdd-wordmark-white.png" w="260px"]
@@ -70,4 +70,3 @@ Set the banner subtitle to the approved product line and use the logo on a dark 
 `preview/overview.png`, `preview/validation.png`, and `preview/presentation.html` document the artwork and show design contexts. Mockups are illustrative, not screenshots proving a live application change or deployment.
 
 The repository's [MIT licence](../LICENSE) remains applicable. This guide makes no trademark-clearance claim; a professional trademark and similarity search remains pending before formal registration or a wider identity launch.
-
