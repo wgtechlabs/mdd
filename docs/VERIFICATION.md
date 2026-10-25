@@ -202,7 +202,9 @@ A fresh generic review agent used Impeccable's degraded finish-review contract b
 
 ## Release and hosting gaps
 
-- Railway container/template packaging and a live deployment belong to the next phase.
+- MDD Standard's generic plugin storage and feedback implementation are in the application; the Railway template, live PostgreSQL integration, and deployment have not been verified.
+- The Railway template is separate deployment work. MDD Light and its GitHub Pages installation/update flow remain planned for later.
+- MDD Light and its GitHub Pages installation/update flow are planned for later. The static exporter works, but that deployment path is not yet implemented.
 - Generic-host/browser deep-link rendering and configured static-host 404 behavior still need browser evidence; Node HTTP responses are tested separately.
 - MDD registry publication is intentionally disabled. Application release delivery and Railway hosting remain separate work; no MDD npm or OIDC setup is required. GitHub-hosted CI and CodeQL passed on PRs #1 and #3 and the main merge.
 - Earlier private-repository CI could not access the organization Gitleaks license. After the repository became public, Gitleaks and CodeQL passed in the main build [37967930053](https://github.com/wgtechlabs/mdd/actions/runs/37967930053).

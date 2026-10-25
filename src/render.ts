@@ -174,6 +174,7 @@ ${page?.description ? `<meta name="description" content="${escapeHtml(page.descr
 ${theme ? `<link rel="stylesheet" href="${escapeHtml(themeUrl(theme.css))}">` : ""}
 <script src="${escapeHtml(base)}_mdd/reader.js" defer></script>
 <script type="module" src="${escapeHtml(base)}_mdd/search-ui.js"></script>
+<script type="module" src="${escapeHtml(base)}_mdd/feedback.js"></script>
 ${theme?.js ? `<script src="${escapeHtml(themeUrl(theme.js))}" defer></script>` : ""}
 </head>
 <body>
@@ -194,6 +195,7 @@ ${searchDialog(base)}
 ${toc ? `<details class="mdd-mobile-outline" name="_mdd-mobile-menu"><summary><span class="mdd-sr-only">On this page: </span><span class="mdd-outline-title">${escapeHtml(title)}</span></summary>${toc}</details>` : ""}
 </div>
 <main id="_mdd-main" tabindex="-1"><article class="mdd-article">${content}</article>${page ? pageLinks(site, page) : ""}</main>
+${page ? `<section class="mdd-feedback" data-mdd-feedback hidden aria-labelledby="_mdd-feedback-title"><h2 id="_mdd-feedback-title">Was this page helpful?</h2><div class="mdd-feedback-votes"><button type="button" data-mdd-vote="yes">Yes</button><button type="button" data-mdd-vote="no">No</button></div><p class="mdd-feedback-result" data-mdd-feedback-result role="status" aria-live="polite"></p></section>` : ""}
 <footer class="mdd-footer">
 ${editUrl ? `<div class="mdd-page-actions"><span>Help improve this page.</span><a class="mdd-edit-page" href="${escapeHtml(editUrl)}">${editIcon(editUrl)}Edit this markdown</a></div>` : ""}
 <nav class="mdd-agent-links" aria-label="Agent resources">${markdownUrl ? `<a href="${escapeHtml(markdownUrl)}">View Markdown</a>` : ""}<a href="${escapeHtml(base)}llms.txt">llms.txt for agents</a></nav>

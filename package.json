@@ -38,12 +38,14 @@
     "demo": "bun run build && node scripts/demo.mjs"
   },
   "dependencies": {
-    "@wgtechlabs/mdd-engine": "1.1.0"
+    "@wgtechlabs/mdd-engine": "1.1.0",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
     "@types/bun": "1.4.2",
     "@types/node": "22",
+    "@types/pg": "^8.23.1",
     "typescript": "7.0.2"
   }
 }

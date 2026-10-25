@@ -14,13 +14,14 @@ This repository provides the documentation renderer, reader frontend, static exp
 | Project | Responsibility | Delivery |
 | --- | --- | --- |
 | **MDD Engine** (`wgtechlabs/mdd-engine`) | Headless Markdown processing, validation, navigation, and search | Published dependency: `@wgtechlabs/mdd-engine` on npm and GitHub Packages |
-| **MDD** (`wgtechlabs/mdd`, this repository) | Documentation frontend and Node server using MDD Engine | Railway template application; no MDD npm or GitHub Packages publication |
+| **MDD Standard** (`wgtechlabs/mdd`, this repository) | Hosted documentation application with database-backed built-in plugins | Railway with Postgres is recommended; feedback is the first plugin |
+| **MDD Light** | Static documentation output | GitHub Pages support and its installation flow are planned; no database |
 
-The Railway template will deploy **this application** and accept a separate public
-**content repository URL**. Each deployment will build and serve that repository's
-`mdd/` folder as one documentation site. The local reader, static export, and
-server work today; the Railway template and content-fetch integration are still to
-be implemented. Static output can also be hosted on GitHub Pages.
+## Product delivery roadmap
+
+**MDD Standard on Railway is the current product focus and recommended hosting path.** A usable database enables built-in plugins; no usable database leaves the documentation site working in Light mode. The first plugin collects page helpfulness feedback and shows only the aggregate percentage. This repository implements the application behavior; Railway template creation remains separate deployment work.
+
+**MDD Light for GitHub Pages is planned for later.** The static exporter works today, but the Light installation and update flow is not yet implemented. Standard and Light will have different setup paths.
 
 - **MDD Engine:** compile Markdown into validated site data and safe article HTML, including code blocks and alerts; create and query a portable search index.
 - **MDD:** compose the website, add shared reader controls such as code copying and search, and export or serve it.
@@ -88,7 +89,7 @@ Use `NOTE`, `TIP`, `IMPORTANT`, `WARNING`, or `CAUTION` on the opening line of a
 }
 ```
 
-All configuration fields are optional. Omit `theme` to use D Theme alone. The configuration's `theme` field selects a local custom overlay; it does not select a bundled theme by ID. Paths are relative to the configuration folder and must stay within the documentation checkout. There is no admin dashboard or plugin runtime.
+All configuration fields are optional. Omit `theme` to use D Theme alone. The configuration's `theme` field selects a local custom overlay; it does not select a bundled theme by ID. Paths are relative to the configuration folder and must stay within the documentation checkout. MDD has no dashboard or owner accounts. Feedback requires `DATABASE_URL`; the server stores page, vote, and timestamp records and does not expose raw votes publicly.
 
 ## Shared footer links
 
@@ -157,7 +158,7 @@ For a nested site, set `basePath` to the full prefix, such as `/repository/docs/
 
 The build manifest reports MDD/engine versions, the URL prefix, and Git commit when available. `source.dirty` is `null` (unknown): the exporter deliberately avoids Git status because configured Git filters can execute commands. Content must remain stable during a build; production should build from an immutable checkout.
 
-A Railway template will consume a separate public content repository at build time and serve its finished snapshot. That packaging and live deployment verification are the next phase; see [the specification](docs/SPEC.md).
+MDD Standard on Railway is the current roadmap focus. The application supports database-backed feedback when `DATABASE_URL` is usable; template creation and content-repository integration remain separate deployment work. MDD Light and its GitHub Pages installation flow are planned for later. See [the specification](docs/SPEC.md).
 
 ## Customize the reader
 
