@@ -202,7 +202,7 @@ A fresh generic review agent used Impeccable's degraded finish-review contract b
 
 ## Release and hosting gaps
 
-- MDD Standard's generic plugin storage and feedback implementation are on the feature branch; the Railway template, database-backed integration, and live deployment have not been verified.
+- MDD Standard's generic plugin storage and feedback implementation are in the application; the Railway template, live PostgreSQL integration, and deployment have not been verified.
 - The Railway template is separate deployment work. MDD Light and its GitHub Pages installation/update flow remain planned for later.
 - MDD Light and its GitHub Pages installation/update flow are planned for later. The static exporter works, but that deployment path is not yet implemented.
 - Generic-host/browser deep-link rendering and configured static-host 404 behavior still need browser evidence; Node HTTP responses are tested separately.
