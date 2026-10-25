@@ -132,7 +132,7 @@ Results include pages and individual headings with context breadcrumbs. Exact an
 
 Matching text is highlighted using the engine's original-text ranges, including corrected spellings and Unicode. Short excerpts appear when a match is in the body rather than the primary label. Excerpts are bounded and may not show every word of a multiword query. Highlights stay in the result list; opening a result shows the original documentation page.
 
-The engine creates the index and ranks queries. MDD exports it as ``_mdd/`search-index.json`, loads it when search opens, and renders result titles, sections, and excerpts as text. The engine's browser-safe query module is ``_mdd/`search.js`; MDD's dialog behavior is ``_mdd/`search-ui.js`. Search works under the configured site prefix without an external search service or server-side query endpoint.
+The engine creates the index and ranks queries. MDD exports it as `_mdd/search-index.json`, loads it when search opens, and renders result titles, sections, and excerpts as text. The engine's browser-safe query module is `_mdd/search.js`; MDD's dialog behavior is `_mdd/search-ui.js`. Search works under the configured site prefix without an external search service or server-side query endpoint.
 
 ### Customize the reader
 
@@ -153,7 +153,7 @@ build({
 });
 ~~~
 
-MDD appends the engine's source file path, so `mdd/`contents/`guides/install.md` links to that file regardless of its public route or deployment prefix. The link works in static exports without browser JavaScript. It is omitted when no edit destination is configured and on the 404 page.
+MDD appends the engine's source file path, so `mdd/contents/guides/install.md` links to that file regardless of its public route or deployment prefix. The link works in static exports without browser JavaScript. It is omitted when no edit destination is configured and on the 404 page.
 
 Use `MDD_EDIT_BASE_URL` when starting the server, or pass `editBaseUrl` in `build()` options for a static export. The prefix must be HTTPS with no credentials, query, or fragment. Use the content repository and an editable branch; MDD does not guess these from the app repository.
 
