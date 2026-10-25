@@ -25,7 +25,7 @@ content repository URL. See the [delivery contract](docs/ARCHITECTURE.md#deliver
 
 ## Operating Context
 
-Authors edit Markdown, configuration, and selected theme files in Git. Static output can be served from GitHub Pages under a chosen prefix. The local reader, exporter, and Node server are implemented. The Railway template and external content-fetch integration remain planned, with one public content repository per deployment. There is no dashboard or database.
+Authors edit Markdown, configuration, and selected theme files in Git. Static output can be served from GitHub Pages under a chosen prefix. The local reader, exporter, and Node server are implemented. The Railway template and external content-fetch integration remain planned, with one public content repository per deployment. There is no dashboard or account system. A PostgreSQL-backed feedback plugin is available when a usable `DATABASE_URL` is configured; whether MDD Full needs additional database-backed features remains undecided.
 
 ## Capabilities and Constraints
 
@@ -34,11 +34,11 @@ Authors edit Markdown, configuration, and selected theme files in Git. Static ou
 - Themes use CSS and optional browser JavaScript; author code never runs during compilation.
 - The server builds the configured documentation project and serves the rendered reader. The build API supports static exports with normalized Markdown and a search index.
 - Separate repositories, published engine dependency, Bun tools, Node 22/24/26 support with latest LTS default.
-- Private content repositories, plugins, accounts, search services, AI chat, and multiple sites are deferred.
+- Private content repositories, third-party plugins, accounts, search services, AI chat, and multiple sites are deferred.
 
 ## Brand Commitments
 
-The product is named mdd (Markdown Docs). Its voice is direct and useful. The approved “Page space” lowercase wordmark and blurple (`#5865F2`) identity are documented in `brand/README.md`. MDD’s own example uses this logo through its selected theme; documentation owners retain their configured site title and can supply their own theme.
+The product is named mdd (Markdown Docs). Its voice is direct and useful. Use the approved line “Free, open-source documentation for humans and agents”: MDD publishes readable sites for people and exposes the same content as Markdown for agents. The approved “Page space” lowercase wordmark and blurple (`#5865F2`) identity are documented in `brand/README.md`. MDD’s own example uses this logo through its selected theme; documentation owners retain their configured site title and can supply their own theme.
 
 ## Evidence on Hand
 
@@ -54,3 +54,4 @@ The published engine package and its documented API are available. Example docum
 ## Accessibility & Inclusion
 
 Semantic HTML, visible keyboard focus, responsive reading, reduced-motion support, sufficient contrast, and functional navigation without JavaScript are implementation acceptance criteria.
+

@@ -26,7 +26,7 @@ the engine's npm package. At startup the image builds a mounted content project
 and serves its rendered output; it does not fetch a separate content repository
 or deploy a Railway service.
 
-**Available now:** the engine package, reader, local development tooling, static export, and Node server. **Being added:** the generic namespaced plugin storage interface and built-in feedback feature for MDD Standard. **Planned separately:** the Railway template, authenticated Analytics API, and MDD Analytics deployment. MDD Light's GitHub Pages installation/update flow remains later work. A local build does not establish a working Railway template or deployment.
+**Available now:** the engine package, reader, local development tooling, static export, Node server, generic namespaced plugin storage interface, and built-in feedback feature for MDD Standard. **Planned separately:** the Railway template, authenticated Analytics API, and MDD Analytics deployment. MDD Light's GitHub Pages installation/update flow remains later work. A local build does not establish a working Railway template or deployment.
 
 ## Ownership
 
