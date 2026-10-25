@@ -1,8 +1,8 @@
 # MDD
 
-![MDD banner — Free, open-source documentation](<https://ghrb.waren.build/render/banner?header=MDD&subheader=Free,+open-source+documentation&bg=5865F2-1B1C25&color=FFFFFF&stats=false>)
+![MDD banner — Free, open-source documentation for humans and agents](<https://ghrb.waren.build/render/banner?header=MDD&subheader=Free,+open-source+documentation+for+humans+and+agents&bg=5865F2-1B1C25&color=FFFFFF&stats=false>)
 
-MDD is free, open-source software for turning Markdown into clear documentation websites. Give your project docs people can navigate and agents can read as Markdown. Everything is configured through files.
+MDD is free, open-source software for turning Markdown into clear documentation websites. Give your project docs humans can navigate and agents can read as Markdown. Everything is configured through files.
 
 This repository contains **MDD Standard**: the documentation reader, static exporter, and Node server. It uses the published [**@wgtechlabs/mdd-engine**](https://github.com/wgtechlabs/mdd-engine) package for Markdown compilation, validation, navigation, and search.
 
