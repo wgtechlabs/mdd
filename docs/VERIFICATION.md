@@ -202,8 +202,8 @@ A fresh generic review agent used Impeccable's degraded finish-review contract b
 
 ## Release and hosting gaps
 
-- MDD Full on Railway is the current roadmap focus; its template, content-repository integration, and live deployment are not yet verified.
-- The role of a database in MDD Full is an open product decision. The current implementation is stateless; do not describe that as the final Full product contract.
+- MDD Standard's generic plugin storage and feedback implementation are on the feature branch; the Railway template, database-backed integration, and live deployment have not been verified.
+- The Railway template is separate deployment work. MDD Light and its GitHub Pages installation/update flow remain planned for later.
 - MDD Light and its GitHub Pages installation/update flow are planned for later. The static exporter works, but that deployment path is not yet implemented.
 - Generic-host/browser deep-link rendering and configured static-host 404 behavior still need browser evidence; Node HTTP responses are tested separately.
 - MDD registry publication is intentionally disabled. Application release delivery and Railway hosting remain separate work; no MDD npm or OIDC setup is required. GitHub-hosted CI and CodeQL passed on PRs #1 and #3 and the main merge.
