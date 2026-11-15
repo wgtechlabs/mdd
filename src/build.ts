@@ -28,6 +28,8 @@ import { dThemeDirectory, readDThemeIdentity } from "./theme.js";
 export type BuildOptions = CompileOptions & {
   outDir?: string;
   editBaseUrl?: string;
+  /** Verified content commit. When set, the manifest uses it and Git is not queried. */
+  sourceCommit?: string;
 };
 export type BuildResult =
   | { site: Site; diagnostics: Diagnostic[]; directory: string }
@@ -60,6 +62,14 @@ function markdownText(value: string): string {
 
 function pageDirectory(route: string): string {
   return route.split("/").filter(Boolean).map(decodeURIComponent).join("/");
+}
+
+function explicitSource(commit: string): BuildManifest["source"] {
+  const normalized = commit.trim().toLowerCase();
+  if (!/^[a-f0-9]{40}(?:[a-f0-9]{24})?$/.test(normalized)) {
+    throw new Error("Content commit must be a full Git SHA.");
+  }
+  return { commit: normalized, dirty: null };
 }
 
 async function sourceState(root: string): Promise<BuildManifest["source"]> {
@@ -131,6 +141,9 @@ async function outputDirectory(
 
 /** Compile into portable files without executing code from the documentation checkout. */
 export async function build(options: BuildOptions): Promise<BuildResult> {
+  const pinnedSource = options.sourceCommit
+    ? explicitSource(options.sourceCommit)
+    : undefined;
   const editBaseUrl =
     options.editBaseUrl === undefined
       ? undefined
@@ -258,7 +271,7 @@ export async function build(options: BuildOptions): Promise<BuildResult> {
     mddVersion: metadata.version,
     engineVersion: engineMetadata.version,
     basePath: site.basePath,
-    source: await sourceState(root),
+    source: pinnedSource ?? (await sourceState(root)),
   };
   add("mdd-build.json", `${JSON.stringify(manifest, null, 2)}\n`);
   await writeOutput(directory, files);

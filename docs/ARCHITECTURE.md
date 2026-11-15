@@ -22,11 +22,13 @@ metadata. Its local name and archive smoke tests do not make registry publicatio
 part of delivery. Keep `private: true` and `enable-package: false`; MDD needs no npm
 token, Trusted Publisher, or initial npm publication. Build Flow publishes the
 Node renderer/server container using its default artifact settings, separate from
-the engine's npm package. At startup the image builds a mounted content project
-and serves its rendered output; it does not fetch a separate content repository
-or deploy a Railway service.
+the engine's npm package. An image built with `MDD_REPO_URL` fetches that public
+GitHub content repository during the image build and serves the baked site. The
+serving process does not fetch content or run content-repository scripts. Without
+that build argument, startup still builds a project mounted at `/workspace`. The
+image does not deploy a Railway service.
 
-**Available now:** the engine package, reader, local development tooling, static export, Node server, generic namespaced plugin storage interface, and built-in feedback feature for MDD Standard. **Planned separately:** the Railway template, authenticated Analytics API, and MDD Analytics deployment. MDD Light's GitHub Pages installation/update flow remains later work. A local build does not establish a working Railway template or deployment.
+**Available now:** the engine package, reader, local development tooling, static export, Node server, image-build content fetch, generic namespaced plugin storage interface, and built-in feedback feature for MDD Standard. **Planned separately:** the Railway template, authenticated Analytics API, and MDD Analytics deployment. MDD Light's GitHub Pages installation/update flow remains later work. A local build does not establish a working Railway template or deployment.
 
 ## Ownership
 
@@ -43,7 +45,7 @@ or deploy a Railway service.
 
 MDD consumes the published engine package. It must not duplicate Markdown parsing, invent different route rules, or bypass engine validation. Another frontend can use the same engine without importing MDD or selecting an MDD theme.
 
-The separate `mdd-build-flow-action` is intended to invoke MDD for deployment and coordinate updates. Deployment credentials and provider APIs belong to that integration, outside the content compiler and themes. Railway packaging belongs to MDD; one deployment hosts one documentation site. Those deployment pieces remain planned.
+The separate `mdd-build-flow-action` is intended to invoke MDD for deployment and coordinate updates. Deployment credentials and provider APIs belong to that integration, outside the content compiler and themes. Railway packaging belongs to MDD; one deployment hosts one documentation site. Image-build content fetch is implemented. The Railway template and the update action remain planned.
 
 ## D Theme lives in MDD
 
