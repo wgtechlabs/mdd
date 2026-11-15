@@ -16,6 +16,43 @@ WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --production --frozen-lockfile
 
+# Git exists only in this stage. The final image copies the finished site, not Git.
+FROM node:24-alpine AS content
+
+RUN apk add --no-cache git
+
+WORKDIR /app
+
+COPY --from=build /app/dist/ ./dist/
+COPY --from=production-deps /app/node_modules/ ./node_modules/
+COPY package.json ./
+COPY assets/ ./assets/
+COPY themes/d/ ./themes/d/
+
+# These arguments belong to this stage only. Railway injects service variables
+# into a Dockerfile build when the names match. Keep them after the dependency
+# layers. MDD_SOURCE_SHA and RAILWAY_DEPLOYMENT_ID are last so a new commit or
+# deployment rebuilds the fetch and leaves the dependency layers cached.
+ARG MDD_REPO_URL
+ARG MDD_REPO_REF
+ARG MDD_SOURCE_DIR=mdd
+ARG MDD_BASE_PATH
+ARG MDD_EDIT_BASE_URL
+ARG MDD_SOURCE_SHA
+ARG RAILWAY_DEPLOYMENT_ID
+
+RUN mkdir -p /out/site \
+    && MDD_REPO_URL="$MDD_REPO_URL" \
+    MDD_REPO_REF="$MDD_REPO_REF" \
+    MDD_SOURCE_DIR="$MDD_SOURCE_DIR" \
+    MDD_BASE_PATH="$MDD_BASE_PATH" \
+    MDD_EDIT_BASE_URL="$MDD_EDIT_BASE_URL" \
+    MDD_SOURCE_SHA="$MDD_SOURCE_SHA" \
+    RAILWAY_DEPLOYMENT_ID="$RAILWAY_DEPLOYMENT_ID" \
+    MDD_CONTENT_CHECKOUT=/tmp/mdd-content \
+    MDD_OUTPUT_DIR=/out/site \
+    node /app/dist/content-fetch.js
+
 FROM node:24-alpine
 
 ENV NODE_ENV=production
@@ -23,6 +60,7 @@ ENV PORT=3000
 ENV MDD_PROJECT_DIR=/workspace
 ENV MDD_DOCS_DIR=mdd
 ENV MDD_OUTPUT_DIR=/tmp/mdd-dist
+ENV MDD_PREBUILT_DIR=/app/site
 
 WORKDIR /app
 
@@ -34,6 +72,7 @@ RUN node -e 'const fs = require("node:fs"); const path = "/app/package.json"; co
     && chown node:node /workspace
 
 COPY --from=build /app/dist/ ./dist/
+COPY --from=content /out/site /app/site
 COPY assets/ ./assets/
 COPY themes/d/ ./themes/d/
 
