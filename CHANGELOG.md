@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [0.3.0] - 2026-11-16
+
+### Added
+
+- download content at startup for prebuilt images (#22)
+- detect the mdd or docs content folder (#21)
+- fetch public content during image build (#19)
+
+### Changed
+
+- dogfood mdd and move specs to .agents (#23)
+- sync docs with code and add railway deploy guide (#20)
+- fix README inline code formatting
+- clarify feedback availability in product docs
+- align product status with feedback runtime
+- use Pexels photo in README banner
+- align MDD branding with new product line
+- refine README banner messaging
+- upgrade README with open-source messaging and banner
+
 ## [0.2.0] - 2026-10-25
 
 ### Added
