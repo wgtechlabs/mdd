@@ -21,7 +21,7 @@ This repository contains **MDD Standard**: the documentation reader, static expo
 | **MDD Standard** (wgtechlabs/mdd, this repository) | Documentation application using MDD Engine and database-backed plugins | Railway is the recommended deployment; the feedback plugin is the first built-in plugin |
 | **MDD Light** | Static documentation output | GitHub Pages support and its installation flow are planned; no database |
 
-**MDD Standard on Railway is the current product focus.** A usable `DATABASE_URL` enables server-side plugins, including the built-in feedback plugin, which collects page helpfulness votes and displays only the aggregate percentage. An image built with `MDD_REPO_URL` fetches one public content repository and serves the finished site. The Railway template remains deployment work.
+**MDD Standard on Railway is the current product focus.** A usable `DATABASE_URL` enables server-side plugins, including the built-in feedback plugin, which collects page helpfulness votes and displays only the aggregate percentage. With `MDD_REPO_URL` set, MDD fetches one public content repository, at image build or at startup, and serves the finished site. The Railway template remains deployment work.
 
 **MDD Light is planned for later.** The static exporter works today, but its GitHub Pages installation and update flow is not implemented. Standard and Light will have separate setup paths.
 
@@ -38,33 +38,33 @@ Open <http://127.0.0.1:4173/docs/>. The example includes an API reference, code 
 
 ### Run the server container
 
-The published container builds documentation from a mounted project. The mount must contain the project's mdd/ directory.
+The published container builds documentation from a mounted project. MDD uses the project's `mdd/` folder, or `docs/` if `mdd/` is not an MDD folder. An MDD folder has `contents/index.md`; see [the MDD folder](mdd/contents/get-started/folder.md).
 
 ~~~sh
 docker run --rm -p 3000:3000 -v "$PWD:/workspace" wgtechlabs/mdd:latest
 ~~~
 
-The container defaults to /workspace for `MDD_PROJECT_DIR`, /workspace/mdd for `MDD_DOCS_DIR`, /tmp/mdd-dist for `MDD_OUTPUT_DIR`, 0.0.0.0 for HOST, and 3000 for PORT. Environment variables can customize the project, docs, output, base path, edit URL, host, and port.
+The container defaults to /workspace for `MDD_PROJECT_DIR`, `mdd/` then `docs/` for `MDD_DOCS_DIR`, /tmp/mdd-dist for `MDD_OUTPUT_DIR`, 0.0.0.0 for HOST, and 3000 for PORT. Environment variables can customize the project, docs, output, base path, edit URL, host, and port.
 
 ### Deploy on Railway
 
-Create a Railway service from this GitHub repository. Railway builds the Dockerfile. The build fetches your public content repository and bakes the finished site into the image. Add a Postgres service to enable page feedback.
+Create a Railway service from the Docker image `wgtechlabs/mdd:latest`. At startup, the container downloads your public content repository, builds it, and then serves it. Add a Postgres service to enable page feedback.
 
 | Variable | Value |
 | --- | --- |
 | `MDD_REPO_URL` | Required. Public `https://github.com/owner/repository` URL of the content repository. |
 | `MDD_REPO_REF` | Branch or tag to fetch. Defaults to the repository's default branch. |
-| `MDD_SOURCE_SHA` | Full commit SHA to build. If the build cannot fetch it, the build fails. |
-| `MDD_SOURCE_DIR` | Docs directory in the checkout. Defaults to `mdd`. |
+| `MDD_SOURCE_SHA` | Full commit SHA to fetch. If MDD cannot get it, startup fails. |
+| `MDD_SOURCE_DIR` | MDD folder in the repository. Defaults to `mdd/`, then `docs/`. |
 | `MDD_BASE_PATH` | Optional public prefix, such as `/docs/`. Defaults to `/`. |
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}`. Optional; enables feedback. |
 | `MDD_TRUST_PROXY` | `true`, so the feedback rate limit uses Railway's `X-Real-IP` header. |
 
-- Set the healthcheck path to `/healthz`.
+- Set the healthcheck path to `/healthz`. It returns 200 only after the site is built.
 - Railway injects `PORT` (8080) at runtime, and the server listens on it. Keep the public domain's target port on that injected `PORT`. Do not pin it to 3000; `EXPOSE 3000` is for local `docker run` only.
-- To update the docs, set `MDD_SOURCE_SHA` to the new commit and redeploy. The running server never fetches content.
+- To update the docs, set `MDD_SOURCE_SHA` to the new commit and redeploy. MDD fetches content once per start.
 
-For a demo, set `MDD_REPO_URL` to `https://github.com/wgtechlabs/mdd` and `MDD_SOURCE_DIR` to `examples/basic/mdd`.
+A service built from this repository's Dockerfile also works. Railway passes the same variables as build arguments and bakes the site into the image. For a demo, set `MDD_REPO_URL` to `https://github.com/wgtechlabs/mdd` and `MDD_SOURCE_DIR` to `examples/basic/mdd`. See the [Railway guide](mdd/contents/deploy/railway.md).
 
 ## 📖 Usage
 
@@ -221,6 +221,9 @@ The server uses /workspace as `MDD_PROJECT_DIR`, the first MDD folder of `mdd/` 
 
 ## 📚 Documentation
 
+The user documentation is an MDD project in [`mdd/`](mdd/contents/index.md). Internal specifications live in [`.agents/specs/`](.agents/specs/SPEC.md).
+
+- [User documentation](mdd/contents/index.md)
 - [Product specification](.agents/specs/SPEC.md)
 - [Architecture and delivery boundaries](.agents/specs/ARCHITECTURE.md)
 - [Theme guide and version policy](.agents/specs/THEMES.md)

@@ -4,6 +4,20 @@ Dated entries preserve the evidence and limitations of each implementation stage
 The newest entry supersedes older local-only and browser-access statements; remote
 readiness and merge outcomes are recorded on the delivery PRs.
 
+## November 16 content folder, startup download, and user docs
+
+MDD picks `mdd/`, then `docs/`, unless a folder variable is set. A prebuilt image
+downloads `MDD_REPO_URL` as a GitHub tarball at startup, without Git. User docs
+now live in `mdd/`, and internal specs moved to `.agents/specs/`.
+
+- `bun run check`: PASS, lint, typecheck, build, **118 tests / 966 assertions**.
+- MDD builds this repository's `mdd/` folder with no diagnostics; a test keeps it so.
+- A local server run against `wgtechlabs/mdd` with
+  `MDD_SOURCE_DIR=examples/basic/mdd` downloaded commit `71a2e12` and served
+  `/healthz` 200. A missing SHA and a repository without an MDD folder both
+  stopped startup before the server listened.
+- The Railway template and an image-based Railway deployment are not tested yet.
+
 ## November 16 content fetch and Railway docs sync
 
 Image-build content fetch shipped in PR #19. The docs now match D Theme 0.3.0 and
