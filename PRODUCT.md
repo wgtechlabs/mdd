@@ -21,7 +21,7 @@ MDD turns a repository's `mdd/` folder into a rendered documentation website tha
 MDD's hosted delivery target is a Railway template. Only MDD Engine is a registry
 package; MDD consumes it as a dependency and does not need npm publication or
 Trusted Publishing. The template deploys the MDD application and accepts a separate
-content repository URL. See the [delivery contract](docs/ARCHITECTURE.md#delivery-contract).
+content repository URL. See the [delivery contract](.agents/specs/ARCHITECTURE.md#delivery-contract).
 
 ## Operating Context
 
