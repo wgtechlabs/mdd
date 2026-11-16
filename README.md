@@ -34,7 +34,7 @@ bun install --frozen-lockfile
 bun run demo
 ~~~
 
-Open <http://127.0.0.1:4173/docs/>. The example includes an API reference, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation. See [verification](docs/VERIFICATION.md) for current evidence and remaining hosting work.
+Open <http://127.0.0.1:4173/docs/>. The example includes an API reference, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation. See [verification](.agents/specs/VERIFICATION.md) for current evidence and remaining hosting work.
 
 ### Run the server container
 
@@ -156,7 +156,7 @@ The engine creates the index and ranks queries. MDD exports it as `_mdd/search-i
 
 ### Customize the reader
 
-See [themes](docs/THEMES.md). D Theme lives in [`themes/d/`](themes/d/) and supports system light/dark preference and a persistent reader toggle. Custom CSS loads after its stylesheet; optional `theme.js` runs only in the browser. The build never executes theme scripts or installs source-repository dependencies.
+See [themes](.agents/specs/THEMES.md). D Theme lives in [`themes/d/`](themes/d/) and supports system light/dark preference and a persistent reader toggle. Custom CSS loads after its stylesheet; optional `theme.js` runs only in the browser. The build never executes theme scripts or installs source-repository dependencies.
 
 Every page footer shows the installed **mdd** version and bundled **D Theme — D26 · v0.3.0**. D26 is a release name for D Theme, not a separate theme: minor and patch updates retain it, and the planned 1.0.0 major release introduces D27. The theme version changes independently of mdd; release names never change automatically with the year. [`themes/archive/`](themes/archive/) is reserved for historical source snapshots.
 
@@ -221,11 +221,11 @@ The server uses /workspace as `MDD_PROJECT_DIR`, the first MDD folder of `mdd/` 
 
 ## 📚 Documentation
 
-- [Product specification](docs/SPEC.md)
-- [Architecture and delivery boundaries](docs/ARCHITECTURE.md)
-- [Theme guide and version policy](docs/THEMES.md)
-- [Verification record](docs/VERIFICATION.md)
-- [Release process](docs/RELEASING.md)
+- [Product specification](.agents/specs/SPEC.md)
+- [Architecture and delivery boundaries](.agents/specs/ARCHITECTURE.md)
+- [Theme guide and version policy](.agents/specs/THEMES.md)
+- [Verification record](.agents/specs/VERIFICATION.md)
+- [Release process](.agents/specs/RELEASING.md)
 - [Brand kit](brand/README.md)
 - [Writing pages example](examples/basic/mdd/contents/guides/writing.md)
 
@@ -243,11 +243,11 @@ The smoke check creates a local application archive, installs it in an isolated 
 
 ## 🤝 Contributing
 
-Follow [AGENTS.md](AGENTS.md), the [product contract](docs/SPEC.md), and the layer ownership rules in [architecture](docs/ARCHITECTURE.md). Keep changes aligned with the documented boundary between MDD Engine, MDD, and themes.
+Follow [AGENTS.md](AGENTS.md), the [product contract](.agents/specs/SPEC.md), and the layer ownership rules in [architecture](.agents/specs/ARCHITECTURE.md). Keep changes aligned with the documented boundary between MDD Engine, MDD, and themes.
 
 ## 🐛 Issues & Support
 
-Report bugs and request changes in [GitHub Issues](https://github.com/wgtechlabs/mdd/issues). For questions about product direction, see the [specification](docs/SPEC.md).
+Report bugs and request changes in [GitHub Issues](https://github.com/wgtechlabs/mdd/issues). For questions about product direction, see the [specification](.agents/specs/SPEC.md).
 
 ## 📄 License
 
