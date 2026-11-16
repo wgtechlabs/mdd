@@ -22,11 +22,14 @@ metadata. Its local name and archive smoke tests do not make registry publicatio
 part of delivery. Keep `private: true` and `enable-package: false`; MDD needs no npm
 token, Trusted Publisher, or initial npm publication. Build Flow publishes the
 Node renderer/server container using its default artifact settings, separate from
-the engine's npm package. At startup the image builds a mounted content project
-and serves its rendered output; it does not fetch a separate content repository
-or deploy a Railway service.
+the engine's npm package. An image built with `MDD_REPO_URL` fetches that public
+GitHub content repository during the image build and serves the baked site. A
+prebuilt image with `MDD_REPO_URL` set at runtime downloads the repository tarball
+once at startup, without Git, and builds it before listening. The server never runs
+content-repository scripts. Without `MDD_REPO_URL`, startup builds a project
+mounted at `/workspace`. The image does not deploy a Railway service.
 
-**Available now:** the engine package, reader, local development tooling, static export, Node server, generic namespaced plugin storage interface, and built-in feedback feature for MDD Standard. **Planned separately:** the Railway template, authenticated Analytics API, and MDD Analytics deployment. MDD Light's GitHub Pages installation/update flow remains later work. A local build does not establish a working Railway template or deployment.
+**Available now:** the engine package, reader, local development tooling, static export, Node server, image-build content fetch, generic namespaced plugin storage interface, and built-in feedback feature for MDD Standard. **Planned separately:** the Railway template, authenticated Analytics API, and MDD Analytics deployment. MDD Light's GitHub Pages installation/update flow remains later work. A local build does not establish a working Railway template or deployment.
 
 ## Ownership
 
@@ -43,13 +46,13 @@ or deploy a Railway service.
 
 MDD consumes the published engine package. It must not duplicate Markdown parsing, invent different route rules, or bypass engine validation. Another frontend can use the same engine without importing MDD or selecting an MDD theme.
 
-The separate `mdd-build-flow-action` is intended to invoke MDD for deployment and coordinate updates. Deployment credentials and provider APIs belong to that integration, outside the content compiler and themes. Railway packaging belongs to MDD; one deployment hosts one documentation site. Those deployment pieces remain planned.
+The separate `mdd-build-flow-action` is intended to invoke MDD for deployment and coordinate updates. Deployment credentials and provider APIs belong to that integration, outside the content compiler and themes. Railway packaging belongs to MDD; one deployment hosts one documentation site. Image-build content fetch is implemented. The Railway template and the update action remain planned.
 
 ## D Theme lives in MDD
 
 Develop, test, version, and ship **D Theme** in the **`wgtechlabs/mdd` repository**, alongside the reader. Its stable identifier is `d`. Themes are a logical styling layer, not a requirement for another repository or package. MDD Engine must remain usable without importing D Theme.
 
-D Theme has an independent numeric version and a release name. It started at **D26 / 0.1.0** and currently uses **D26 / 0.2.0**; minor and patch versions retain D26, and the planned **1.0.0** major release introduces D27. These are generations of one theme, not separate annual themes. Name changes are deliberate release decisions, never calendar-triggered. Archive released historical snapshots without rewriting their versions; do not invent a release from local development history.
+D Theme has an independent numeric version and a release name. It started at **D26 / 0.1.0** and currently uses **D26 / 0.3.0**; minor and patch versions retain D26, and the planned **1.0.0** major release introduces D27. These are generations of one theme, not separate annual themes. Name changes are deliberate release decisions, never calendar-triggered. Archive released historical snapshots without rewriting their versions; do not invent a release from local development history.
 
 MDD ships the selected D Theme version with the application, but an mdd version bump does not change the theme version. The footer shows the installed mdd version and D Theme identity. Custom themes remain visual overlays selected by the engine; their styles and assets stay in their theme directories and do not add a separate reader identity. See the [theme version policy](THEMES.md#version-policy).
 

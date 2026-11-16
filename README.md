@@ -21,7 +21,7 @@ This repository contains **MDD Standard**: the documentation reader, static expo
 | **MDD Standard** (wgtechlabs/mdd, this repository) | Documentation application using MDD Engine and database-backed plugins | Railway is the recommended deployment; the feedback plugin is the first built-in plugin |
 | **MDD Light** | Static documentation output | GitHub Pages support and its installation flow are planned; no database |
 
-**MDD Standard on Railway is the current product focus.** A usable `DATABASE_URL` enables server-side plugins, including the built-in feedback plugin, which collects page helpfulness votes and displays only the aggregate percentage. The Railway template and content-repository integration remain deployment work.
+**MDD Standard on Railway is the current product focus.** A usable `DATABASE_URL` enables server-side plugins, including the built-in feedback plugin, which collects page helpfulness votes and displays only the aggregate percentage. With `MDD_REPO_URL` set, MDD fetches one public content repository, at image build or at startup, and serves the finished site. The Railway template remains deployment work.
 
 **MDD Light is planned for later.** The static exporter works today, but its GitHub Pages installation and update flow is not implemented. Standard and Light will have separate setup paths.
 
@@ -34,17 +34,37 @@ bun install --frozen-lockfile
 bun run demo
 ~~~
 
-Open <http://127.0.0.1:4173/docs/>. The example includes an API reference, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation. See [verification](docs/VERIFICATION.md) for current evidence and remaining hosting work.
+Open <http://127.0.0.1:4173/docs/>. The example includes an API reference, code blocks, all five alert types, search, footer social links, a table of contents, and theme documentation. See [verification](.agents/specs/VERIFICATION.md) for current evidence and remaining hosting work.
 
 ### Run the server container
 
-The published container builds documentation from a mounted project. The mount must contain the project's mdd/ directory.
+The published container builds documentation from a mounted project. MDD uses the project's `mdd/` folder, or `docs/` if `mdd/` is not an MDD folder. An MDD folder has `contents/index.md`; see [the MDD folder](mdd/contents/get-started/folder.md).
 
 ~~~sh
 docker run --rm -p 3000:3000 -v "$PWD:/workspace" wgtechlabs/mdd:latest
 ~~~
 
-The container defaults to /workspace for `MDD_PROJECT_DIR`, /workspace/mdd for `MDD_DOCS_DIR`, /tmp/mdd-dist for `MDD_OUTPUT_DIR`, 0.0.0.0 for HOST, and 3000 for PORT. Environment variables can customize the project, docs, output, base path, edit URL, host, and port.
+The container defaults to /workspace for `MDD_PROJECT_DIR`, `mdd/` then `docs/` for `MDD_DOCS_DIR`, /tmp/mdd-dist for `MDD_OUTPUT_DIR`, 0.0.0.0 for HOST, and 3000 for PORT. Environment variables can customize the project, docs, output, base path, edit URL, host, and port.
+
+### Deploy on Railway
+
+Create a Railway service from the Docker image `wgtechlabs/mdd:latest`. At startup, the container downloads your public content repository, builds it, and then serves it. Add a Postgres service to enable page feedback.
+
+| Variable | Value |
+| --- | --- |
+| `MDD_REPO_URL` | Required. Public `https://github.com/owner/repository` URL of the content repository. |
+| `MDD_REPO_REF` | Branch or tag to fetch. Defaults to the repository's default branch. |
+| `MDD_SOURCE_SHA` | Full commit SHA to fetch. If MDD cannot get it, startup fails. |
+| `MDD_SOURCE_DIR` | MDD folder in the repository. Defaults to `mdd/`, then `docs/`. |
+| `MDD_BASE_PATH` | Optional public prefix, such as `/docs/`. Defaults to `/`. |
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}`. Optional; enables feedback. |
+| `MDD_TRUST_PROXY` | `true`, so the feedback rate limit uses Railway's `X-Real-IP` header. |
+
+- Set the healthcheck path to `/healthz`. It returns 200 only after the site is built.
+- Railway injects `PORT` (8080) at runtime, and the server listens on it. Keep the public domain's target port on that injected `PORT`. Do not pin it to 3000; `EXPOSE 3000` is for local `docker run` only.
+- To update the docs, set `MDD_SOURCE_SHA` to the new commit and redeploy. MDD fetches content once per start.
+
+A service built from this repository's Dockerfile also works. Railway passes the same variables as build arguments and bakes the site into the image. For a demo, set `MDD_REPO_URL` to `https://github.com/wgtechlabs/mdd` and `MDD_SOURCE_DIR` to `examples/basic/mdd`. See the [Railway guide](mdd/contents/deploy/railway.md).
 
 ## 📖 Usage
 
@@ -136,9 +156,9 @@ The engine creates the index and ranks queries. MDD exports it as `_mdd/search-i
 
 ### Customize the reader
 
-See [themes](docs/THEMES.md). D Theme lives in [`themes/d/`](themes/d/) and supports system light/dark preference and a persistent reader toggle. Custom CSS loads after its stylesheet; optional `theme.js` runs only in the browser. The build never executes theme scripts or installs source-repository dependencies.
+See [themes](.agents/specs/THEMES.md). D Theme lives in [`themes/d/`](themes/d/) and supports system light/dark preference and a persistent reader toggle. Custom CSS loads after its stylesheet; optional `theme.js` runs only in the browser. The build never executes theme scripts or installs source-repository dependencies.
 
-Every page footer shows the installed **mdd** version and bundled **D Theme — D26 · v0.2.0**. D26 is a release name for D Theme, not a separate theme: minor and patch updates retain it, and the planned 1.0.0 major release introduces D27. The theme version changes independently of mdd; release names never change automatically with the year. [`themes/archive/`](themes/archive/) is reserved for historical source snapshots.
+Every page footer shows the installed **mdd** version and bundled **D Theme — D26 · v0.3.0**. D26 is a release name for D Theme, not a separate theme: minor and patch updates retain it, and the planned 1.0.0 major release introduces D27. The theme version changes independently of mdd; release names never change automatically with the year. [`themes/archive/`](themes/archive/) is reserved for historical source snapshots.
 
 Custom themes provide visual styles and assets through their own theme directories. Their identity stays with the theme; the reader footer shows only the installed mdd and bundled D Theme versions.
 
@@ -197,15 +217,18 @@ Write social links once in `mdd/footer.md`:
 
 Use one `socials` block with a flat unordered list of plain-text labels and absolute HTTPS links. Replace the example destination with your project's URL. Attributes, nested content, images, raw HTML, and credential-bearing URLs are rejected. The file belongs beside the documentation configuration, outside `contents/`; it does not become a page or search result. A missing or empty footer file is allowed. MDD renders social links beside **Built with mdd**, using recognizable icons where supported and readable labels otherwise.
 
-The server uses /workspace as `MDD_PROJECT_DIR`, /workspace/mdd as `MDD_DOCS_DIR`, /tmp/mdd-dist as `MDD_OUTPUT_DIR`, 0.0.0.0 as HOST, and 3000 as PORT by default. Set these environment variables to customize the project, docs, output, base path, edit URL, host, or port. MDD has no dashboard or owner accounts. Without a usable `DATABASE_URL`, docs remain available and database plugins stay disabled.
+The server uses /workspace as `MDD_PROJECT_DIR`, the first MDD folder of `mdd/` or `docs/` as `MDD_DOCS_DIR`, /tmp/mdd-dist as `MDD_OUTPUT_DIR`, 0.0.0.0 as HOST, and 3000 as PORT by default. Set these environment variables to customize the project, docs, output, base path, edit URL, host, or port. MDD has no dashboard or owner accounts. Without a usable `DATABASE_URL`, docs remain available and database plugins stay disabled.
 
 ## 📚 Documentation
 
-- [Product specification](docs/SPEC.md)
-- [Architecture and delivery boundaries](docs/ARCHITECTURE.md)
-- [Theme guide and version policy](docs/THEMES.md)
-- [Verification record](docs/VERIFICATION.md)
-- [Release process](docs/RELEASING.md)
+The user documentation is an MDD project in [`mdd/`](mdd/contents/index.md). Internal specifications live in [`.agents/specs/`](.agents/specs/SPEC.md).
+
+- [User documentation](mdd/contents/index.md)
+- [Product specification](.agents/specs/SPEC.md)
+- [Architecture and delivery boundaries](.agents/specs/ARCHITECTURE.md)
+- [Theme guide and version policy](.agents/specs/THEMES.md)
+- [Verification record](.agents/specs/VERIFICATION.md)
+- [Release process](.agents/specs/RELEASING.md)
 - [Brand kit](brand/README.md)
 - [Writing pages example](examples/basic/mdd/contents/guides/writing.md)
 
@@ -223,11 +246,11 @@ The smoke check creates a local application archive, installs it in an isolated 
 
 ## 🤝 Contributing
 
-Follow [AGENTS.md](AGENTS.md), the [product contract](docs/SPEC.md), and the layer ownership rules in [architecture](docs/ARCHITECTURE.md). Keep changes aligned with the documented boundary between MDD Engine, MDD, and themes.
+Follow [AGENTS.md](AGENTS.md), the [product contract](.agents/specs/SPEC.md), and the layer ownership rules in [architecture](.agents/specs/ARCHITECTURE.md). Keep changes aligned with the documented boundary between MDD Engine, MDD, and themes.
 
 ## 🐛 Issues & Support
 
-Report bugs and request changes in [GitHub Issues](https://github.com/wgtechlabs/mdd/issues). For questions about product direction, see the [specification](docs/SPEC.md).
+Report bugs and request changes in [GitHub Issues](https://github.com/wgtechlabs/mdd/issues). For questions about product direction, see the [specification](.agents/specs/SPEC.md).
 
 ## 📄 License
 

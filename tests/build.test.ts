@@ -51,6 +51,24 @@ async function fixture(config: object = {}): Promise<string> {
   return root;
 }
 
+describe("repository documentation", () => {
+  test("builds the mdd/ folder of this repository without diagnostics", async () => {
+    const out = await realpath(
+      await mkdtemp(path.join(tmpdir(), "mdd-self-docs-")),
+    );
+    roots.push(out);
+    const repository = path.resolve(import.meta.dir, "..");
+    const result = await build({
+      projectDir: repository,
+      outDir: path.join(out, "site"),
+    });
+    expect(result.diagnostics).toEqual([]);
+    expect(result.site?.pages.map((page) => page.route)).toContain(
+      "/deploy/railway/",
+    );
+  });
+});
+
 describe("static export", () => {
   test("exports configured header links and preserves output when reader settings are invalid", async () => {
     const root = await fixture();

@@ -21,11 +21,11 @@ MDD turns a repository's `mdd/` folder into a rendered documentation website tha
 MDD's hosted delivery target is a Railway template. Only MDD Engine is a registry
 package; MDD consumes it as a dependency and does not need npm publication or
 Trusted Publishing. The template deploys the MDD application and accepts a separate
-content repository URL. See the [delivery contract](docs/ARCHITECTURE.md#delivery-contract).
+content repository URL. See the [delivery contract](.agents/specs/ARCHITECTURE.md#delivery-contract).
 
 ## Operating Context
 
-Authors edit Markdown, configuration, and selected theme files in Git. Static output can be served from GitHub Pages under a chosen prefix. The local reader, exporter, and Node server are implemented. The Railway template and external content-fetch integration remain planned, with one public content repository per deployment. There is no dashboard or account system. A PostgreSQL-backed feedback plugin is available when a usable `DATABASE_URL` is configured; whether MDD Full needs additional database-backed features remains undecided.
+Authors edit Markdown, configuration, and selected theme files in Git. Static output can be served from GitHub Pages under a chosen prefix. The local reader, exporter, and Node server are implemented. Image-build fetch of one public content repository per deployment is implemented. The Railway template remains planned. There is no dashboard or account system. A PostgreSQL-backed feedback plugin is available when a usable `DATABASE_URL` is configured; whether MDD Full needs additional database-backed features remains undecided.
 
 ## Capabilities and Constraints
 

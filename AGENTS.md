@@ -2,7 +2,9 @@
 
 ## Product boundary
 
-This is `wgtechlabs/mdd`: the documentation renderer, reader, static exporter, and Node server. MDD has no standalone CLI; its container builds a mounted content project and starts the HTTP server directly. The current roadmap prioritizes MDD Standard on Railway, with one user content repository per deployment. MDD Light static hosting through GitHub Pages is planned for later. Consume the published `@wgtechlabs/mdd-engine` package for content/configuration validation, Markdown, routes, navigation, and diagnostics. Never duplicate the compiler or import a sibling checkout. See `docs/SPEC.md` for the product contract.
+This is `wgtechlabs/mdd`: the documentation renderer, reader, static exporter, and Node server. MDD has no standalone CLI; its container serves a site fetched from `MDD_REPO_URL` at image build or at startup, or builds a mounted content project, and starts the HTTP server directly. The current roadmap prioritizes MDD Standard on Railway, with one user content repository per deployment. MDD Light static hosting through GitHub Pages is planned for later. Consume the published `@wgtechlabs/mdd-engine` package for content/configuration validation, Markdown, routes, navigation, and diagnostics. Never duplicate the compiler or import a sibling checkout. See `.agents/specs/SPEC.md` for the product contract.
+
+**Documentation layout:** user documentation is an MDD project in `mdd/`, and MDD must build it without diagnostics. Internal specifications, architecture, release, and verification records live in `.agents/specs/`. Keep `examples/basic/mdd` as the demo project.
 
 **Delivery direction:** focus on MDD Standard application behavior first; Railway
 template creation is handled separately, and MDD Light/GitHub Pages follows later.
@@ -11,10 +13,10 @@ Keep the app source separate from the user's content repository. A usable
 feedback plugin; without it, docs remain available and database plugins stay
 disabled. Do not add a dashboard, owner accounts, public raw-data route, or
 authenticated Analytics API to the feedback feature. Follow the [delivery
-contract](docs/ARCHITECTURE.md#delivery-contract); do not add an MDD npm bootstrap,
+contract](.agents/specs/ARCHITECTURE.md#delivery-contract); do not add an MDD npm bootstrap,
 registry release, or Trusted Publisher as a prerequisite.
 
-Follow [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for layer ownership. The engine owns semantic article HTML and authoring syntax; MDD owns the page shell, accessible shared controls, and presentation enhancements; themes own visual styling. Code-copy behavior belongs to MDD. Syntax highlighting is not implemented; future tokenization belongs to MDD and token colors to themes. Any new authoring metadata still needs an engine contract first. Theme changes must preserve content meaning and compiled navigation.
+Follow [.agents/specs/ARCHITECTURE.md](.agents/specs/ARCHITECTURE.md) for layer ownership. The engine owns semantic article HTML and authoring syntax; MDD owns the page shell, accessible shared controls, and presentation enhancements; themes own visual styling. Code-copy behavior belongs to MDD. Syntax highlighting is not implemented; future tokenization belongs to MDD and token colors to themes. Any new authoring metadata still needs an engine contract first. Theme changes must preserve content meaning and compiled navigation.
 
 Use the published engine's `createSearchIndex`, browser-safe `search`, and `validateSearchIndex` APIs; do not build a second indexer or ranking system. MDD exports the index and browser modules and owns the search dialog's loading, retry, keyboard, and focus behavior. Search results use text nodes and stay inside the same documentation origin and base path. Consume `Site.footer.socials` for the shared footer; footer parsing and HTTPS link validation belong to the engine. GitHub alerts are semantic engine output; D Theme adds decorative icons and styling without live-alert roles. Keep these controls outside article HTML and normalized Markdown.
 
@@ -24,7 +26,7 @@ Develop, test, version, and ship **D Theme** in this repository under `themes/d/
 
 D Theme has its own numeric version and release name in `themes/d/theme.json`, independent of the MDD application version. The initial identity is D Theme / D26 / 0.1.0; minor and patch updates keep D26, and the planned 1.0.0 major release introduces D27. Release names change deliberately with major design releases, never automatically with the calendar. Preserve historical source snapshots in `themes/archive/`; they are versions of D Theme, not separate annual themes. Custom themes also have independent author-managed versions.
 
-MDD owns the version footer. Show the installed `mdd` version and bundled D Theme identity only; custom themes remain visual layers selected by the engine and do not add footer metadata. Keep theme-specific styles and assets in their theme directories. D Theme is the bundled base; `config.theme` selects a local custom overlay using the engine contract. Do not invent new engine configuration or mutate `Site.theme` to point at package files. Follow [the theme version policy](docs/THEMES.md#version-policy); compatibility checks and version installation are deferred.
+MDD owns the version footer. Show the installed `mdd` version and bundled D Theme identity only; custom themes remain visual layers selected by the engine and do not add footer metadata. Keep theme-specific styles and assets in their theme directories. D Theme is the bundled base; `config.theme` selects a local custom overlay using the engine contract. Do not invent new engine configuration or mutate `Site.theme` to point at package files. Follow [the theme version policy](.agents/specs/THEMES.md#version-policy); compatibility checks and version installation are deferred.
 
 ## Toolchain and quality
 

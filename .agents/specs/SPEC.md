@@ -4,9 +4,9 @@ Status: local renderer/reader/exporter/server implementation with published `@wg
 
 ## Purpose and boundary
 
-mdd is the documentation renderer and server, with a reader frontend, static export API, and planned Railway template. The server builds a mounted content project and starts the HTTP server directly. MDD consumes the independently versioned mdd-engine package and is the single build entry point for the deployment action. The [delivery contract](ARCHITECTURE.md#delivery-contract) separates the published engine package, MDD's Railway application, and the user's content repository. The engine is installed as a dependency; MDD is deployed as an application, with no MDD npm publication step or standalone CLI.
+mdd is the documentation renderer and server, with a reader frontend, static export API, and planned Railway template. The Node server starts the HTTP server directly. An image built with `MDD_REPO_URL` bakes that public content repository; a local run still builds a mounted project. MDD consumes the independently versioned mdd-engine package and is the single build entry point for the deployment action. The [delivery contract](ARCHITECTURE.md#delivery-contract) separates the published engine package, MDD's Railway application, and the user's content repository. The engine is installed as a dependency; MDD is deployed as an application, with no MDD npm publication step or standalone CLI.
 
-MDD Standard is the database-backed Node server profile; MDD Light is the static, database-free profile. Standard enables built-in server-side plugins through a generic, namespaced Plugin Storage API. The first plugin is page feedback. MDD has no dashboard, owner accounts, or external plugin loader. A usable `DATABASE_URL` enables plugins; missing or unavailable database storage leaves documentation serving available and disables database-dependent features. GitHub Pages remains Light; Railway without a usable database also behaves as Light. The plugin storage API and feedback feature are implemented in the Node server; the Railway template and deployment integration remain planned.
+MDD Standard is the database-backed Node server profile; MDD Light is the static, database-free profile. Standard enables built-in server-side plugins through a generic, namespaced Plugin Storage API. The first plugin is page feedback. MDD has no dashboard, owner accounts, or external plugin loader. A usable `DATABASE_URL` enables plugins; missing or unavailable database storage leaves documentation serving available and disables database-dependent features. GitHub Pages remains Light; Railway without a usable database also behaves as Light. The plugin storage API and feedback feature are implemented in the Node server. Image-build fetch of one public GitHub content repository is implemented. The Railway template remains planned.
 
 The [responsibility contract](ARCHITECTURE.md) defines the boundary between MDD Engine, MDD, and themes. The engine renders semantic article HTML; MDD composes the reader and owns shared interactions; themes style that markup. Keep content parsing and validation in the engine, including any future authoring syntax needed by reader features.
 
@@ -20,7 +20,7 @@ mdd-engine is a normal package dependency, not a Git submodule, sibling filesyst
 
 ## Server and static export
 
-The container builds the mounted documentation project and starts the Node HTTP server. Local static export uses the `build()` API with explicit project, output, and base-path options. Builds must reject unsafe or overlapping destinations and preserve existing output when authoring errors occur. Developer tasks use the repository's Bun scripts; MDD does not expose a standalone CLI.
+When the image is built with `MDD_REPO_URL`, the content stage fetches that public GitHub repository, compiles the site, and the Node server serves the baked output. Without that build argument, the server builds the mounted documentation project at startup and then starts the HTTP server. Local static export uses the `build()` API with explicit project, output, and base-path options. Builds must reject unsafe or overlapping destinations and preserve existing output when authoring errors occur. Developer tasks use the repository's Bun scripts; MDD does not expose a standalone CLI.
 
 ## Frontend and theme contract
 
@@ -38,7 +38,7 @@ Use the engine's index builder after successful compilation and its browser-safe
 
 The optional shared `mdd/footer.md` is engine-owned authoring input beside `config.json`, including when the documentation directory is customized. It contains one `:::socials` container with a flat unordered list of plain-text labeled HTTPS links. Preserve engine validation of content, URLs, and paths. Missing or empty files produce no social links. MDD renders `site.footer.socials` in `.mdd-socials` and groups it with `.mdd-credit` in `.mdd-footer-bottom`, below the agent resource links. Known social icons are decorative and links retain accessible labels; unfamiliar destinations retain readable text. Do not add footer content to routes, navigation, Markdown article exports, or search results.
 
-Develop, test, and ship **D Theme** in this MDD repository under `themes/d/`, with stable ID `d`. Its numeric version is independent of the MDD release. `themes/d/theme.json` declares name `D Theme`, release `D26`, and current version `0.2.0`; the initial development version was `0.1.0`. Maintain its change history alongside the stylesheet. Minor and patch updates retain the release name; the planned 1.0.0 major release introduces D27. Release names are deliberate version names, not separate annual themes or automatic calendar changes. Preserve released historical snapshots and their identities under `themes/archive/`.
+Develop, test, and ship **D Theme** in this MDD repository under `themes/d/`, with stable ID `d`. Its numeric version is independent of the MDD release. `themes/d/theme.json` declares name `D Theme`, release `D26`, and current version `0.3.0`; the initial development version was `0.1.0`. Maintain its change history alongside the stylesheet. Minor and patch updates retain the release name; the planned 1.0.0 major release introduces D27. Release names are deliberate version names, not separate annual themes or automatic calendar changes. Preserve released historical snapshots and their identities under `themes/archive/`.
 
 Custom themes are visual overlays selected through the engine and keep their CSS and assets in their theme directories. MDD validates and displays the bundled D Theme identity alongside the installed mdd version in every reader footer; custom styling does not add another footer identity. Keep shared markup and control behavior in MDD and visual choices in the theme. No separate theme repository/package or engine styling dependency is required.
 
@@ -65,17 +65,23 @@ MDD Standard is the database-backed profile and Railway/Postgres is the recommen
 | `MDD_REPO_URL` | Required public HTTPS source repository URL |
 | `MDD_REPO_REF` | Optional initial branch/tag; otherwise the repository's default branch |
 | `MDD_SOURCE_SHA` | Exact external docs commit; supplied by the update action |
-| `MDD_SOURCE_DIR` | Defaults to `mdd`, relative to the source checkout |
+| `MDD_SOURCE_DIR` | Optional MDD folder, relative to the source checkout; otherwise `mdd/`, then `docs/` (see [content folder](#content-folder)) |
 | `MDD_BASE_PATH` | Public documentation prefix, default `/`; consumed by the build and recorded in the manifest |
 | `PORT` | Railway-provided port for the Node server |
 
-Proposed first supported repository host: GitHub, matching the initial action workflow. Document this clearly; generic Git hosting can follow without changing the engine. Validate URLs and use argument-safe Git operations; do not execute source repository install hooks or build scripts. The build only consumes documentation/configuration/theme assets.
+The first supported repository host is GitHub, matching the initial action workflow. Generic Git hosting can follow without changing the engine. Validate URLs and use argument-safe Git operations; do not execute source repository install hooks or build scripts. The build only consumes documentation, configuration, and theme assets.
 
-During the image build, fetch the selected commit, verify the resolved SHA, run mdd, and include the finished site in the final image. A requested SHA that cannot be fetched must fail, never fall back to branch HEAD. For initial URL-only setup, resolve the branch once during that build and record its actual SHA.
+During the image build, fetch the selected commit, verify the resolved SHA, run mdd, and include the finished site in the final image. A requested SHA that cannot be fetched must fail, never fall back to branch HEAD. For initial URL-only setup, resolve the branch once during that build and record its actual SHA in `mdd-build.json` `source.commit`.
 
-Consume `MDD_SOURCE_SHA` before the Docker fetch/build layer so changed docs invalidate that cache. Initial branch-based builds also need a deployment-specific cache input so a fresh deployment does not reuse an old branch checkout. Keep dependency layers reusable. These are proposed implementation rules to validate on Railway, not a claim of a tested template. [Docker build variables](https://docs.railway.com/builds/dockerfiles)
+A prebuilt image has no baked site, because Railway pulls the image and does not pass build arguments. When the server starts without a baked site and `MDD_REPO_URL` is set, it downloads the GitHub tarball of `MDD_SOURCE_SHA`, else `MDD_REPO_REF`, else the default branch. The download uses HTTPS from `codeload.github.com` and does not need Git. The archive's recorded commit must match a requested SHA, or startup fails; it never falls back to a branch. Startup extracts only regular files and folders, rejects unsafe paths, and enforces size and file-count limits. It then builds the site and starts listening, so `/healthz` is ready only after the build. The download happens once per start. A baked site takes precedence, and the server never fetches content again while it runs.
+
+The content stage declares `MDD_REPO_URL`, `MDD_REPO_REF`, `MDD_SOURCE_SHA`, `MDD_SOURCE_DIR`, `MDD_BASE_PATH`, and `MDD_EDIT_BASE_URL` as Docker `ARG`s. `MDD_SOURCE_SHA` and `RAILWAY_DEPLOYMENT_ID` are declared immediately before the fetch, so a changed commit or a new deployment rebuilds that layer and leaves dependency layers cached. Git is not installed in the final image. This is the image-build contract, not a tested Railway template, and the image does not use Railway Config as Code. [Docker build variables](https://docs.railway.com/builds/dockerfiles)
 
 Pass `MDD_BASE_PATH` into the engine/frontend build and configure serving consistently; `/healthz` remains a server readiness route at the root. The server serves immutable docs output and MDD-owned API handlers. `DATABASE_URL` configures optional PostgreSQL storage. On startup, MDD initializes the generic plugin-record table and enables built-in plugins when the database is usable; otherwise it starts with Light behavior. If database operations later fail, feedback endpoints return an unavailable response while docs remain available. One service hosts one docs site.
+
+### Content folder
+
+`mdd/` is the standard MDD folder. A folder is an MDD folder when it is a real directory with `contents/index.md`, or with the `index.md` of `paths.contents` from its optional `config.json`. If `MDD_SOURCE_DIR` (fetched content) or `MDD_DOCS_DIR` (mounted project) is set, use that folder and fail if it is not an MDD folder. If it is unset, use `mdd/`; if `mdd/` is not an MDD folder, use `docs/`. If neither is an MDD folder, fail with an error that names both folders, the missing file, and the expected structure. Never serve an empty site.
 
 ## Readiness, updates, and failure behavior
 
@@ -99,6 +105,6 @@ Content updates must preserve the currently deployed mdd application revision an
 - A template deployment works from a public repository URL and its default `mdd/` folder.
 - A changed docs SHA appears in the built site and manifest despite caching.
 - Invalid source or content prevents publication, and restart/rollback behavior preserves the intended snapshot.
-- No source fetch, build-time theme execution, or mutation endpoint exists in the serving process.
+- No content fetch after startup, theme script execution, or mutation endpoint exists in the serving process.
 
 Private repositories, multiple sites, theme marketplaces, arbitrary layout plugins, AI chat, and external search services remain later work.
