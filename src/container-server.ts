@@ -1,8 +1,13 @@
-import { lstat, realpath } from "node:fs/promises";
+import { lstat, mkdtemp, realpath } from "node:fs/promises";
 import type { Server } from "node:http";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { build } from "./build.js";
+import {
+  type ArchiveDownloader,
+  downloadContentRepository,
+} from "./content-archive.js";
 import { isMissing, isWithin } from "./files.js";
 import { resolveContentFolder } from "./project-folder.js";
 import { serve } from "./server.js";
@@ -58,9 +63,24 @@ export async function findPrebuiltSite(
   return root;
 }
 
-/** Serve a site baked into the image, or build and serve a mounted project. */
+export interface ContainerOptions {
+  /** Replaces the codeload download in tests. */
+  download?: ArchiveDownloader;
+}
+
+function blank(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+/**
+ * Serve a site baked into the image. Otherwise fetch MDD_REPO_URL at startup,
+ * or build the mounted project. The server listens only after a build succeeds,
+ * so /healthz is not ready before the site exists.
+ */
 export async function startContainer(
   env: NodeJS.ProcessEnv = process.env,
+  options: ContainerOptions = {},
 ): Promise<Server> {
   const listen = serverListenOptions(env);
   const prebuilt = await findPrebuiltSite(
@@ -71,13 +91,37 @@ export async function startContainer(
     return serve({ directory: prebuilt, ...listen });
   }
 
-  console.log("No baked site found. Building the mounted project.");
-  const projectDir = path.resolve(env.MDD_PROJECT_DIR ?? process.cwd());
-  const mddDir = await resolveContentFolder(
-    projectDir,
-    env.MDD_DOCS_DIR,
-    "MDD_DOCS_DIR",
-  );
+  let projectDir: string;
+  let mddDir: string;
+  let sourceCommit: string | undefined;
+  const repoUrl = blank(env.MDD_REPO_URL);
+  if (repoUrl) {
+    console.log("No baked site found. Downloading the content repository.");
+    const checkout = await mkdtemp(path.join(tmpdir(), "mdd-content-"));
+    const fetched = await downloadContentRepository({
+      repoUrl,
+      repoRef: blank(env.MDD_REPO_REF),
+      sourceSha: blank(env.MDD_SOURCE_SHA),
+      destination: checkout,
+      download: options.download,
+    });
+    console.log(`Downloaded content commit ${fetched.commit}.`);
+    projectDir = fetched.projectDir;
+    sourceCommit = fetched.commit;
+    mddDir = await resolveContentFolder(
+      projectDir,
+      blank(env.MDD_SOURCE_DIR),
+      "MDD_SOURCE_DIR",
+    );
+  } else {
+    console.log("No baked site found. Building the mounted project.");
+    projectDir = path.resolve(env.MDD_PROJECT_DIR ?? process.cwd());
+    mddDir = await resolveContentFolder(
+      projectDir,
+      env.MDD_DOCS_DIR,
+      "MDD_DOCS_DIR",
+    );
+  }
   console.log(`Using the MDD folder ${mddDir}/.`);
   const result = await build({
     projectDir,
@@ -85,6 +129,7 @@ export async function startContainer(
     outDir: env.MDD_OUTPUT_DIR ?? "/tmp/mdd-dist",
     basePath: env.MDD_BASE_PATH,
     editBaseUrl: env.MDD_EDIT_BASE_URL,
+    sourceCommit,
   });
   for (const diagnostic of result.diagnostics) {
     const location = diagnostic.file
