@@ -1,11 +1,11 @@
 import { execFile } from "node:child_process";
-import { lstat, realpath } from "node:fs/promises";
+import { realpath } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import type { Diagnostic } from "@wgtechlabs/mdd-engine";
 import { build } from "./build.js";
-import { isMissing, isWithin } from "./files.js";
+import { lexicalFolder, resolveContentFolder } from "./project-folder.js";
 
 const execute = promisify(execFile);
 const shaPattern = /^[a-f0-9]{40}(?:[a-f0-9]{24})?$/;
@@ -90,31 +90,6 @@ function githubName(value: string): boolean {
     !value.startsWith("-") &&
     !value.endsWith(".")
   );
-}
-
-/** Reject absolute paths, traversal, and empty segments before touching the checkout. */
-export function lexicalSourceDir(sourceDir: string): string {
-  if (
-    !sourceDir ||
-    sourceDir !== sourceDir.trim() ||
-    path.isAbsolute(sourceDir) ||
-    path.win32.isAbsolute(sourceDir)
-  ) {
-    throw new Error(
-      "MDD_SOURCE_DIR must be a relative directory inside the content checkout.",
-    );
-  }
-  const parts = sourceDir.split(/[/\\]/);
-  if (
-    parts.some(
-      (part) => !part || part === "." || part === ".." || part.includes("\0"),
-    )
-  ) {
-    throw new Error(
-      "MDD_SOURCE_DIR must be a relative directory inside the content checkout.",
-    );
-  }
-  return parts.join("/");
 }
 
 export function assertRepositoryRef(value: string): string {
@@ -320,46 +295,14 @@ async function fetchBranch(
   return commit;
 }
 
-/** Confirm each path segment is a real directory and the final path stays inside the checkout. */
-export async function resolveSourceDirectory(
-  checkout: string,
-  sourceDir: string,
-): Promise<string> {
-  const relative = lexicalSourceDir(sourceDir);
-  const root = await realpath(checkout);
-  let current = root;
-  for (const part of relative.split("/")) {
-    current = path.join(current, part);
-    let entry: Awaited<ReturnType<typeof lstat>>;
-    try {
-      entry = await lstat(current);
-    } catch (error) {
-      if (isMissing(error)) {
-        throw new Error(
-          "MDD_SOURCE_DIR must be a directory inside the content checkout.",
-        );
-      }
-      throw error;
-    }
-    if (entry.isSymbolicLink() || !entry.isDirectory()) {
-      throw new Error(
-        "MDD_SOURCE_DIR must be a real directory inside the content checkout.",
-      );
-    }
-  }
-  const resolved = await realpath(current);
-  if (!isWithin(root, resolved)) {
-    throw new Error("MDD_SOURCE_DIR must stay inside the content checkout.");
-  }
-  return relative;
-}
-
 /** Fetch a public GitHub repository without running its hooks or install scripts. */
 export async function fetchContentRepository(
   options: FetchContentOptions,
 ): Promise<FetchedContent> {
   const url = parseRepositoryUrl(options.repoUrl);
-  const sourceDir = lexicalSourceDir(options.sourceDir?.trim() || "mdd");
+  const sourceDir = options.sourceDir?.trim()
+    ? lexicalFolder(options.sourceDir, "MDD_SOURCE_DIR")
+    : undefined;
   const git = options.git ?? runGit;
   const sha = options.sourceSha?.trim()
     ? normalizeCommitSha(options.sourceSha)
@@ -369,7 +312,11 @@ export async function fetchContentRepository(
     ? await fetchExactCommit(git, destination, url, sha)
     : await fetchBranch(git, destination, url, options.repoRef);
   const projectDir = await realpath(destination);
-  const mddDir = await resolveSourceDirectory(projectDir, sourceDir);
+  const mddDir = await resolveContentFolder(
+    projectDir,
+    sourceDir,
+    "MDD_SOURCE_DIR",
+  );
   return { commit, projectDir, mddDir };
 }
 
@@ -403,7 +350,7 @@ export async function fetchAndCompile(
     repoUrl,
     repoRef: blank(env.MDD_REPO_REF),
     sourceSha: blank(env.MDD_SOURCE_SHA),
-    sourceDir: blank(env.MDD_SOURCE_DIR) ?? "mdd",
+    sourceDir: blank(env.MDD_SOURCE_DIR),
     destination: env.MDD_CONTENT_CHECKOUT ?? "/tmp/mdd-content",
     git,
   });

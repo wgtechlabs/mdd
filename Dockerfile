@@ -35,7 +35,7 @@ COPY themes/d/ ./themes/d/
 # deployment rebuilds the fetch and leaves the dependency layers cached.
 ARG MDD_REPO_URL
 ARG MDD_REPO_REF
-ARG MDD_SOURCE_DIR=mdd
+ARG MDD_SOURCE_DIR
 ARG MDD_BASE_PATH
 ARG MDD_EDIT_BASE_URL
 ARG MDD_SOURCE_SHA
@@ -58,7 +58,6 @@ FROM node:24-alpine
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV MDD_PROJECT_DIR=/workspace
-ENV MDD_DOCS_DIR=mdd
 ENV MDD_OUTPUT_DIR=/tmp/mdd-dist
 ENV MDD_PREBUILT_DIR=/app/site
 

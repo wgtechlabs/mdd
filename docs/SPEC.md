@@ -65,7 +65,7 @@ MDD Standard is the database-backed profile and Railway/Postgres is the recommen
 | `MDD_REPO_URL` | Required public HTTPS source repository URL |
 | `MDD_REPO_REF` | Optional initial branch/tag; otherwise the repository's default branch |
 | `MDD_SOURCE_SHA` | Exact external docs commit; supplied by the update action |
-| `MDD_SOURCE_DIR` | Defaults to `mdd`, relative to the source checkout |
+| `MDD_SOURCE_DIR` | Optional MDD folder, relative to the source checkout; otherwise `mdd/`, then `docs/` (see [content folder](#content-folder)) |
 | `MDD_BASE_PATH` | Public documentation prefix, default `/`; consumed by the build and recorded in the manifest |
 | `PORT` | Railway-provided port for the Node server |
 
@@ -73,9 +73,13 @@ The first supported repository host is GitHub, matching the initial action workf
 
 During the image build, fetch the selected commit, verify the resolved SHA, run mdd, and include the finished site in the final image. A requested SHA that cannot be fetched must fail, never fall back to branch HEAD. For initial URL-only setup, resolve the branch once during that build and record its actual SHA in `mdd-build.json` `source.commit`. The serving process does not fetch content.
 
-The content stage declares `MDD_REPO_URL`, `MDD_REPO_REF`, `MDD_SOURCE_SHA`, `MDD_SOURCE_DIR` (default `mdd`), `MDD_BASE_PATH`, and `MDD_EDIT_BASE_URL` as Docker `ARG`s. `MDD_SOURCE_SHA` and `RAILWAY_DEPLOYMENT_ID` are declared immediately before the fetch, so a changed commit or a new deployment rebuilds that layer and leaves dependency layers cached. Git is not installed in the final image. This is the image-build contract, not a tested Railway template, and the image does not use Railway Config as Code. [Docker build variables](https://docs.railway.com/builds/dockerfiles)
+The content stage declares `MDD_REPO_URL`, `MDD_REPO_REF`, `MDD_SOURCE_SHA`, `MDD_SOURCE_DIR`, `MDD_BASE_PATH`, and `MDD_EDIT_BASE_URL` as Docker `ARG`s. `MDD_SOURCE_SHA` and `RAILWAY_DEPLOYMENT_ID` are declared immediately before the fetch, so a changed commit or a new deployment rebuilds that layer and leaves dependency layers cached. Git is not installed in the final image. This is the image-build contract, not a tested Railway template, and the image does not use Railway Config as Code. [Docker build variables](https://docs.railway.com/builds/dockerfiles)
 
 Pass `MDD_BASE_PATH` into the engine/frontend build and configure serving consistently; `/healthz` remains a server readiness route at the root. The server serves immutable docs output and MDD-owned API handlers. `DATABASE_URL` configures optional PostgreSQL storage. On startup, MDD initializes the generic plugin-record table and enables built-in plugins when the database is usable; otherwise it starts with Light behavior. If database operations later fail, feedback endpoints return an unavailable response while docs remain available. One service hosts one docs site.
+
+### Content folder
+
+`mdd/` is the standard MDD folder. A folder is an MDD folder when it is a real directory with `contents/index.md`, or with the `index.md` of `paths.contents` from its optional `config.json`. If `MDD_SOURCE_DIR` (fetched content) or `MDD_DOCS_DIR` (mounted project) is set, use that folder and fail if it is not an MDD folder. If it is unset, use `mdd/`; if `mdd/` is not an MDD folder, use `docs/`. If neither is an MDD folder, fail with an error that names both folders, the missing file, and the expected structure. Never serve an empty site.
 
 ## Readiness, updates, and failure behavior
 

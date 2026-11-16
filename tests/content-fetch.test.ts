@@ -6,7 +6,6 @@ import {
   mkdtemp,
   readFile,
   rm,
-  symlink,
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -19,10 +18,8 @@ import {
   fetchContentRepository,
   type GitRunner,
   gitSafetyArgs,
-  lexicalSourceDir,
   normalizeCommitSha,
   parseRepositoryUrl,
-  resolveSourceDirectory,
   runGit,
 } from "../src/content-fetch.js";
 
@@ -150,7 +147,8 @@ describe("exact commit", () => {
   test("deepens a shallow fetch of the requested SHA", async () => {
     const root = await tempDir();
     const destination = path.join(root, "repo");
-    await mkdir(path.join(destination, "mdd"), { recursive: true });
+    await mkdir(path.join(destination, "mdd/contents"), { recursive: true });
+    await writeFile(path.join(destination, "mdd/contents/index.md"), "# Hi\n");
     const calls: string[][] = [];
     let deepened = false;
     const git: GitRunner = async (args) => {
@@ -249,42 +247,7 @@ printf 'HOOKS=%s\\n' "$GIT_CONFIG_VALUE_0" >> ${JSON.stringify(log)}
   });
 });
 
-describe("source directory", () => {
-  test("rejects paths that can leave the checkout", () => {
-    for (const sourceDir of [
-      "../mdd",
-      "/etc",
-      "mdd/../../etc",
-      "mdd/./secret",
-      "mdd\\..\\secret",
-      "",
-      " mdd",
-      "mdd ",
-    ]) {
-      expect(() => lexicalSourceDir(sourceDir)).toThrow(
-        /inside the content checkout/,
-      );
-    }
-  });
-
-  test("accepts a real directory and rejects a symlink that leaves the checkout", async () => {
-    const root = await tempDir();
-    const checkout = path.join(root, "checkout");
-    const outside = path.join(root, "outside");
-    await mkdir(path.join(checkout, "mdd", "nested"), { recursive: true });
-    await mkdir(outside);
-    expect(await resolveSourceDirectory(checkout, "mdd/nested")).toBe(
-      "mdd/nested",
-    );
-    await symlink(outside, path.join(checkout, "linked"));
-    await expect(resolveSourceDirectory(checkout, "linked")).rejects.toThrow(
-      /real directory/,
-    );
-    await expect(resolveSourceDirectory(checkout, "missing")).rejects.toThrow(
-      /directory inside/,
-    );
-  });
-
+describe("repository ref", () => {
   test("rejects an unsafe ref", () => {
     expect(assertRepositoryRef("feature/docs")).toBe("feature/docs");
     for (const ref of ["-evil", "main;rm", "feature/../docs", "main lock"]) {
@@ -380,6 +343,59 @@ describe("manifest SHA", () => {
       JSON.parse(await readFile(path.join(output, "mdd-build.json"), "utf8"))
         .source,
     ).toEqual({ commit: sha, dirty: null });
+  });
+
+  test("falls back to docs/ and rejects an invalid explicit MDD_SOURCE_DIR", async () => {
+    const parent = await tempDir();
+    const git =
+      (destination: string): GitRunner =>
+      async (args) => {
+        if (args[0] === "ls-remote") {
+          return { stdout: "ref: refs/heads/main\tHEAD\n", stderr: "" };
+        }
+        if (args[0] === "clone") {
+          await mkdir(path.join(destination, "docs/contents"), {
+            recursive: true,
+          });
+          await writeFile(
+            path.join(destination, "docs/contents/index.md"),
+            "# Docs\n",
+          );
+          return { stdout: "", stderr: "" };
+        }
+        if (args.includes("rev-parse"))
+          return { stdout: `${sha}\n`, stderr: "" };
+        throw new Error(`unexpected git ${args.join(" ")}`);
+      };
+    const first = path.join(parent, "first");
+    const fetched = await fetchContentRepository({
+      repoUrl: "https://github.com/acme/docs",
+      destination: first,
+      git: git(first),
+    });
+    expect(fetched.mddDir).toBe("docs");
+    const second = path.join(parent, "second");
+    await expect(
+      fetchContentRepository({
+        repoUrl: "https://github.com/acme/docs",
+        sourceDir: "mdd",
+        destination: second,
+        git: git(second),
+      }),
+    ).rejects.toThrow(/MDD_SOURCE_DIR=mdd is not an MDD folder/);
+    let called = false;
+    await expect(
+      fetchContentRepository({
+        repoUrl: "https://github.com/acme/docs",
+        sourceDir: "../escape",
+        destination: path.join(parent, "third"),
+        git: async () => {
+          called = true;
+          return { stdout: "", stderr: "" };
+        },
+      }),
+    ).rejects.toThrow(/relative folder inside the project/);
+    expect(called).toBe(false);
   });
 
   test("does nothing when no content repository is configured", async () => {
