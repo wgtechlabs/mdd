@@ -36,7 +36,7 @@ The source of truth is `themes/d/theme.json`:
 {
   "name": "D Theme",
   "release": "D26",
-  "version": "0.2.0"
+  "version": "0.3.0"
 }
 ```
 
@@ -44,7 +44,7 @@ Keep stylesheet changes and version history in `themes/d/`, including `CHANGELOG
 
 Custom themes have their own versions and release histories, managed by their authors independently of MDD, D Theme, and MDD Engine. Theme version and MDD compatibility are separate concepts.
 
-Every page, including the 404 page, displays the installed **mdd** version and **D Theme — D26 · v0.2.0** without browser JavaScript. Custom themes remain visual layers selected through `mdd/config.json`; their styles and assets belong in the theme directory and do not add another version entry to the reader footer.
+Every page, including the 404 page, displays the installed **mdd** version and **D Theme — D26 · v0.3.0** without browser JavaScript. Custom themes remain visual layers selected through `mdd/config.json`; their styles and assets belong in the theme directory and do not add another version entry to the reader footer.
 
 The bundled example's `mdd` theme supplies the project logo over D Theme. Its CSS and SVG assets live together in `examples/basic/mdd/themes/mdd/`.
 
