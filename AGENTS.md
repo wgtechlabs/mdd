@@ -2,7 +2,7 @@
 
 ## Product boundary
 
-This is `wgtechlabs/mdd`: the documentation renderer, reader, static exporter, and Node server. MDD has no standalone CLI; its container builds a mounted content project and starts the HTTP server directly. The current roadmap prioritizes MDD Standard on Railway, with one user content repository per deployment. MDD Light static hosting through GitHub Pages is planned for later. Consume the published `@wgtechlabs/mdd-engine` package for content/configuration validation, Markdown, routes, navigation, and diagnostics. Never duplicate the compiler or import a sibling checkout. See `docs/SPEC.md` for the product contract.
+This is `wgtechlabs/mdd`: the documentation renderer, reader, static exporter, and Node server. MDD has no standalone CLI; its container serves a site fetched at image build from `MDD_REPO_URL`, or builds a mounted content project, and starts the HTTP server directly. The current roadmap prioritizes MDD Standard on Railway, with one user content repository per deployment. MDD Light static hosting through GitHub Pages is planned for later. Consume the published `@wgtechlabs/mdd-engine` package for content/configuration validation, Markdown, routes, navigation, and diagnostics. Never duplicate the compiler or import a sibling checkout. See `docs/SPEC.md` for the product contract.
 
 **Delivery direction:** focus on MDD Standard application behavior first; Railway
 template creation is handled separately, and MDD Light/GitHub Pages follows later.

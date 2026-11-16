@@ -151,7 +151,7 @@ components:
 
 The reader gives prose a quiet paper ground, with chapters and local headings in its margins. Deep slate text, a restrained blurple accent, and compact navigation support sustained reading. The visual density changes between the article and its supporting rails without introducing decorative imagery.
 
-This record describes the bundled D Theme in `themes/d/theme.css`, reader enhancements in `assets/reader.js`, search behavior in `assets/search-ui.js`, and semantic structure in `src/render.ts`. D Theme v0.2.0 (D26) is versioned independently of MDD v0.1.0. The selected direction remains recorded in `.impeccable/surfaces/src-render-ts.md`. Current browser captures in `.impeccable/review/` cover desktop, mobile, search, alerts, and footer presentation. Keyboard search and mobile overflow checks passed; forced-colors and reduced-motion rules were reviewed in source but were not browser-emulated. Author-supplied themes may override this default system.
+This record describes the bundled D Theme in `themes/d/theme.css`, reader enhancements in `assets/reader.js`, search behavior in `assets/search-ui.js`, and semantic structure in `src/render.ts`. D Theme v0.3.0 (D26) is versioned independently of MDD v0.1.0. The selected direction remains recorded in `.impeccable/surfaces/src-render-ts.md`. Current browser captures in `.impeccable/review/` cover desktop, mobile, search, alerts, and footer presentation. Keyboard search and mobile overflow checks passed; forced-colors and reduced-motion rules were reviewed in source but were not browser-emulated. Author-supplied themes may override this default system.
 
 **Key Characteristics:**
 - A measured article flanked by chapter navigation and a local outline.

@@ -21,7 +21,7 @@ This repository contains **MDD Standard**: the documentation reader, static expo
 | **MDD Standard** (wgtechlabs/mdd, this repository) | Documentation application using MDD Engine and database-backed plugins | Railway is the recommended deployment; the feedback plugin is the first built-in plugin |
 | **MDD Light** | Static documentation output | GitHub Pages support and its installation flow are planned; no database |
 
-**MDD Standard on Railway is the current product focus.** A usable `DATABASE_URL` enables server-side plugins, including the built-in feedback plugin, which collects page helpfulness votes and displays only the aggregate percentage. The Railway template and content-repository integration remain deployment work.
+**MDD Standard on Railway is the current product focus.** A usable `DATABASE_URL` enables server-side plugins, including the built-in feedback plugin, which collects page helpfulness votes and displays only the aggregate percentage. An image built with `MDD_REPO_URL` fetches one public content repository and serves the finished site. The Railway template remains deployment work.
 
 **MDD Light is planned for later.** The static exporter works today, but its GitHub Pages installation and update flow is not implemented. Standard and Light will have separate setup paths.
 
@@ -138,7 +138,7 @@ The engine creates the index and ranks queries. MDD exports it as `_mdd/search-i
 
 See [themes](docs/THEMES.md). D Theme lives in [`themes/d/`](themes/d/) and supports system light/dark preference and a persistent reader toggle. Custom CSS loads after its stylesheet; optional `theme.js` runs only in the browser. The build never executes theme scripts or installs source-repository dependencies.
 
-Every page footer shows the installed **mdd** version and bundled **D Theme — D26 · v0.2.0**. D26 is a release name for D Theme, not a separate theme: minor and patch updates retain it, and the planned 1.0.0 major release introduces D27. The theme version changes independently of mdd; release names never change automatically with the year. [`themes/archive/`](themes/archive/) is reserved for historical source snapshots.
+Every page footer shows the installed **mdd** version and bundled **D Theme — D26 · v0.3.0**. D26 is a release name for D Theme, not a separate theme: minor and patch updates retain it, and the planned 1.0.0 major release introduces D27. The theme version changes independently of mdd; release names never change automatically with the year. [`themes/archive/`](themes/archive/) is reserved for historical source snapshots.
 
 Custom themes provide visual styles and assets through their own theme directories. Their identity stays with the theme; the reader footer shows only the installed mdd and bundled D Theme versions.
 
