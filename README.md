@@ -46,6 +46,26 @@ docker run --rm -p 3000:3000 -v "$PWD:/workspace" wgtechlabs/mdd:latest
 
 The container defaults to /workspace for `MDD_PROJECT_DIR`, /workspace/mdd for `MDD_DOCS_DIR`, /tmp/mdd-dist for `MDD_OUTPUT_DIR`, 0.0.0.0 for HOST, and 3000 for PORT. Environment variables can customize the project, docs, output, base path, edit URL, host, and port.
 
+### Deploy on Railway
+
+Create a Railway service from this GitHub repository. Railway builds the Dockerfile. The build fetches your public content repository and bakes the finished site into the image. Add a Postgres service to enable page feedback.
+
+| Variable | Value |
+| --- | --- |
+| `MDD_REPO_URL` | Required. Public `https://github.com/owner/repository` URL of the content repository. |
+| `MDD_REPO_REF` | Branch or tag to fetch. Defaults to the repository's default branch. |
+| `MDD_SOURCE_SHA` | Full commit SHA to build. If the build cannot fetch it, the build fails. |
+| `MDD_SOURCE_DIR` | Docs directory in the checkout. Defaults to `mdd`. |
+| `MDD_BASE_PATH` | Optional public prefix, such as `/docs/`. Defaults to `/`. |
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}`. Optional; enables feedback. |
+| `MDD_TRUST_PROXY` | `true`, so the feedback rate limit uses Railway's `X-Real-IP` header. |
+
+- Set the healthcheck path to `/healthz`.
+- Railway injects `PORT` (8080) at runtime, and the server listens on it. Keep the public domain's target port on that injected `PORT`. Do not pin it to 3000; `EXPOSE 3000` is for local `docker run` only.
+- To update the docs, set `MDD_SOURCE_SHA` to the new commit and redeploy. The running server never fetches content.
+
+For a demo, set `MDD_REPO_URL` to `https://github.com/wgtechlabs/mdd` and `MDD_SOURCE_DIR` to `examples/basic/mdd`.
+
 ## 📖 Usage
 
 ### Write documentation
