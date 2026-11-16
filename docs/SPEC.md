@@ -71,7 +71,9 @@ MDD Standard is the database-backed profile and Railway/Postgres is the recommen
 
 The first supported repository host is GitHub, matching the initial action workflow. Generic Git hosting can follow without changing the engine. Validate URLs and use argument-safe Git operations; do not execute source repository install hooks or build scripts. The build only consumes documentation, configuration, and theme assets.
 
-During the image build, fetch the selected commit, verify the resolved SHA, run mdd, and include the finished site in the final image. A requested SHA that cannot be fetched must fail, never fall back to branch HEAD. For initial URL-only setup, resolve the branch once during that build and record its actual SHA in `mdd-build.json` `source.commit`. The serving process does not fetch content.
+During the image build, fetch the selected commit, verify the resolved SHA, run mdd, and include the finished site in the final image. A requested SHA that cannot be fetched must fail, never fall back to branch HEAD. For initial URL-only setup, resolve the branch once during that build and record its actual SHA in `mdd-build.json` `source.commit`.
+
+A prebuilt image has no baked site, because Railway pulls the image and does not pass build arguments. When the server starts without a baked site and `MDD_REPO_URL` is set, it downloads the GitHub tarball of `MDD_SOURCE_SHA`, else `MDD_REPO_REF`, else the default branch. The download uses HTTPS from `codeload.github.com` and does not need Git. The archive's recorded commit must match a requested SHA, or startup fails; it never falls back to a branch. Startup extracts only regular files and folders, rejects unsafe paths, and enforces size and file-count limits. It then builds the site and starts listening, so `/healthz` is ready only after the build. The download happens once per start. A baked site takes precedence, and the server never fetches content again while it runs.
 
 The content stage declares `MDD_REPO_URL`, `MDD_REPO_REF`, `MDD_SOURCE_SHA`, `MDD_SOURCE_DIR`, `MDD_BASE_PATH`, and `MDD_EDIT_BASE_URL` as Docker `ARG`s. `MDD_SOURCE_SHA` and `RAILWAY_DEPLOYMENT_ID` are declared immediately before the fetch, so a changed commit or a new deployment rebuilds that layer and leaves dependency layers cached. Git is not installed in the final image. This is the image-build contract, not a tested Railway template, and the image does not use Railway Config as Code. [Docker build variables](https://docs.railway.com/builds/dockerfiles)
 
@@ -103,6 +105,6 @@ Content updates must preserve the currently deployed mdd application revision an
 - A template deployment works from a public repository URL and its default `mdd/` folder.
 - A changed docs SHA appears in the built site and manifest despite caching.
 - Invalid source or content prevents publication, and restart/rollback behavior preserves the intended snapshot.
-- No source fetch, build-time theme execution, or mutation endpoint exists in the serving process.
+- No content fetch after startup, theme script execution, or mutation endpoint exists in the serving process.
 
 Private repositories, multiple sites, theme marketplaces, arbitrary layout plugins, AI chat, and external search services remain later work.

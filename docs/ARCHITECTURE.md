@@ -23,10 +23,11 @@ part of delivery. Keep `private: true` and `enable-package: false`; MDD needs no
 token, Trusted Publisher, or initial npm publication. Build Flow publishes the
 Node renderer/server container using its default artifact settings, separate from
 the engine's npm package. An image built with `MDD_REPO_URL` fetches that public
-GitHub content repository during the image build and serves the baked site. The
-serving process does not fetch content or run content-repository scripts. Without
-that build argument, startup still builds a project mounted at `/workspace`. The
-image does not deploy a Railway service.
+GitHub content repository during the image build and serves the baked site. A
+prebuilt image with `MDD_REPO_URL` set at runtime downloads the repository tarball
+once at startup, without Git, and builds it before listening. The server never runs
+content-repository scripts. Without `MDD_REPO_URL`, startup builds a project
+mounted at `/workspace`. The image does not deploy a Railway service.
 
 **Available now:** the engine package, reader, local development tooling, static export, Node server, image-build content fetch, generic namespaced plugin storage interface, and built-in feedback feature for MDD Standard. **Planned separately:** the Railway template, authenticated Analytics API, and MDD Analytics deployment. MDD Light's GitHub Pages installation/update flow remains later work. A local build does not establish a working Railway template or deployment.
 
