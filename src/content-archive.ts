@@ -55,6 +55,9 @@ export const downloadArchive: ArchiveDownloader = async (url) => {
     redirect: "follow",
     signal: AbortSignal.timeout(180_000),
   });
+  if (new URL(response.url).hostname !== "codeload.github.com") {
+    throw new Error("Content download left codeload.github.com.");
+  }
   if (response.status === 404) return { status: "missing" };
   if (!response.ok || !response.body) {
     throw new Error(`Content download failed with HTTP ${response.status}.`);
@@ -106,7 +109,11 @@ function paxRecords(data: Buffer): Map<string, string> {
     const space = data.indexOf(32, offset);
     if (space === -1) throw invalidArchive();
     const length = Number(data.subarray(offset, space).toString("ascii"));
-    if (!Number.isInteger(length) || length <= space - offset) {
+    if (
+      !Number.isInteger(length) ||
+      length <= space - offset ||
+      offset + length > data.length
+    ) {
       throw invalidArchive();
     }
     const record = data.subarray(space + 1, offset + length - 1).toString();
