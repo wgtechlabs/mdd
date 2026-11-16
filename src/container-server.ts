@@ -4,6 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { build } from "./build.js";
 import { isMissing, isWithin } from "./files.js";
+import { resolveContentFolder } from "./project-folder.js";
 import { serve } from "./server.js";
 
 export const defaultPrebuiltDir = "/app/site";
@@ -72,9 +73,15 @@ export async function startContainer(
 
   console.log("No baked site found. Building the mounted project.");
   const projectDir = path.resolve(env.MDD_PROJECT_DIR ?? process.cwd());
+  const mddDir = await resolveContentFolder(
+    projectDir,
+    env.MDD_DOCS_DIR,
+    "MDD_DOCS_DIR",
+  );
+  console.log(`Using the MDD folder ${mddDir}/.`);
   const result = await build({
     projectDir,
-    mddDir: env.MDD_DOCS_DIR,
+    mddDir,
     outDir: env.MDD_OUTPUT_DIR ?? "/tmp/mdd-dist",
     basePath: env.MDD_BASE_PATH,
     editBaseUrl: env.MDD_EDIT_BASE_URL,

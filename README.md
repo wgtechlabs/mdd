@@ -197,7 +197,7 @@ Write social links once in `mdd/footer.md`:
 
 Use one `socials` block with a flat unordered list of plain-text labels and absolute HTTPS links. Replace the example destination with your project's URL. Attributes, nested content, images, raw HTML, and credential-bearing URLs are rejected. The file belongs beside the documentation configuration, outside `contents/`; it does not become a page or search result. A missing or empty footer file is allowed. MDD renders social links beside **Built with mdd**, using recognizable icons where supported and readable labels otherwise.
 
-The server uses /workspace as `MDD_PROJECT_DIR`, /workspace/mdd as `MDD_DOCS_DIR`, /tmp/mdd-dist as `MDD_OUTPUT_DIR`, 0.0.0.0 as HOST, and 3000 as PORT by default. Set these environment variables to customize the project, docs, output, base path, edit URL, host, or port. MDD has no dashboard or owner accounts. Without a usable `DATABASE_URL`, docs remain available and database plugins stay disabled.
+The server uses /workspace as `MDD_PROJECT_DIR`, the first MDD folder of `mdd/` or `docs/` as `MDD_DOCS_DIR`, /tmp/mdd-dist as `MDD_OUTPUT_DIR`, 0.0.0.0 as HOST, and 3000 as PORT by default. Set these environment variables to customize the project, docs, output, base path, edit URL, host, or port. MDD has no dashboard or owner accounts. Without a usable `DATABASE_URL`, docs remain available and database plugins stay disabled.
 
 ## 📚 Documentation
 

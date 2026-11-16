@@ -155,6 +155,43 @@ describe("container startup", () => {
     expect((await get(port, "/")).body).toContain("Welcome");
   });
 
+  test("builds a mounted docs/ folder when mdd/ is absent", async () => {
+    const source = await tempDir();
+    await mkdir(path.join(source, "docs/contents"), { recursive: true });
+    await writeFile(path.join(source, "docs/contents/index.md"), "# Docs\n");
+    const parent = await tempDir();
+    const { port } = await listen({
+      MDD_PREBUILT_DIR: path.join(parent, "missing-site"),
+      MDD_PROJECT_DIR: source,
+      MDD_OUTPUT_DIR: path.join(parent, "out"),
+    });
+    expect((await get(port, "/")).body).toContain("Docs");
+  });
+
+  test("refuses to start without an MDD folder instead of serving a blank site", async () => {
+    const source = await tempDir();
+    const parent = await tempDir();
+    await expect(
+      startContainer({
+        MDD_PREBUILT_DIR: path.join(parent, "missing-site"),
+        MDD_PROJECT_DIR: source,
+        MDD_OUTPUT_DIR: path.join(parent, "out"),
+        PORT: String(await freePort()),
+        HOST: "127.0.0.1",
+      }),
+    ).rejects.toThrow(/No MDD folder found\. Checked mdd\/ and docs\//);
+    await expect(
+      startContainer({
+        MDD_PREBUILT_DIR: path.join(parent, "missing-site"),
+        MDD_PROJECT_DIR: await project(),
+        MDD_DOCS_DIR: "docs",
+        MDD_OUTPUT_DIR: path.join(parent, "out"),
+        PORT: String(await freePort()),
+        HOST: "127.0.0.1",
+      }),
+    ).rejects.toThrow(/MDD_DOCS_DIR=docs is not an MDD folder/);
+  });
+
   test("rejects an unsafe prebuilt manifest instead of using the mount", async () => {
     const parent = await tempDir();
     const site = path.join(parent, "site");
