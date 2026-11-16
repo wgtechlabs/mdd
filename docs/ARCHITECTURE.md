@@ -51,7 +51,7 @@ The separate `mdd-build-flow-action` is intended to invoke MDD for deployment an
 
 Develop, test, version, and ship **D Theme** in the **`wgtechlabs/mdd` repository**, alongside the reader. Its stable identifier is `d`. Themes are a logical styling layer, not a requirement for another repository or package. MDD Engine must remain usable without importing D Theme.
 
-D Theme has an independent numeric version and a release name. It started at **D26 / 0.1.0** and currently uses **D26 / 0.2.0**; minor and patch versions retain D26, and the planned **1.0.0** major release introduces D27. These are generations of one theme, not separate annual themes. Name changes are deliberate release decisions, never calendar-triggered. Archive released historical snapshots without rewriting their versions; do not invent a release from local development history.
+D Theme has an independent numeric version and a release name. It started at **D26 / 0.1.0** and currently uses **D26 / 0.3.0**; minor and patch versions retain D26, and the planned **1.0.0** major release introduces D27. These are generations of one theme, not separate annual themes. Name changes are deliberate release decisions, never calendar-triggered. Archive released historical snapshots without rewriting their versions; do not invent a release from local development history.
 
 MDD ships the selected D Theme version with the application, but an mdd version bump does not change the theme version. The footer shows the installed mdd version and D Theme identity. Custom themes remain visual overlays selected by the engine; their styles and assets stay in their theme directories and do not add a separate reader identity. See the [theme version policy](THEMES.md#version-policy).
 
